@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Saygo's Guitar Simulation</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #3b2f2f, #1a0f0f);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Rock Salt', cursive, sans-serif;
+    overflow: hidden;
+  }
+  canvas {
+    background: linear-gradient(90deg, #7b5b36, #9b7a4e, #7b5b36);
+    border: 12px solid #2d1a0e;
+    border-radius: 18px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
+    cursor: pointer;
+  }
+  .label {
+    position: absolute;
+    top: 10px;
+    color: #f5deb3;
+    text-align: center;
+    width: 100%;
+    font-size: 28px;
+    font-weight: bold;
+    text-shadow: 3px 3px 6px #000;
+  }
+  .tone-selector {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tone-selector button {
+    padding: 8px 12px;
+    background: #8b5a2b;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: 'Rock Salt', cursive;
+  }
+  .tone-selector button:hover {
+    background: #a7724d;
+  }
+
+  .pedal-popup {
+    position: absolute;
+    top: 70px;
+    left: 10px;
+    background: rgba(60, 30, 10, 0.95);
+    border: 3px solid #a7724d;
+    border-radius: 10px;
+    padding: 12px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 0 20px #000;
+  }
+
+  .pedal-popup button {
+    background: #d87a2c;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-family: 'Rock Salt', cursive;
+    font-size: 16px;
+  }
+
+  .pedal-popup button:hover {
+    background: #ff9f50;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Rock+Salt&display=swap');
+</style>
+</head>
+<body>
+<div class="label">🎸 Saygo's Guitar Simulation 🎶</div>
+<div class="tone-selector">
+  <button id="cleanBtn">🎵 Clean</button>
+  <button id="distBtn">⚡ Distortion</button>
+</div>
+
+<div class="pedal-popup" id="pedalPopup">
+  <button data-type="overdrive">Overdrive</button>
+  <button data-type="fuzz">Fuzz</button>
+  <button data-type="metal">Metal</button>
+  <button data-type="crunch">Crunch</button>
+  <button data-type="heavy">Heavy</button>
+  <button data-type="classic">Classic</button>
+</div>
+
+<canvas id="guitar" width="1000" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById('guitar');
+const ctx = canvas.getContext('2d');
+const numStrings = 6;
+const stringSpacing = canvas.height / (numStrings + 1);
+const vibration = Array(numStrings).fill(0);
+let pressedFrets = Array(numStrings).fill(0);
+let heldFrets = new Set();
+let stringHeld = Array(numStrings).fill(false);
+let bendOffsets = Array(numStrings).fill(0);
+
+const openStrings = [82.41, 110.00, 146.83, 196.00, 246.94, 329.63];
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let activeOscillators = {};
+let currentTone = 'clean';
+let currentDistortion = 'classic'; // selected pedal
+
+function makeDistortionCurve(amount) {
+  const n_samples = 44100;
+  const curve = new Float32Array(n_samples);
+  const deg = Math.PI / 180;
+  for (let i = 0; i < n_samples; ++i) {
+    const x = (i * 2) / n_samples - 1;
+    curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+  }
+  return curve;
+}
+
+function getFrequency(stringIndex, fret, bend = 0) {
+  return openStrings[stringIndex] * Math.pow(2, (fret + bend) / 12);
+}
+
+function createPedalEffect(osc, gain) {
+  const waveShaper = audioCtx.createWaveShaper();
+  const distortion = audioCtx.createGain();
+
+  switch (currentDistortion) {
+    case 'overdrive':
+      waveShaper.curve = makeDistortionCurve(80);
+      distortion.gain.value = 0.6;
+      osc.type = 'sine';
+      break;
+    case 'fuzz':
+      waveShaper.curve = makeDistortionCurve(200);
+      distortion.gain.value = 1.0;
+      osc.type = 'square';
+      break;
+    case 'metal':
+      waveShaper.curve = makeDistortionCurve(400);
+      distortion.gain.value = 1.2;
+      osc.type = 'sawtooth';
+      break;
+    case 'crunch':
+      waveShaper.curve = makeDistortionCurve(60);
+      distortion.gain.value = 0.8;
+      osc.type = 'triangle';
+      break;
+    case 'heavy':
+      waveShaper.curve = makeDistortionCurve(350);
+      distortion.gain.value = 1.5;
+      osc.type = 'square';
+      break;
+    case 'classic':
+    default:
+      waveShaper.curve = makeDistortionCurve(120);
+      distortion.gain.value = 1.0;
+      osc.type = 'sawtooth';
+      break;
+  }
+
+  osc.connect(waveShaper).connect(distortion).connect(gain).connect(audioCtx.destination);
+}
+
+function playString(stringIndex, fret, pinch=false) {
+  stopString(stringIndex);
+  let freq = getFrequency(stringIndex, fret);
+  if (pinch) freq *= 2;
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(currentTone === 'clean' ? 0.25 : 0.35, audioCtx.currentTime);
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+  if (currentTone === 'distortion') {
+    createPedalEffect(osc, gain);
+  } else {
+    osc.type = 'triangle';
+    osc.connect(gain).connect(audioCtx.destination);
+  }
+
+  osc.start();
+  activeOscillators[stringIndex] = { osc, gain };
+  vibration[stringIndex] = 1;
+}
+
+function stopString(stringIndex) {
+  if (activeOscillators[stringIndex]) {
+    activeOscillators[stringIndex].gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+    activeOscillators[stringIndex].osc.stop(audioCtx.currentTime + 0.31);
+    delete activeOscillators[stringIndex];
+  }
+}
+
+function updateFretPitch(stringIndex) {
+  if (activeOscillators[stringIndex]) {
+    const freq = getFrequency(stringIndex, pressedFrets[stringIndex], bendOffsets[stringIndex]);
+    activeOscillators[stringIndex].osc.frequency.exponentialRampToValueAtTime(freq, audioCtx.currentTime + 0.1);
+  }
+}
+
+function drawGuitar() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#8b5a2b';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.strokeStyle = '#c0c0c0';
+  for (let f = 0; f <= 12; f++) {
+    const x = (canvas.width / 13) * f + 50;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.lineWidth = f === 12 ? 3 : 1.5;
+    ctx.stroke();
+  }
+
+  const time = performance.now() / 1000;
+  for (let i = 0; i < numStrings; i++) {
+    const y = stringSpacing * (i + 1) - bendOffsets[i] * 4;
+    const amp = vibration[i] * 10;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    for (let x = 0; x <= canvas.width; x += 10) {
+      const wave = Math.sin(x / 40 + time * 25) * amp;
+      ctx.lineTo(x, y + wave);
+    }
+    const thickness = 6 - i;
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, '#ddd');
+    gradient.addColorStop(0.5, '#888');
+    gradient.addColorStop(1, '#ddd');
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = thickness;
+    ctx.stroke();
+    if (vibration[i] > 0.001) vibration[i] *= 0.9;
+  }
+
+  requestAnimationFrame(drawGuitar);
+}
+
+let mouseDown = false;
+canvas.addEventListener('mousedown', (e) => {
+  mouseDown = true;
+  const rect = canvas.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  for (let i = 0; i < numStrings; i++) {
+    const stringY = stringSpacing * (i + 1);
+    if (Math.abs(y - stringY) < 15) {
+      playString(i, pressedFrets[i]);
+      stringHeld[i] = true;
+    }
+  }
+});
+
+canvas.addEventListener('mouseup', () => {
+  mouseDown = false;
+  for (let i = 0; i < numStrings; i++) {
+    if (stringHeld[i]) {
+      stopString(i);
+      stringHeld[i] = false;
+      bendOffsets[i] = 0;
+    }
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  if (mouseDown) {
+    const rect = canvas.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    for (let i = 0; i < numStrings; i++) {
+      const stringY = stringSpacing * (i + 1);
+      if (stringHeld[i]) {
+        bendOffsets[i] = Math.max(-1, Math.min(1, (stringY - y) / 40));
+        updateFretPitch(i);
+      }
+    }
+  }
+});
+
+canvas.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  for (let i = 0; i < numStrings; i++) {
+    if (stringHeld[i]) playString(i, pressedFrets[i], true);
+  }
+});
+
+// 🔥 ALL FRETS INCLUDING Q–P
+const keys = [
+  '1','2','3','4','5','6','7','8','9',
+  'q','w','e','r','t','y','u','i','o','p'
+];
+
+window.addEventListener('keydown', (e) => {
+  const fret = keys.indexOf(e.key.toLowerCase());
+  if (fret >= 0) {
+    heldFrets.add(fret + 1);
+    for (let i = 0; i < numStrings; i++) {
+      const highest = Math.max(...heldFrets);
+      if (pressedFrets[i] !== highest) {
+        pressedFrets[i] = highest;
+        if (stringHeld[i]) playString(i, pressedFrets[i]);
+      }
+    }
+  }
+});
+
+window.addEventListener('keyup', (e) => {
+  const fret = keys.indexOf(e.key.toLowerCase());
+  if (fret >= 0) {
+    heldFrets.delete(fret + 1);
+    const next = heldFrets.size ? Math.max(...heldFrets) : 0;
+    for (let i = 0; i < numStrings; i++) {
+      if (pressedFrets[i] !== next) {
+        pressedFrets[i] = next;
+        updateFretPitch(i);
+      }
+    }
+  }
+});
+
+document.getElementById('cleanBtn').onclick = () => {
+  currentTone = 'clean';
+  document.getElementById('pedalPopup').style.display = 'none';
+};
+
+const distBtn = document.getElementById('distBtn');
+const pedalPopup = document.getElementById('pedalPopup');
+
+distBtn.onclick = () => {
+  currentTone = 'distortion';
+  pedalPopup.style.display = pedalPopup.style.display === 'flex' ? 'none' : 'flex';
+};
+
+pedalPopup.querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentDistortion = btn.dataset.type;
+    pedalPopup.style.display = 'none';
+  });
+});
+
+requestAnimationFrame(drawGuitar);
+</script>
+</body>
+</html>
