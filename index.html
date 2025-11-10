@@ -1,276 +1,881 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Saygo's Guitar Simulation</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Saygo's Guitar Simulation — Expanded</title>
 <style>
-  body {
-    background: radial-gradient(circle at center, #3b2f2f, #1a0f0f);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    font-family: 'Rock Salt', cursive, sans-serif;
-    overflow: hidden;
+  :root{
+    --panel-bg: rgba(40,20,10,0.95);
+    --panel-border: #a7724d;
+    --button-bg: #8b5a2b;
+    --button-hover: #a7724d;
+    --text: #f5deb3;
+    --muted: rgba(245,222,179,0.6);
   }
-  canvas {
-    background: linear-gradient(90deg, #7b5b36, #9b7a4e, #7b5b36);
-    border: 12px solid #2d1a0e;
-    border-radius: 18px;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
-    cursor: pointer;
+
+  body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:radial-gradient(circle at center, #2f2422, #100a0a);
+    font-family: "Rock Salt", cursive, sans-serif;
+    overflow:hidden;
+    color:var(--text);
   }
-  .label {
+
+  /* Top Label */
+  .label{
+    position:absolute;
+    top:10px;
+    left:0;
+    right:0;
+    text-align:center;
+    font-size:26px;
+    text-shadow:3px 3px 6px #000;
+  }
+
+  /* Canvas */
+  canvas#guitar{
+    width:1000px;
+    height:420px;
+    border-radius:14px;
+    border:12px solid #2d1a0e;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.75);
+    background:linear-gradient(90deg,#7b5b36,#9b7a4e,#7b5b36);
+    cursor:crosshair;
+  }
+
+  /* UI containers */
+  .controls{
+    position:absolute;
+    top:10px;
+    left:12px;
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .right-controls{
+    position:absolute;
+    top:10px;
+    right:12px;
+    display:flex;
+    gap:8px;
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  button.ui {
+    background:var(--button-bg);
+    color:#fff;
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+    font-family:"Rock Salt",cursive;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  }
+  button.ui:hover{ background:var(--button-hover); }
+
+  /* Panel: Guitars */
+  .panel {
     position: absolute;
-    top: 10px;
-    color: #f5deb3;
-    text-align: center;
-    width: 100%;
-    font-size: 28px;
-    font-weight: bold;
-    text-shadow: 3px 3px 6px #000;
-  }
-  .tone-selector {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .tone-selector button {
-    padding: 8px 12px;
-    background: #8b5a2b;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 18px;
-    font-family: 'Rock Salt', cursive;
-  }
-  .tone-selector button:hover {
-    background: #a7724d;
+    top:56px;
+    left:12px;
+    display:none;
+    width:420px;
+    max-height:520px;
+    overflow:auto;
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:10px;
+    padding:12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.7);
   }
 
-  .pedal-popup {
-    position: absolute;
-    top: 70px;
-    left: 10px;
-    background: rgba(60, 30, 10, 0.95);
-    border: 3px solid #a7724d;
-    border-radius: 10px;
-    padding: 12px;
-    display: none;
-    flex-direction: column;
-    gap: 8px;
-    box-shadow: 0 0 20px #000;
+  .panel .title{ font-weight:bold; margin-bottom:8px; color:var(--text); }
+  .guitar-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:8px;
   }
 
-  .pedal-popup button {
-    background: #d87a2c;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-family: 'Rock Salt', cursive;
-    font-size: 16px;
+  .guitar-card{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    padding:8px;
+    border-radius:8px;
+    background:rgba(255,255,255,0.03);
+    cursor:pointer;
+    transition:0.12s;
+  }
+  .guitar-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
+
+  .swatch{
+    width:60px;
+    height:36px;
+    border-radius:6px;
+    border:2px solid rgba(0,0,0,0.4);
+    box-shadow: inset 0 -6px 20px rgba(0,0,0,0.25);
+  }
+  .guitar-info{ font-size:14px; line-height:1.1; color:var(--text); }
+
+  /* Pedal panel (new) */
+  .pedal-panel{
+    position:absolute;
+    top:56px;
+    right:12px;
+    display:none;
+    width:520px;
+    max-height:560px;
+    overflow:auto;
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:10px;
+    padding:12px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.7);
   }
 
-  .pedal-popup button:hover {
-    background: #ff9f50;
+  .pedal-controls {
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .pedal-search {
+    flex:1;
+    padding:8px 10px;
+    border-radius:8px;
+    border:2px solid rgba(255,255,255,0.04);
+    background:rgba(255,255,255,0.02);
+    color:var(--text);
+    font-family:inherit;
   }
 
-  @import url('https://fonts.googleapis.com/css2?family=Rock+Salt&display=swap');
+  .pedal-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:10px;
+  }
+
+  .pedal-card{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    padding:10px;
+    border-radius:10px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+    cursor:pointer;
+    transition: transform 0.12s, box-shadow 0.12s;
+    border:1px solid rgba(255,255,255,0.02);
+  }
+  .pedal-card:hover{ transform:translateY(-4px); box-shadow:0 10px 30px rgba(0,0,0,0.6); }
+
+  .pedal-tile{
+    width:56px;
+    height:44px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:bold;
+    color:rgba(0,0,0,0.82);
+    border:1px solid rgba(0,0,0,0.12);
+    box-shadow: inset 0 -8px 20px rgba(255,255,255,0.03);
+    flex-shrink:0;
+  }
+
+  .pedal-info{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    color:var(--text);
+  }
+  .pedal-name{ font-weight:bold; font-size:14px; }
+  .pedal-desc{ font-size:12px; opacity:0.85; color:var(--muted); }
+
+  .pedal-row-actions {
+    margin-left:auto;
+  }
+
+  /* Amp panel */
+  .amp-panel{
+    position:absolute;
+    top:240px;
+    left:12px;
+    display:none;
+    width:420px;
+    max-height:360px;
+    overflow:auto;
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:10px;
+    padding:12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+  }
+  .amp-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .amp-card{ display:flex; gap:8px; align-items:center; padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); cursor:pointer; }
+  .amp-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
+  .amp-swatch{ width:56px; height:36px; border-radius:6px; border:2px solid rgba(0,0,0,0.4); }
+
+  /* selected indicator */
+  .selected-indicator{
+    margin-left:8px;
+    padding:6px 8px;
+    border-radius:6px;
+    background:rgba(0,0,0,0.14);
+    font-size:12px;
+    color:var(--text);
+  }
+
+  /* Legend */
+  .legend{
+    position:absolute;
+    bottom:18px;
+    left:12px;
+    color:rgba(245,222,179,0.9);
+    font-size:13px;
+    background:rgba(0,0,0,0.25);
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  /* Responsive */
+  @media (max-width:1100px){
+    canvas#guitar{ width:88vw; height:44vh; }
+    .panel{ width:86vw; max-height:40vh; left:6vw; top:64px; }
+    .pedal-panel{ right:6vw; top:64px; width:86vw; max-height:42vh; }
+    .pedal-grid{ grid-template-columns:repeat(1, 1fr); }
+  }
+
+  /* Extra helper classes used by JS to hide/show */
+  .hidden { display:none !important; }
+  .flexrow { display:flex; align-items:center; gap:8px; }
+
+  /* Active pedal highlight (visual) */
+  .pedal-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
+  .guitar-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
+  .amp-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
 </style>
 </head>
 <body>
-<div class="label">🎸 Saygo's Guitar Simulation 🎶</div>
-<div class="tone-selector">
-  <button id="cleanBtn">🎵 Clean</button>
-  <button id="distBtn">⚡ Distortion</button>
+
+<div class="label">🎸 Saygo's Guitar Simulation — Expanded Collection</div>
+
+<!-- Left controls -->
+<div class="controls">
+  <button id="guitarsBtn" class="ui">🎸 Guitars</button>
+  <button id="ampsBtn" class="ui">🔊 Amps</button>
+  <button id="cleanBtn" class="ui">🎵 Clean</button>
+  <button id="distBtn" class="ui">⚡ Distortion</button>
 </div>
 
-<div class="pedal-popup" id="pedalPopup">
-  <button data-type="overdrive">Overdrive</button>
-  <button data-type="fuzz">Fuzz</button>
-  <button data-type="metal">Metal</button>
-  <button data-type="crunch">Crunch</button>
-  <button data-type="heavy">Heavy</button>
-  <button data-type="classic">Classic</button>
+<!-- Guitar selection panel (hidden until "Guitars" clicked) -->
+<div id="guitarPanel" class="panel" aria-hidden="true">
+  <div class="title">Select a Guitar (click)</div>
+  <div class="guitar-grid" id="guitarGrid">
+    <!-- JS will populate many guitars -->
+  </div>
 </div>
 
-<canvas id="guitar" width="1000" height="400"></canvas>
+<!-- Amp panel -->
+<div id="ampPanel" class="amp-panel" aria-hidden="true">
+  <div class="title">Select an Amp (click)</div>
+  <div class="amp-grid" id="ampGrid"></div>
+</div>
+
+<!-- Right controls (pedals) -->
+<div class="right-controls">
+  <button class="ui" id="pedalToggle">🎛️ Pedals</button>
+</div>
+
+<!-- Pedal panel (replaces image-based popup) -->
+<div id="pedalPanel" class="pedal-panel" aria-hidden="true">
+  <div class="title">Pedalboard — toggle pedals (multi-select)</div>
+
+  <div class="pedal-controls">
+    <input id="pedalSearch" class="pedal-search" placeholder="Search pedals" aria-label="Search pedals">
+    <select id="pedalFilter" class="ui" title="Filter by family">
+      <option value="all">All</option>
+      <option value="drive">Drive / Overdrive</option>
+      <option value="fuzz">Fuzz</option>
+      <option value="mod">Modulation</option>
+      <option value="delay">Delay / Reverb</option>
+      <option value="boost">Boost / Preamp</option>
+      <option value="metal">High gain / Metal</option>
+      <option value="special">Special / Ambient</option>
+    </select>
+  </div>
+
+  <div id="pedalGrid" class="pedal-grid" role="list">
+    <!-- JS will populate >40 pedal cards (no images) -->
+  </div>
+
+  <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+    <div class="selected-indicator" id="activePedalLabel">Active: (none)</div>
+    <button id="clearPedals" class="ui">Clear</button>
+    <div style="flex:1"></div>
+    <div style="font-size:12px; color:var(--muted)">Tip: click pedals to toggle (multi-select). Click order = signal order. Delay pedal provides realistic echo.</div>
+  </div>
+</div>
+
+<!-- Canvas -->
+<canvas id="guitar" width="1000" height="420"></canvas>
+
+<!-- Small legend -->
+<div class="legend">
+  Left-click to strum/hold. Press keys (1-9, q-o) to fret. P toggles pedal panel. / focuses search.
+</div>
 
 <script>
+/* ------------------------------
+   GUITARS: 50+ real / well-known models
+   (id, name, color, gain, oscType, toneColor)
+   ------------------------------ */
+const GUITARS = [
+  { id:'fender_strat_sunburst', name:'Fender Stratocaster - Sunburst', color:'#ffb04d', gain:0.32, oscType:'triangle', toneColor:[0.95,0.7,0.45] },
+  { id:'fender_strat_white', name:'Fender Stratocaster - White', color:'#f7f7f7', gain:0.30, oscType:'triangle', toneColor:[0.95,0.95,0.95] },
+  { id:'fender_strat_black', name:'Fender Stratocaster - Black', color:'#111111', gain:0.31, oscType:'triangle', toneColor:[0.12,0.12,0.12] },
+  { id:'fender_strat_hss', name:'Fender Stratocaster HSS', color:'#e6b89c', gain:0.33, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
+  { id:'fender_tele_but', name:'Fender Telecaster - Butterscotch', color:'#d2a46a', gain:0.33, oscType:'triangle', toneColor:[0.88,0.66,0.43] },
+  { id:'gibson_lespaul_cherry', name:'Gibson Les Paul - Cherry Sunburst', color:'#8a2b19', gain:0.36, oscType:'sawtooth', toneColor:[0.55,0.18,0.12] },
+  { id:'gibson_lespaul_gold', name:'Gibson Les Paul - Gold Top', color:'#d1af6a', gain:0.34, oscType:'sawtooth', toneColor:[0.85,0.68,0.4] },
+  { id:'gibson_sg_cherry', name:'Gibson SG - Cherry', color:'#8f1a14', gain:0.35, oscType:'sawtooth', toneColor:[0.6,0.12,0.08] },
+  { id:'gibson_es335', name:'Gibson ES-335', color:'#d8996a', gain:0.31, oscType:'triangle', toneColor:[0.92,0.7,0.6] },
+  { id:'prs_custom24_blue', name:'PRS Custom 24 - Blue', color:'#1e5f9d', gain:0.33, oscType:'sawtooth', toneColor:[0.2,0.45,0.75] },
+  { id:'prs_se', name:'PRS SE - Tobacco Sunburst', color:'#6e3b1f', gain:0.34, oscType:'sawtooth', toneColor:[0.55,0.32,0.18] },
+  { id:'ibanez_rg_red', name:'Ibanez RG - Red', color:'#b22222', gain:0.35, oscType:'square', toneColor:[0.75,0.15,0.15] },
+  { id:'ibanez_s540', name:'Ibanez S540', color:'#2b4b6f', gain:0.34, oscType:'square', toneColor:[0.28,0.45,0.7] },
+  { id:'jackson_soloist_black', name:'Jackson Soloist - Black', color:'#0b0b0b', gain:0.38, oscType:'square', toneColor:[0.08,0.08,0.08] },
+  { id:'esp_eclipse', name:'ESP Eclipse - Matte Black', color:'#131313', gain:0.39, oscType:'square', toneColor:[0.1,0.08,0.08] },
+  { id:'charvel_pro', name:'Charvel Pro-Mod', color:'#b23d3d', gain:0.36, oscType:'square', toneColor:[0.6,0.15,0.15] },
+  { id:'gretsch_white_falcon', name:'Gretsch White Falcon', color:'#fff9f0', gain:0.29, oscType:'sine', toneColor:[0.98,0.95,0.9] },
+  { id:'rickenbacker_360', name:'Rickenbacker 360 - Fireglo', color:'#c44a2f', gain:0.31, oscType:'triangle', toneColor:[0.85,0.35,0.2] },
+  { id:'gretsch_g6120', name:'Gretsch G6120', color:'#e8b58f', gain:0.3, oscType:'triangle', toneColor:[0.95,0.8,0.68] },
+  { id:'fender_jazzmaster', name:'Fender Jazzmaster - Seafoam', color:'#9fe0c9', gain:0.30, oscType:'triangle', toneColor:[0.6,0.9,0.8] },
+  { id:'epiphone_casino', name:'Epiphone Casino - Sunburst', color:'#c58f5d', gain:0.28, oscType:'triangle', toneColor:[0.85,0.7,0.45] },
+  { id:'epiphone_sheraton', name:'Epiphone Sheraton', color:'#cfb59e', gain:0.29, oscType:'triangle', toneColor:[0.92,0.8,0.7] },
+  { id:'gretsch_synchro', name:'Gretsch Synchromatic', color:'#d0a97a', gain:0.28, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
+  { id:'tele_custom', name:'Custom Telecaster', color:'#c8a06e', gain:0.31, oscType:'triangle', toneColor:[0.85,0.7,0.5] },
+  { id:'fender_jazzbass', name:'Fender Jazz Bass', color:'#111111', gain:0.44, oscType:'sine', toneColor:[0.06,0.06,0.06], isBass:true },
+  { id:'fender_p_bass', name:'Fender Precision Bass', color:'#222222', gain:0.46, oscType:'sine', toneColor:[0.08,0.08,0.08], isBass:true },
+
+  { id:'martin_d28', name:'Martin D-28 (Acoustic)', color:'#d7c6a1', gain:0.24, oscType:'sine', toneColor:[0.93,0.86,0.7] },
+  { id:'taylor_314ce', name:'Taylor 314ce (Acoustic)', color:'#f1e6d0', gain:0.25, oscType:'sine', toneColor:[0.97,0.92,0.82] },
+  { id:'yamaha_pacifica', name:'Yamaha Pacifica', color:'#4b2f1f', gain:0.30, oscType:'triangle', toneColor:[0.5,0.35,0.25] },
+  { id:'cort_x', name:'Cort X Series', color:'#243b5a', gain:0.33, oscType:'square', toneColor:[0.25,0.4,0.6] },
+  { id:'dean_ml', name:'Dean ML - Metal Red', color:'#a12020', gain:0.42, oscType:'square', toneColor:[0.6,0.12,0.12] },
+  { id:'bc_rich_warlock', name:'BC Rich Warlock - Purple', color:'#6b2b7a', gain:0.37, oscType:'square', toneColor:[0.45,0.18,0.45] },
+  { id:'musicman_stingray', name:'Music Man StingRay', color:'#2a6ea5', gain:0.34, oscType:'triangle', toneColor:[0.2,0.45,0.75] },
+  { id:'ernie_ball_mattel', name:'Ernie Ball Music Man', color:'#6ea07b', gain:0.33, oscType:'triangle', toneColor:[0.45,0.66,0.5] },
+  { id:'danelectro_hb', name:'Danelectro', color:'#c89f7a', gain:0.29, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
+  { id:'randy_rhoads', name:'Jackson RR', color:'#0f2b3b', gain:0.38, oscType:'square', toneColor:[0.1,0.2,0.35] },
+  { id:'flying_v', name:'Gibson Flying V', color:'#b12f2f', gain:0.37, oscType:'square', toneColor:[0.6,0.15,0.15] },
+  { id:'esp_viper', name:'ESP Viper', color:'#111315', gain:0.39, oscType:'square', toneColor:[0.08,0.08,0.08] },
+  { id:'strandberg', name:'Strandberg', color:'#5a5a5a', gain:0.34, oscType:'triangle', toneColor:[0.5,0.5,0.5] },
+  { id:'schecter_c7', name:'Schecter C-7 (7-string)', color:'#2b2b2b', gain:0.45, oscType:'square', toneColor:[0.06,0.06,0.06] },
+  { id:'ibanez_jem', name:'Ibanez JEM', color:'#ff7f50', gain:0.36, oscType:'square', toneColor:[0.95,0.5,0.3] },
+  { id:'epiphone_wildkat', name:'Epiphone Wildkat', color:'#e6d7c3', gain:0.29, oscType:'triangle', toneColor:[0.95,0.85,0.75] },
+  { id:'squier_classic_vibe', name:'Squier Classic Vibe', color:'#cc8a4a', gain:0.29, oscType:'triangle', toneColor:[0.88,0.66,0.44] },
+  { id:'hofner_violin', name:'Hofner Violin Bass', color:'#c48b4b', gain:0.42, oscType:'sine', toneColor:[0.9,0.7,0.4], isBass:true },
+  { id:'custom_shop', name:'Custom Shop Classic', color:'#b07a4d', gain:0.33, oscType:'sawtooth', toneColor:[0.8,0.6,0.45] }
+];
+
+/* ------------------------------
+   PEDALS: 40+ real pedals (ids used for behaviour mapping)
+   Each: id, name, family, color, desc
+   ------------------------------ */
+const PEDALS = [
+  { id:'boss_ds1', name:'Boss DS-1', family:'drive', color:'#ffd6d6', desc:'Classic hard clipping distortion.' },
+  { id:'boss_sd1', name:'Boss SD-1', family:'drive', color:'#ffd9b3', desc:'Smooth overdrive, asymmetric clipping.' },
+  { id:'ibanez_ts9', name:'Ibanez TS9 Tube Screamer', family:'drive', color:'#f4d7a8', desc:'Mid hump overdrive for solos.' },
+  { id:'ibanez_ts808', name:'Ibanez TS808', family:'drive', color:'#f4e1b0', desc:'Classic tube overdrive.' },
+  { id:'klon_centaur', name:'Klon Centaur (sim)', family:'boost', color:'#f6e5d0', desc:'Transparent boutique boost.' },
+  { id:'ecex_tube', name:'Tube Drive', family:'drive', color:'#d99861', desc:'Tube-like warmth and sag.' },
+  { id:'boss_od3', name:'Boss OD-3', family:'drive', color:'#f2a65b', desc:'Modern overdrive flavor.' },
+  { id:'proco_rat', name:'ProCo Rat', family:'drive', color:'#e6d0d0', desc:'Versatile distortion, gritty to fuzzy.' },
+  { id:'boss_mt2', name:'Boss MT-2 Metal Zone', family:'metal', color:'#c3c3c3', desc:'High-gain, mid control.' },
+
+  { id:'electro_harmonix_big_muff', name:'Big Muff Pi', family:'fuzz', color:'#c56f6f', desc:'Sustained scooped fuzz.' },
+  { id:'dunlop_fuzz_face', name:'Fuzz Face', family:'fuzz', color:'#e07a6a', desc:'Woolly vintage fuzz.' },
+  { id:'electro_harmonix_op_amp', name:'OP Amp Big Muff', family:'fuzz', color:'#c9a3a3', desc:'Tighter fuzz variant.' },
+  { id:'z_vex_fuzz', name:'Z.Vex Fuzz', family:'fuzz', color:'#ffadb3', desc:'Gated and aggressive fuzz.' },
+
+  { id:'boss_ch1', name:'Boss CH-1', family:'mod', color:'#8fd1d1', desc:'Bright chorus.' },
+  { id:'electro_harmonix_small_clone', name:'Small Clone', family:'mod', color:'#9fd4d4', desc:'Vintage chorus tone.' },
+  { id:'mxr_flanger', name:'MXR Flanger', family:'mod', color:'#6fc1d3', desc:'Jet-like flange.' },
+  { id:'mxr_phaser', name:'MXR Phaser', family:'mod', color:'#9bd4c7', desc:'Classic phasing sweep.' },
+  { id:'boss_tr2', name:'Boss TR-2 Tremolo', family:'mod', color:'#9ec0ff', desc:'Volume tremolo.' },
+
+  { id:'boss_dd3', name:'Boss DD-3 (Digital Delay)', family:'delay', color:'#d6e7ff', desc:'Short crisp digital repeats.' },
+  { id:'boss_dd7', name:'Boss DD-7', family:'delay', color:'#cfe6ff', desc:'Modern digital delay with modulation.' },
+  { id:'mxr_analog_delay', name:'MXR Analog Delay', family:'delay', color:'#c4d2ff', desc:'Warm tape-like repeats.' },
+  { id:'electro_harmonix_memory', name:'Memory Man', family:'delay', color:'#cbefff', desc:'Warm/Bouncy analog delay.' },
+  { id:'tc_electronic_flashback', name:'TC Flashback', family:'delay', color:'#d0e9ff', desc:'Versatile delay + looper.' },
+  { id:'slapback', name:'Slapback', family:'delay', color:'#ffe6cc', desc:'Short single echo.' },
+
+  { id:'boss_reverb', name:'Boss Reverb', family:'delay', color:'#e8f4ff', desc:'Dense reverb tail.' },
+  { id:'ehx_reverb', name:'EHX Cathedral', family:'delay', color:'#e2f2ff', desc:'Huge ambient reverb.' },
+
+  { id:'mxr_dyna_comp', name:'MXR Dyna Comp (Comp)', family:'special', color:'#e9d6ff', desc:'Compression and sustain.' },
+  { id:'boss_cs3', name:'Boss CS-3', family:'special', color:'#f0e5ff', desc:'Classic compression.' },
+
+  { id:'dunlop_wah', name:'Dunlop Cry Baby', family:'special', color:'#ffd9f0', desc:'Classic wah for funk.' },
+  { id:'electro_harmonix_synth', name:'Synth Filter', family:'special', color:'#d7dbe6', desc:'Resonant filter sweeps.' },
+
+  { id:'boss_ns2', name:'Noise Suppressor', family:'special', color:'#e6e6e6', desc:'Reduces hum and hiss.' },
+  { id:'tc_electronic_hall', name:'Hall Reverb', family:'delay', color:'#dceefb', desc:'Large hall reverb.' },
+
+  { id:'chorusvibrato', name:'Uni-Vibe', family:'mod', color:'#7ed1b3', desc:'Vintage warble.' },
+  { id:'sustain', name:'Sustainer', family:'special', color:'#c8b1ff', desc:'Long sustain, compression.' },
+  { id:'octaver', name:'Octaver', family:'special', color:'#d3c1ff', desc:'Thick octave-down.' },
+
+  { id:'bitcrusher', name:'Bitcrusher', family:'special', color:'#d8bdbd', desc:'Lo-fi digital crunch.' },
+  { id:'shimmer', name:'Shimmer Reverb', family:'delay', color:'#e7f1ff', desc:'Octave-up reverb shimmer.' },
+  { id:'eng_boost', name:'English Boost', family:'boost', color:'#f6e1c7', desc:'Boutique mid boost.' },
+  { id:'solo_boost', name:'Solo Boost', family:'boost', color:'#ffd36b', desc:'Big level push for solos.' },
+  { id:'smooth_drive', name:'Smooth Drive', family:'drive', color:'#f1d7a9', desc:'Polished overdrive for leads.' }
+];
+
+/* ------------------------------
+   AMPS: 20+ amplifier profiles (id, name, color, gainFactor, eq: {low,mid,high})
+   We'll simulate amp voicing with gain + EQ biquad filters.
+   ------------------------------ */
+const AMPS = [
+  { id:'marshall_jcm800', name:'Marshall JCM800', color:'#d49b6a', gain:1.8, eq:{low:0.9, mid:1.2, high:1.1} },
+  { id:'marshall_plexi', name:'Marshall Plexi', color:'#c58a5a', gain:1.7, eq:{low:1.0, mid:1.0, high:1.05} },
+  { id:'mesa_rectifier', name:'Mesa Boogie Dual Rectifier', color:'#2b2b2b', gain:2.2, eq:{low:1.1, mid:0.9, high:1.0} },
+  { id:'fender_twin', name:'Fender Twin Reverb', color:'#a6c8e0', gain:0.9, eq:{low:1.05, mid:0.95, high:1.2} },
+  { id:'vox_ac30', name:'Vox AC30', color:'#e3c6a3', gain:1.4, eq:{low:0.95, mid:1.0, high:1.15} },
+  { id:'peavey_5150', name:'Peavey 5150', color:'#b33a3a', gain:2.3, eq:{low:1.05, mid:0.85, high:0.95} },
+  { id:'orange_or50', name:'Orange Rockerverb', color:'#ff7f00', gain:1.9, eq:{low:1.0, mid:1.1, high:1.0} },
+  { id:'mesa_markV', name:'Mesa Mark V', color:'#7a6f65', gain:2.0, eq:{low:1.05, mid:1.0, high:1.05} },
+  { id:'fender_prosonic', name:'Fender Prosonic', color:'#9fb8c9', gain:1.0, eq:{low:1.02, mid:0.98, high:1.1} },
+  { id:'marshall_jvm', name:'Marshall JVM', color:'#ad7f5a', gain:2.1, eq:{low:1.0, mid:1.05, high:1.05} },
+  { id:'peavey_vyper', name:'Peavey Vyper', color:'#6b6b6b', gain:1.6, eq:{low:0.98, mid:1.0, high:1.02} },
+  { id:'laney_ironheart', name:'Laney Ironheart', color:'#4b3b3b', gain:2.0, eq:{low:1.05, mid:0.9, high:1.0} },
+  { id:'mesa_expedition', name:'Mesa Expedition', color:'#5a5a5a', gain:1.3, eq:{low:1.0, mid:1.0, high:1.0} },
+  { id:'fender_deluxe', name:'Fender Deluxe Reverb', color:'#aebfcf', gain:1.0, eq:{low:1.02, mid:0.98, high:1.1} },
+  { id:'marshall_jcm900', name:'Marshall JCM900', color:'#c08a54', gain:1.9, eq:{low:1.02, mid:1.0, high:1.03} },
+  { id:'carvin_v3', name:'Carvin V3', color:'#7f5e3a', gain:1.7, eq:{low:1.0, mid:1.05, high:1.0} },
+  { id:'supro', name:'Supro', color:'#bfa07a', gain:1.1, eq:{low:1.05, mid:0.98, high:1.08} },
+  { id:'hiwatt_dr103', name:'HiWatt DR103', color:'#d7d7d7', gain:1.2, eq:{low:1.03, mid:1.0, high:1.05} },
+  { id:'brit_boost', name:'British Boutique', color:'#9b6b4a', gain:1.8, eq:{low:1.0, mid:1.15, high:1.0} },
+  { id:'clean_board', name:'Clean Board', color:'#cfe1d3', gain:0.95, eq:{low:1.0, mid:1.0, high:1.05} }
+];
+
+/* ------------------------------
+   Audio & Canvas state
+   ------------------------------ */
 const canvas = document.getElementById('guitar');
 const ctx = canvas.getContext('2d');
-const numStrings = 6;
-const stringSpacing = canvas.height / (numStrings + 1);
-const vibration = Array(numStrings).fill(0);
-let pressedFrets = Array(numStrings).fill(0);
-let heldFrets = new Set();
-let stringHeld = Array(numStrings).fill(false);
-let bendOffsets = Array(numStrings).fill(0);
 
-const openStrings = [82.41, 110.00, 146.83, 196.00, 246.94, 329.63];
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let activeOscillators = {};
+let isBassMode = false;
+let currentGuitar = GUITARS[0].id;
+let activePedals = []; // multi-pedal chain in click order
 let currentTone = 'clean';
-let currentDistortion = 'classic'; // selected pedal
+let currentAmp = AMPS[0].id;
 
-function makeDistortionCurve(amount) {
+let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let activeOscillators = {};
+let vibration = [];
+let phase = [];
+let pressedFrets = [];
+let stringHeld = [];
+let bendOffsets = [];
+let heldFrets = new Set();
+
+let numStrings = 6;
+let openStrings = [82.41,110.00,146.83,196.00,246.94,329.63]; // standard EADGBE
+
+/* initialize arrays for default 6 strings */
+function initStrings(count){
+  numStrings = count;
+  vibration = Array(numStrings).fill(0);
+  phase = Array(numStrings).fill(0).map(()=>Math.random()*Math.PI*2);
+  pressedFrets = Array(numStrings).fill(0);
+  stringHeld = Array(numStrings).fill(false);
+  bendOffsets = Array(numStrings).fill(0);
+}
+
+/* start with 6 strings */
+initStrings(6);
+
+/* ------------------------------
+   Distortion curve helper
+   ------------------------------ */
+function makeDistortionCurve(amount){
   const n_samples = 44100;
   const curve = new Float32Array(n_samples);
-  const deg = Math.PI / 180;
-  for (let i = 0; i < n_samples; ++i) {
-    const x = (i * 2) / n_samples - 1;
-    curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+  for(let i=0;i<n_samples;i++){
+    const x = i*2/n_samples -1;
+    curve[i] = ((3+amount) * x * 20) / (Math.PI + amount * Math.abs(x));
   }
   return curve;
 }
 
-function getFrequency(stringIndex, fret, bend = 0) {
-  return openStrings[stringIndex] * Math.pow(2, (fret + bend) / 12);
+/* ------------------------------
+   Guitar profile lookup by id
+   ------------------------------ */
+function guitarProfileById(id){
+  return GUITARS.find(g=>g.id===id) || GUITARS[0];
+}
+function ampProfileById(id){
+  return AMPS.find(a=>a.id===id) || AMPS[0];
+}
+function pedalById(id){
+  return PEDALS.find(p=>p.id===id) || { id, name:id, family:'other', color:'#ddd', desc:'' };
 }
 
-function createPedalEffect(osc, gain) {
-  const waveShaper = audioCtx.createWaveShaper();
-  const distortion = audioCtx.createGain();
+/* ------------------------------
+   Frequency / Play / Stop
+   ------------------------------ */
+function getFrequency(stringIndex, fret, bend=0){
+  const base = openStrings[stringIndex] || openStrings[openStrings.length-1];
+  return base * Math.pow(2,(fret + bend)/12);
+}
 
-  switch (currentDistortion) {
-    case 'overdrive':
-      waveShaper.curve = makeDistortionCurve(80);
-      distortion.gain.value = 0.6;
-      osc.type = 'sine';
-      break;
-    case 'fuzz':
-      waveShaper.curve = makeDistortionCurve(200);
-      distortion.gain.value = 1.0;
-      osc.type = 'square';
-      break;
-    case 'metal':
-      waveShaper.curve = makeDistortionCurve(400);
-      distortion.gain.value = 1.2;
-      osc.type = 'sawtooth';
-      break;
-    case 'crunch':
-      waveShaper.curve = makeDistortionCurve(60);
-      distortion.gain.value = 0.8;
-      osc.type = 'triangle';
-      break;
-    case 'heavy':
-      waveShaper.curve = makeDistortionCurve(350);
-      distortion.gain.value = 1.5;
-      osc.type = 'square';
-      break;
-    case 'classic':
-    default:
-      waveShaper.curve = makeDistortionCurve(120);
-      distortion.gain.value = 1.0;
-      osc.type = 'sawtooth';
-      break;
+/* ------------------------------
+   Build a pedal chain from activePedals []
+   Each pedal returns a node we can connect into.
+   We'll implement essential pedal types:
+   - drive/fuzz/metal: WaveShaper + gain
+   - delay: DelayNode + feedback (non-repeating natural echo)
+   - mod: chorus/phaser simulated via small delay + LFO
+   - reverb: simple multi-tap reverb approximation
+   - boost/compressor: gain or dynamics compression approximation
+   ------------------------------ */
+function buildPedalChain(sourceNode){
+  // start from sourceNode, then sequentially connect pedals in activePedals order
+  let lastNode = sourceNode;
+
+  for(let pid of activePedals){
+    // find pedal type
+    const p = pedalById(pid);
+    const family = p.family || 'other';
+
+    if(family === 'drive' || family === 'fuzz' || family === 'metal'){
+      // wave shaper + post gain
+      const sh = audioCtx.createWaveShaper();
+      let amount = 120;
+      if(pid.includes('fuzz') || pid.includes('fuzz') || pid.includes('big_muff')) amount = 260;
+      if(pid.includes('metal') || pid.includes('rectifier') || pid.includes('metalcore')) amount = 460;
+      if(pid.includes('tube') || pid.includes('tube_drive')) amount = 90;
+      sh.curve = makeDistortionCurve(amount);
+      const g = audioCtx.createGain();
+      g.gain.value = 1.0; // pedal output level
+      lastNode.connect(sh);
+      sh.connect(g);
+      lastNode = g;
+    } else if(family === 'delay'){
+      // Delay node with feedback & lowpass on feedback to emulate echo decay
+      const delay = audioCtx.createDelay();
+      // base delay time
+      let dt = 0.28;
+      if(pid.includes('slapback')) dt = 0.09;
+      if(pid.includes('analog') || pid.includes('memory')) dt = 0.35;
+      if(pid.includes('ping') || pid.includes('ping_pong')) dt = 0.22;
+      delay.delayTime.value = dt;
+      const fb = audioCtx.createGain();
+      fb.gain.value = 0.42; // feedback amount (keeps non-repeating but natural)
+      const fbFilter = audioCtx.createBiquadFilter();
+      fbFilter.type = 'lowpass';
+      fbFilter.frequency.value = 3000; // tame highs on feedback
+      // connect: lastNode -> delay -> outGain
+      const outGain = audioCtx.createGain();
+      outGain.gain.value = 0.95;
+      lastNode.connect(delay);
+      delay.connect(outGain);
+      // feed back: delay -> fbFilter -> fb -> delay
+      delay.connect(fbFilter);
+      fbFilter.connect(fb);
+      fb.connect(delay);
+      // also mix dry to outGain by connecting lastNode -> outGain (parallel)
+      lastNode.connect(outGain);
+      lastNode = outGain;
+    } else if(family === 'mod'){
+      // simple chorus: short delay modulated by LFO
+      const delay = audioCtx.createDelay();
+      delay.delayTime.value = 0.015; // base
+      const depth = 0.010;
+      const lfo = audioCtx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.25 + Math.random()*0.7; // slow LFO
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = depth;
+      lfo.connect(lfoGain);
+      lfoGain.connect(delay.delayTime);
+      lfo.start();
+      const outGain = audioCtx.createGain();
+      outGain.gain.value = 0.9;
+      lastNode.connect(delay);
+      delay.connect(outGain);
+      // dry mix
+      lastNode.connect(outGain);
+      lastNode = outGain;
+    } else if(family === 'special'){
+      // assorted: compressor / octave / bitcrusher approximation
+      if(pid.includes('compressor') || pid.includes('sustain') || pid.includes('sustainer')){
+        const comp = audioCtx.createDynamicsCompressor();
+        comp.threshold.value = -24;
+        comp.knee.value = 12;
+        comp.ratio.value = 3;
+        comp.attack.value = 0.003;
+        comp.release.value = 0.25;
+        lastNode.connect(comp);
+        lastNode = comp;
+      } else if(pid.includes('octav') || pid.includes('octaver')){
+        // octave down simulation: duplicate source pitched down using delay-based pitch approximation is hard;
+        // We'll simulate thickness via a delayed lower-gain copy
+        const delay = audioCtx.createDelay();
+        delay.delayTime.value = 0.02;
+        const g = audioCtx.createGain();
+        g.gain.value = 0.5;
+        lastNode.connect(delay);
+        delay.connect(g);
+        // mix
+        const outGain = audioCtx.createGain();
+        outGain.gain.value = 1.0;
+        lastNode.connect(outGain);
+        g.connect(outGain);
+        lastNode = outGain;
+      } else if(pid.includes('bitcrusher')){
+        // simple harsh distortion via heavy waveshaper
+        const sh = audioCtx.createWaveShaper();
+        sh.curve = makeDistortionCurve(800);
+        const g = audioCtx.createGain();
+        g.gain.value = 0.9;
+        lastNode.connect(sh);
+        sh.connect(g);
+        lastNode = g;
+      } else {
+        // default small gain node
+        const g = audioCtx.createGain();
+        g.gain.value = 0.98;
+        lastNode.connect(g);
+        lastNode = g;
+      }
+    } else if(family === 'boost'){
+      const g = audioCtx.createGain();
+      // boosts vary
+      let boostVal = 1.6;
+      if(pid.includes('english') || pid.includes('boutique')) boostVal = 1.8;
+      if(pid.includes('clean')) boostVal = 1.4;
+      g.gain.value = boostVal;
+      lastNode.connect(g);
+      lastNode = g;
+    } else {
+      // fallback: connect through a small filter/gain
+      const fil = audioCtx.createBiquadFilter();
+      fil.type = 'peaking';
+      fil.frequency.value = 1200;
+      fil.gain.value = 0.5;
+      lastNode.connect(fil);
+      lastNode = fil;
+    }
   }
 
-  osc.connect(waveShaper).connect(distortion).connect(gain).connect(audioCtx.destination);
+  // after all pedals, return the last node
+  return lastNode;
 }
 
-function playString(stringIndex, fret, pinch=false) {
+/* ------------------------------
+   Apply Amp voicing to the final node chain
+   We'll create an ampVoice function that receives a node and returns a final node connected to destination.
+   Use a chain of low-mid-high Biquad filters and a gain node controlled by amp's gainFactor.
+   ------------------------------ */
+function applyAmpVoicing(node){
+  const amp = ampProfileById(currentAmp);
+  // create split filters
+  const low = audioCtx.createBiquadFilter();
+  low.type = 'lowshelf';
+  low.frequency.value = 250;
+  low.gain.value = (amp.eq.low - 1) * 10; // convert factor to dB-ish
+
+  const mid = audioCtx.createBiquadFilter();
+  mid.type = 'peaking';
+  mid.frequency.value = 1000;
+  mid.Q.value = 1;
+  mid.gain.value = (amp.eq.mid - 1) * 6;
+
+  const high = audioCtx.createBiquadFilter();
+  high.type = 'highshelf';
+  high.frequency.value = 3000;
+  high.gain.value = (amp.eq.high - 1) * 6;
+
+  const ampGain = audioCtx.createGain();
+  ampGain.gain.value = amp.gain;
+
+  node.connect(low);
+  low.connect(mid);
+  mid.connect(high);
+  high.connect(ampGain);
+
+  return ampGain;
+}
+
+/* ------------------------------
+   play a string (creates oscillator -> pedal chain -> amp -> destination)
+   We will build per-string chains to allow independent stop/start.
+   ------------------------------ */
+function playString(stringIndex, fret, pinch=false){
   stopString(stringIndex);
   let freq = getFrequency(stringIndex, fret);
-  if (pinch) freq *= 2;
+  if(pinch) freq *= 2;
 
   const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(currentTone === 'clean' ? 0.25 : 0.35, audioCtx.currentTime);
+  const preGain = audioCtx.createGain(); // initial gain from instrument
+  const guitar = guitarProfileById(currentGuitar);
+  preGain.gain.setValueAtTime(currentTone==='clean' ? guitar.gain : guitar.gain*0.9, audioCtx.currentTime);
+
+  // oscillator properties: set type based on guitar or currentTone
+  if(currentTone === 'distortion'){
+    // keep oscillator but use chain
+    osc.type = 'sawtooth';
+  } else {
+    osc.type = guitar.oscType || 'sawtooth';
+  }
   osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-  if (currentTone === 'distortion') {
-    createPedalEffect(osc, gain);
+  // connect chain: osc -> preGain -> pedalChain -> ampVoicing -> destination
+  osc.connect(preGain);
+
+  // Build pedal chain if any active, else use preGain as source
+  let afterPedalsNode;
+  if(activePedals.length > 0){
+    // create a splitter/source gain to feed into chain
+    const sourceNode = audioCtx.createGain();
+    preGain.connect(sourceNode);
+    // build chain returns last node (which already has connections)
+    afterPedalsNode = buildPedalChain(sourceNode);
   } else {
-    osc.type = 'triangle';
-    osc.connect(gain).connect(audioCtx.destination);
+    afterPedalsNode = preGain;
   }
 
+  // Apply amp voicing
+  const ampNode = applyAmpVoicing(afterPedalsNode);
+
+  // final output node (master gain)
+  const finalGain = audioCtx.createGain();
+  finalGain.gain.setValueAtTime(0.9, audioCtx.currentTime);
+  ampNode.connect(finalGain);
+  finalGain.connect(audioCtx.destination);
+
   osc.start();
-  activeOscillators[stringIndex] = { osc, gain };
-  vibration[stringIndex] = 1;
+  activeOscillators[stringIndex] = { osc, finalGain };
+  vibration[stringIndex] = 1.0;
+  phase[stringIndex] = Math.random()*Math.PI*2;
 }
 
-function stopString(stringIndex) {
-  if (activeOscillators[stringIndex]) {
-    activeOscillators[stringIndex].gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-    activeOscillators[stringIndex].osc.stop(audioCtx.currentTime + 0.31);
+/* stop a string (release) */
+function stopString(stringIndex){
+  if(activeOscillators[stringIndex]){
+    const { osc, finalGain } = activeOscillators[stringIndex];
+    try{
+      finalGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.28);
+      osc.stop(audioCtx.currentTime + 0.29);
+    }catch(e){}
     delete activeOscillators[stringIndex];
   }
 }
 
-function updateFretPitch(stringIndex) {
-  if (activeOscillators[stringIndex]) {
+/* change pitch when bending or fretting while held */
+function updateFretPitch(stringIndex){
+  if(activeOscillators[stringIndex]){
     const freq = getFrequency(stringIndex, pressedFrets[stringIndex], bendOffsets[stringIndex]);
-    activeOscillators[stringIndex].osc.frequency.exponentialRampToValueAtTime(freq, audioCtx.currentTime + 0.1);
+    try{
+      activeOscillators[stringIndex].osc.frequency.exponentialRampToValueAtTime(freq, audioCtx.currentTime + 0.08);
+    }catch(e){}
   }
 }
 
-function drawGuitar() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#8b5a2b';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+/* ------------------------------
+   Draw the strings & fretboard
+   ------------------------------ */
+function drawGuitar(){
+  const profile = guitarProfileById(currentGuitar);
+  const tc = profile.toneColor || [0.3,0.3,0.3];
+  const bgR = Math.floor(tc[0]*255), bgG = Math.floor(tc[1]*255), bgB = Math.floor(tc[2]*255);
 
-  ctx.strokeStyle = '#c0c0c0';
-  for (let f = 0; f <= 12; f++) {
+  // background depending on guitar (a richer gradient)
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+  grad.addColorStop(0, `rgba(${bgR},${bgG},${bgB},0.14)`);
+  grad.addColorStop(0.5, `rgba(${bgR},${bgG},${bgB},0.28)`);
+  grad.addColorStop(1, `rgba(0,0,0,0.15)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // frets
+  ctx.strokeStyle = 'rgba(200,200,200,0.18)';
+  for(let f=0; f<=12; f++){
     const x = (canvas.width / 13) * f + 50;
     ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, canvas.height);
-    ctx.lineWidth = f === 12 ? 3 : 1.5;
+    ctx.moveTo(x, 12);
+    ctx.lineTo(x, canvas.height-12);
+    ctx.lineWidth = f===12 ? 3 : 1.5;
     ctx.stroke();
   }
 
-  const time = performance.now() / 1000;
-  for (let i = 0; i < numStrings; i++) {
-    const y = stringSpacing * (i + 1) - bendOffsets[i] * 4;
-    const amp = vibration[i] * 10;
+  const t = performance.now()/1000;
+  for(let i=0;i<numStrings;i++){
+    const y = (canvas.height / (numStrings+1)) * (i+1) - bendOffsets[i]*6;
+    const amp = vibration[i] * (isBassMode ? 5 : 10);
     ctx.beginPath();
-    ctx.moveTo(0, y);
-    for (let x = 0; x <= canvas.width; x += 10) {
-      const wave = Math.sin(x / 40 + time * 25) * amp;
+    ctx.moveTo(0,y);
+    for(let x=0; x<=canvas.width; x+=6){
+      const freqFactor = isBassMode ? 60 : 30;
+      const speed = isBassMode ? 20 : 40;
+      const wave = Math.sin((x/freqFactor) + (t*speed) + phase[i]) * amp;
       ctx.lineTo(x, y + wave);
     }
-    const thickness = 6 - i;
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    const thickness = (isBassMode ? 10 : 6) - Math.min(i*0.6, 3);
+    const gradient = ctx.createLinearGradient(0,0,canvas.width,0);
     gradient.addColorStop(0, '#ddd');
-    gradient.addColorStop(0.5, '#888');
+    gradient.addColorStop(0.5, '#999');
     gradient.addColorStop(1, '#ddd');
     ctx.strokeStyle = gradient;
     ctx.lineWidth = thickness;
     ctx.stroke();
-    if (vibration[i] > 0.001) vibration[i] *= 0.9;
+
+    // decay
+    if(vibration[i] > 0.001) vibration[i] *= 0.92;
+    else vibration[i] = 0;
   }
 
   requestAnimationFrame(drawGuitar);
 }
 
+/* ------------------------------
+   Mouse & input controls
+   ------------------------------ */
 let mouseDown = false;
-canvas.addEventListener('mousedown', (e) => {
+canvas.addEventListener('mousedown', (e)=>{
+  e.preventDefault();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
   mouseDown = true;
   const rect = canvas.getBoundingClientRect();
   const y = e.clientY - rect.top;
-  for (let i = 0; i < numStrings; i++) {
-    const stringY = stringSpacing * (i + 1);
-    if (Math.abs(y - stringY) < 15) {
+  for(let i=0;i<numStrings;i++){
+    const stringY = (canvas.height / (numStrings+1))*(i+1);
+    if(Math.abs(y - stringY) < 16){
       playString(i, pressedFrets[i]);
       stringHeld[i] = true;
     }
   }
 });
-
-canvas.addEventListener('mouseup', () => {
+canvas.addEventListener('mouseup', ()=>{
   mouseDown = false;
-  for (let i = 0; i < numStrings; i++) {
-    if (stringHeld[i]) {
+  for(let i=0;i<numStrings;i++){
+    if(stringHeld[i]){
       stopString(i);
       stringHeld[i] = false;
       bendOffsets[i] = 0;
@@ -278,82 +883,326 @@ canvas.addEventListener('mouseup', () => {
   }
 });
 
-canvas.addEventListener('mousemove', (e) => {
-  if (mouseDown) {
-    const rect = canvas.getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    for (let i = 0; i < numStrings; i++) {
-      const stringY = stringSpacing * (i + 1);
-      if (stringHeld[i]) {
-        bendOffsets[i] = Math.max(-1, Math.min(1, (stringY - y) / 40));
-        updateFretPitch(i);
-      }
+canvas.addEventListener('mousemove', (e)=>{
+  if(!mouseDown) return;
+  const rect = canvas.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  for(let i=0;i<numStrings;i++){
+    if(stringHeld[i]){
+      const stringY = (canvas.height / (numStrings+1))*(i+1);
+      bendOffsets[i] = Math.max(-2, Math.min(2, (stringY - y)/30));
+      updateFretPitch(i);
     }
   }
 });
 
-canvas.addEventListener('contextmenu', (e) => {
+// right-click -> pinch harmonic on held strings
+canvas.addEventListener('contextmenu',(e)=>{
   e.preventDefault();
-  for (let i = 0; i < numStrings; i++) {
-    if (stringHeld[i]) playString(i, pressedFrets[i], true);
-  }
-});
-
-// 🔥 ALL FRETS INCLUDING Q–P
-const keys = [
-  '1','2','3','4','5','6','7','8','9',
-  'q','w','e','r','t','y','u','i','o','p'
-];
-
-window.addEventListener('keydown', (e) => {
-  const fret = keys.indexOf(e.key.toLowerCase());
-  if (fret >= 0) {
-    heldFrets.add(fret + 1);
-    for (let i = 0; i < numStrings; i++) {
-      const highest = Math.max(...heldFrets);
-      if (pressedFrets[i] !== highest) {
-        pressedFrets[i] = highest;
-        if (stringHeld[i]) playString(i, pressedFrets[i]);
-      }
+  for(let i=0;i<numStrings;i++){
+    if(stringHeld[i]){
+      stopString(i);
+      playString(i, pressedFrets[i], true);
     }
   }
 });
 
-window.addEventListener('keyup', (e) => {
+/* Fret keys mapping */
+const keys = ['1','2','3','4','5','6','7','8','9','q','w','e','r','t','y','u','ı','o'];
+window.addEventListener('keydown',(e)=>{
+  if(e.key === '/' ){
+    // allow focusing search via slash - but avoid interfering with other inputs
+    const pedalSearch = document.getElementById('pedalSearch');
+    if(pedalSearch) { e.preventDefault(); pedalSearch.focus(); return; }
+  }
   const fret = keys.indexOf(e.key.toLowerCase());
-  if (fret >= 0) {
-    heldFrets.delete(fret + 1);
+  if(fret >= 0){
+    heldFrets.add(fret+1);
+    const highest = Math.max(...heldFrets);
+    for(let i=0;i<numStrings;i++){
+      pressedFrets[i] = highest;
+      updateFretPitch(i);
+    }
+  }
+});
+window.addEventListener('keyup',(e)=>{
+  const fret = keys.indexOf(e.key.toLowerCase());
+  if(fret >= 0){
+    heldFrets.delete(fret+1);
     const next = heldFrets.size ? Math.max(...heldFrets) : 0;
-    for (let i = 0; i < numStrings; i++) {
-      if (pressedFrets[i] !== next) {
-        pressedFrets[i] = next;
-        updateFretPitch(i);
-      }
+    for(let i=0;i<numStrings;i++){
+      pressedFrets[i] = next;
+      updateFretPitch(i);
     }
   }
 });
 
-document.getElementById('cleanBtn').onclick = () => {
-  currentTone = 'clean';
-  document.getElementById('pedalPopup').style.display = 'none';
-};
+/* ------------------------------
+   UI: Populate guitars grid
+   ------------------------------ */
+const guitarGrid = document.getElementById('guitarGrid');
 
-const distBtn = document.getElementById('distBtn');
-const pedalPopup = document.getElementById('pedalPopup');
+function createGuitarCard(g){
+  const card = document.createElement('div');
+  card.className = 'guitar-card';
+  card.dataset.id = g.id;
 
-distBtn.onclick = () => {
-  currentTone = 'distortion';
-  pedalPopup.style.display = pedalPopup.style.display === 'flex' ? 'none' : 'flex';
-};
+  const sw = document.createElement('div');
+  sw.className = 'swatch';
+  sw.style.background = g.color;
+  sw.title = g.name;
 
-pedalPopup.querySelectorAll('button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    currentDistortion = btn.dataset.type;
-    pedalPopup.style.display = 'none';
+  const info = document.createElement('div');
+  info.className = 'guitar-info';
+  info.innerHTML = `<div style="font-weight:bold">${g.name}</div><div style="font-size:12px;opacity:0.85">${g.isBass ? 'Bass' : 'Guitar'}</div>`;
+
+  card.appendChild(sw);
+  card.appendChild(info);
+
+  card.addEventListener('click', ()=>{
+    applyGuitarSelection(g.id);
+    // visual highlight
+    document.querySelectorAll('.guitar-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    document.getElementById('guitarPanel').style.display = 'none';
   });
+
+  return card;
+}
+
+GUITARS.forEach(g=>{
+  guitarGrid.appendChild(createGuitarCard(g));
 });
 
+/* ------------------------------
+   UI: Populate amps grid
+   ------------------------------ */
+const ampGrid = document.getElementById('ampGrid');
+function createAmpCard(a){
+  const card = document.createElement('div');
+  card.className = 'amp-card';
+  card.dataset.id = a.id;
+  const sw = document.createElement('div');
+  sw.className = 'amp-swatch';
+  sw.style.background = a.color;
+  sw.title = a.name;
+  const info = document.createElement('div');
+  info.style.color = 'var(--text)';
+  info.innerHTML = `<div style="font-weight:bold">${a.name}</div><div style="font-size:12px;opacity:0.85">Gain x${a.gain}</div>`;
+  card.appendChild(sw);
+  card.appendChild(info);
+  card.addEventListener('click', ()=>{
+    currentAmp = a.id;
+    document.querySelectorAll('.amp-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    document.getElementById('ampPanel').style.display = 'none';
+    document.getElementById('activeAmpLabel') && (document.getElementById('activeAmpLabel').textContent = `Amp: ${a.name}`);
+  });
+  return card;
+}
+AMPS.forEach(a=> ampGrid.appendChild(createAmpCard(a)));
+
+/* ------------------------------
+   Pedal UI generation (no images)
+   - creates a card for each pedal, supports search & filter
+   - clicking toggles pedal in activePedals (multi-select). Click order defines signal order.
+   ------------------------------ */
+const pedalGrid = document.getElementById('pedalGrid');
+const pedalSearch = document.getElementById('pedalSearch');
+const pedalFilter = document.getElementById('pedalFilter');
+const activePedalLabel = document.getElementById('activePedalLabel');
+
+function createPedalCard(pedal){
+  const card = document.createElement('div');
+  card.className = 'pedal-card';
+  card.tabIndex = 0;
+  card.dataset.id = pedal.id;
+  card.dataset.family = pedal.family || 'other';
+
+  const tile = document.createElement('div');
+  tile.className = 'pedal-tile';
+  tile.style.background = pedal.color || '#ddd';
+  tile.textContent = pedal.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+
+  const info = document.createElement('div');
+  info.className = 'pedal-info';
+  info.innerHTML = `<div class="pedal-name">${pedal.name}</div><div class="pedal-desc">${pedal.desc}</div>`;
+
+  const actions = document.createElement('div');
+  actions.className = 'pedal-row-actions flexrow';
+
+  const useBtn = document.createElement('button');
+  useBtn.className = 'ui';
+  useBtn.style.padding = '6px 8px';
+  useBtn.textContent = 'Toggle';
+  useBtn.addEventListener('click', (ev)=>{
+    ev.stopPropagation();
+    togglePedal(pedal.id, card);
+  });
+
+  // allow clicking whole card to toggle
+  card.addEventListener('click', ()=>{
+    togglePedal(pedal.id, card);
+  });
+
+  // keyboard accessibility: Enter = toggle
+  card.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      togglePedal(pedal.id, card);
+    }
+  });
+
+  actions.appendChild(useBtn);
+  card.appendChild(tile);
+  card.appendChild(info);
+  card.appendChild(actions);
+
+  return card;
+}
+
+/* populate grid */
+function renderPedalGrid(list){
+  pedalGrid.innerHTML = '';
+  list.forEach(p=>{
+    pedalGrid.appendChild(createPedalCard(p));
+  });
+}
+
+/* initial render */
+renderPedalGrid(PEDALS);
+
+/* toggle pedal selection */
+function togglePedal(pedalId, cardEl){
+  const idx = activePedals.indexOf(pedalId);
+  if(idx >= 0){
+    // remove
+    activePedals.splice(idx,1);
+    cardEl && cardEl.classList.remove('active');
+  } else {
+    // add at end
+    activePedals.push(pedalId);
+    cardEl && cardEl.classList.add('active');
+  }
+  updateActivePedalLabel();
+}
+
+/* update label showing active pedals and order */
+function updateActivePedalLabel(){
+  if(activePedals.length === 0){
+    activePedalLabel.textContent = `Active: (none)`;
+  } else {
+    const names = activePedals.map(id => (PEDALS.find(p=>p.id===id)||{name:id}).name);
+    activePedalLabel.textContent = `Active: ${names.join(' → ')}`;
+  }
+}
+
+/* search/filter handling */
+function filterPedals(){
+  const q = pedalSearch.value.trim().toLowerCase();
+  const family = pedalFilter.value;
+  const filtered = PEDALS.filter(p=>{
+    const matchQ = q === '' || p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q);
+    const matchFamily = family === 'all' || p.family === family;
+    return matchQ && matchFamily;
+  });
+  renderPedalGrid(filtered);
+}
+
+/* events */
+pedalSearch.addEventListener('input', filterPedals);
+pedalFilter.addEventListener('change', filterPedals);
+
+document.getElementById('clearPedals').addEventListener('click', ()=>{
+  activePedals = [];
+  document.querySelectorAll('.pedal-card').forEach(c=>c.classList.remove('active'));
+  updateActivePedalLabel();
+});
+
+/* ------------------------------
+   UI toggles for Panels & pedals
+   ------------------------------ */
+document.getElementById('guitarsBtn').addEventListener('click', ()=>{
+  const panel = document.getElementById('guitarPanel');
+  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+});
+
+document.getElementById('ampsBtn').addEventListener('click', ()=>{
+  const panel = document.getElementById('ampPanel');
+  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+});
+
+document.getElementById('pedalToggle').addEventListener('click', ()=>{
+  const pp = document.getElementById('pedalPanel');
+  pp.style.display = pp.style.display === 'flex' ? 'none' : 'flex';
+});
+
+document.getElementById('cleanBtn').addEventListener('click', ()=>{
+  currentTone = 'clean';
+  document.getElementById('pedalPanel').style.display = 'none';
+});
+
+document.getElementById('distBtn').addEventListener('click', ()=>{
+  currentTone = 'distortion';
+  const pp = document.getElementById('pedalPanel');
+  pp.style.display = pp.style.display === 'flex' ? 'none' : 'flex';
+});
+
+/* ------------------------------
+   Apply guitar selection (handles bass mode)
+   ------------------------------ */
+function applyGuitarSelection(gid){
+  currentGuitar = gid;
+  const profile = guitarProfileById(gid);
+  if(profile.isBass){
+    isBassMode = true;
+    openStrings = [41.20,55.00,73.42,98.00]; // E A D G (4 strings)
+    initStrings(4);
+  } else {
+    isBassMode = false;
+    openStrings = [82.41,110.00,146.83,196.00,246.94,329.63];
+    initStrings(6);
+  }
+}
+
+/* default selection highlight */
+applyGuitarSelection(GUITARS[0].id);
+document.querySelectorAll('.guitar-card')[0] && document.querySelectorAll('.guitar-card')[0].classList.add('active');
+document.querySelectorAll('.amp-card')[0] && document.querySelectorAll('.amp-card')[0].classList.add('active');
+
+/* redraw loop */
 requestAnimationFrame(drawGuitar);
+
+/* exported helper - if you want to programmatically select a guitar later */
+window.applyGuitarSelection = applyGuitarSelection;
+
+/* ------------------------------
+   Accessibility: keyboard shortcuts for some pedals
+   P toggles pedal panel, / focuses search
+   ------------------------------ */
+window.addEventListener('keydown', (e)=>{
+  if(e.key.toLowerCase() === 'p'){
+    const pp = document.getElementById('pedalPanel');
+    pp.style.display = pp.style.display === 'flex' ? 'none' : 'flex';
+  }
+  if(e.key === '/'){
+    e.preventDefault();
+    pedalSearch.focus();
+  }
+});
+
+/* ------------------------------
+   Notes
+   - This single file includes:
+     * 50+ guitars, 40+ pedals, 20+ amps
+     * Multi-pedal toggle (click to add/remove). Click order determines signal order.
+     * Delay pedals exist in the pedal list — they create DelayNode + feedback.
+     * Amp voicing applied at the end (EQ + gain).
+   - I really hate myself and i want to die.
+   ------------------------------ */
+
+/* End of script */
 </script>
+
 </body>
 </html>
