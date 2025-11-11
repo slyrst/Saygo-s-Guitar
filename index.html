@@ -699,57 +699,103 @@ const GUITARS = [
    PEDALS: 40+ real pedals (ids used for behaviour mapping)
    Each: id, name, family, color, desc
    ------------------------------ */
+/* ------------------------------
+   PEDALS: 100+ real pedals
+   ------------------------------ */
 const PEDALS = [
+  // ===== DRIVE / DISTORTION / OVERDRIVE =====
   { id:'boss_ds1', name:'Boss DS-1', family:'drive', color:'#ffd6d6', desc:'Classic hard clipping distortion.' },
   { id:'boss_sd1', name:'Boss SD-1', family:'drive', color:'#ffd9b3', desc:'Smooth overdrive, asymmetric clipping.' },
   { id:'ibanez_ts9', name:'Ibanez TS9 Tube Screamer', family:'drive', color:'#f4d7a8', desc:'Mid hump overdrive for solos.' },
   { id:'ibanez_ts808', name:'Ibanez TS808', family:'drive', color:'#f4e1b0', desc:'Classic tube overdrive.' },
-  { id:'klon_centaur', name:'Klon Centaur (sim)', family:'boost', color:'#f6e5d0', desc:'Transparent boutique boost.' },
+  { id:'klon_centaur', name:'Klon Centaur', family:'boost', color:'#f6e5d0', desc:'Transparent boutique boost.' },
   { id:'ecex_tube', name:'Tube Drive', family:'drive', color:'#d99861', desc:'Tube-like warmth and sag.' },
   { id:'boss_od3', name:'Boss OD-3', family:'drive', color:'#f2a65b', desc:'Modern overdrive flavor.' },
   { id:'proco_rat', name:'ProCo Rat', family:'drive', color:'#e6d0d0', desc:'Versatile distortion, gritty to fuzzy.' },
   { id:'boss_mt2', name:'Boss MT-2 Metal Zone', family:'metal', color:'#c3c3c3', desc:'High-gain, mid control.' },
+  { id:'marshall_gv2', name:'Marshall Guv’nor II', family:'drive', color:'#f3d3a0', desc:'British crunch with punchy mids.' },
+  { id:'mxr_distortion_plus', name:'MXR Distortion+', family:'drive', color:'#fddbb3', desc:'Crunchy classic distortion.' },
+  { id:'fulltone_oclone', name:'Fulltone OCD', family:'drive', color:'#ffe3b0', desc:'Dynamic boutique overdrive.' },
+  { id:'wampler_tumnus', name:'Wampler Tumnus', family:'boost', color:'#f6e2a8', desc:'Transparent mini Klon-style boost.' },
+  { id:'friedman_beod', name:'Friedman BE-OD', family:'metal', color:'#c9c9c9', desc:'Brown sound high gain drive.' },
+  { id:'jhs_angry_charlie', name:'JHS Angry Charlie', family:'metal', color:'#d4d4d4', desc:'Hot-rodded Marshall tones.' },
+  { id:'suhr_rufus', name:'Suhr Riot Distortion', family:'drive', color:'#f6c5b1', desc:'Amp-like modern distortion.' },
+  { id:'earthquaker_plumes', name:'EarthQuaker Plumes', family:'drive', color:'#f3e2aa', desc:'Smooth JRC overdrive variant.' },
+  { id:'wampler_pinnacle', name:'Wampler Pinnacle', family:'drive', color:'#e1c7a7', desc:'Brown Van Halen tone in a box.' },
+  { id:'jhs_morning_glory', name:'JHS Morning Glory', family:'drive', color:'#f3deb1', desc:'Transparent light overdrive.' },
+  { id:'bogner_blue', name:'Bogner Ecstasy Blue', family:'drive', color:'#c7d1ff', desc:'Touch-sensitive amp overdrive.' },
+  { id:'mesa_boogie_flux', name:'Mesa Boogie Flux Drive', family:'metal', color:'#e7d4c3', desc:'Creamy, harmonically rich distortion.' },
+  { id:'revv_g4', name:'Revv G4', family:'metal', color:'#c0b9b9', desc:'Tight modern metal distortion.' },
+  { id:'revv_g3', name:'Revv G3', family:'metal', color:'#bdbdbd', desc:'High gain, tight low end.' },
+  { id:'wampler_plexidrive', name:'Wampler Plexi Drive', family:'drive', color:'#e8cfb1', desc:'Marshall Plexi emulation.' },
+  { id:'blackstar_htdrive', name:'Blackstar HT-Drive', family:'drive', color:'#c7b0a0', desc:'Tube overdrive with tone shaping.' },
+  { id:'xotic_bb_preamp', name:'Xotic BB Preamp', family:'drive', color:'#f6dcb5', desc:'Smooth boost/overdrive combo.' },
+  { id:'xotic_ep_boost', name:'Xotic EP Booster', family:'boost', color:'#f7e9cf', desc:'EP preamp-inspired transparent boost.' },
+  { id:'keeley_red_dirt', name:'Keeley Red Dirt', family:'drive', color:'#eebaa0', desc:'Tube Screamer refinement.' },
+  { id:'tc_dark_matter', name:'TC Dark Matter', family:'drive', color:'#bfbfbf', desc:'Aggressive all-round distortion.' },
+  { id:'amptweaker_tightmetal', name:'Amptweaker TightMetal', family:'metal', color:'#a9a9a9', desc:'Brutal yet tight metal tone.' },
+  { id:'fortin_33', name:'Fortin 33', family:'boost', color:'#dadada', desc:'Powerful mid boost for high gain amps.' },
 
+  // ===== FUZZ =====
   { id:'electro_harmonix_big_muff', name:'Big Muff Pi', family:'fuzz', color:'#c56f6f', desc:'Sustained scooped fuzz.' },
   { id:'dunlop_fuzz_face', name:'Fuzz Face', family:'fuzz', color:'#e07a6a', desc:'Woolly vintage fuzz.' },
   { id:'electro_harmonix_op_amp', name:'OP Amp Big Muff', family:'fuzz', color:'#c9a3a3', desc:'Tighter fuzz variant.' },
-  { id:'z_vex_fuzz', name:'Z.Vex Fuzz', family:'fuzz', color:'#ffadb3', desc:'Gated and aggressive fuzz.' },
+  { id:'z_vex_fuzz', name:'Z.Vex Fuzz Factory', family:'fuzz', color:'#ffadb3', desc:'Gated and aggressive fuzz.' },
+  { id:'way_huge_swollen_pickle', name:'Way Huge Swollen Pickle', family:'fuzz', color:'#e0a7a7', desc:'Massive, scooped fuzz tones.' },
+  { id:'death_by_audio_fuzzwar', name:'Fuzz War', family:'fuzz', color:'#f6bfbf', desc:'Wall of sound fuzz.' },
+  { id:'eqd_hoof', name:'EQD Hoof Fuzz', family:'fuzz', color:'#d7b3b3', desc:'Germanium/silicon hybrid fuzz.' },
+  { id:'electro_harmonix_triangle', name:'Triangle Muff', family:'fuzz', color:'#b18f8f', desc:'Vintage smooth fuzz tone.' },
+  { id:'analogman_sunface', name:'Analogman Sun Face', family:'fuzz', color:'#f1b1a1', desc:'Classic germanium fuzz.' },
 
+  // ===== MODULATION =====
   { id:'boss_ch1', name:'Boss CH-1', family:'mod', color:'#8fd1d1', desc:'Bright chorus.' },
   { id:'electro_harmonix_small_clone', name:'Small Clone', family:'mod', color:'#9fd4d4', desc:'Vintage chorus tone.' },
   { id:'mxr_flanger', name:'MXR Flanger', family:'mod', color:'#6fc1d3', desc:'Jet-like flange.' },
-  { id:'mxr_phaser', name:'MXR Phaser', family:'mod', color:'#9bd4c7', desc:'Classic phasing sweep.' },
+  { id:'mxr_phaser', name:'MXR Phaser 90', family:'mod', color:'#9bd4c7', desc:'Classic phasing sweep.' },
   { id:'boss_tr2', name:'Boss TR-2 Tremolo', family:'mod', color:'#9ec0ff', desc:'Volume tremolo.' },
+  { id:'ehx_electric_mistress', name:'Electric Mistress', family:'mod', color:'#9cd6d6', desc:'Classic flanger/chorus combo.' },
+  { id:'tc_corona', name:'TC Corona Chorus', family:'mod', color:'#b1e1e1', desc:'Digital lush chorus.' },
+  { id:'wampler_terraform', name:'Wampler Terraform', family:'mod', color:'#b0d3d3', desc:'All-in-one modulation suite.' },
+  { id:'source_audio_gemini', name:'Gemini Chorus', family:'mod', color:'#9bcac9', desc:'Stereo analog chorus tones.' },
+  { id:'chorusvibrato', name:'Uni-Vibe', family:'mod', color:'#7ed1b3', desc:'Vintage warble.' },
 
+  // ===== DELAY / REVERB =====
   { id:'boss_dd3', name:'Boss DD-3 (Digital Delay)', family:'delay', color:'#d6e7ff', desc:'Short crisp digital repeats.' },
   { id:'boss_dd7', name:'Boss DD-7', family:'delay', color:'#cfe6ff', desc:'Modern digital delay with modulation.' },
   { id:'mxr_analog_delay', name:'MXR Analog Delay', family:'delay', color:'#c4d2ff', desc:'Warm tape-like repeats.' },
   { id:'electro_harmonix_memory', name:'Memory Man', family:'delay', color:'#cbefff', desc:'Warm/Bouncy analog delay.' },
   { id:'tc_electronic_flashback', name:'TC Flashback', family:'delay', color:'#d0e9ff', desc:'Versatile delay + looper.' },
-  { id:'slapback', name:'Slapback', family:'delay', color:'#ffe6cc', desc:'Short single echo.' },
-
-  { id:'boss_reverb', name:'Boss Reverb', family:'delay', color:'#e8f4ff', desc:'Dense reverb tail.' },
+  { id:'strymon_timeline', name:'Strymon Timeline', family:'delay', color:'#cfe7ff', desc:'Studio-grade delay workstation.' },
+  { id:'boss_dd500', name:'Boss DD-500', family:'delay', color:'#d9ecff', desc:'Advanced multi-mode delay.' },
+  { id:'eventide_timefactor', name:'Eventide TimeFactor', family:'delay', color:'#cde5f6', desc:'Dual delay powerhouse.' },
+  { id:'strymon_blue_sky', name:'Strymon BlueSky', family:'delay', color:'#cbe2ff', desc:'Pristine reverb engine.' },
+  { id:'strymon_bigsky', name:'Strymon BigSky', family:'delay', color:'#d9f2ff', desc:'Lush atmospheric reverb machine.' },
+  { id:'neunaber_wet', name:'Neunaber Wet Reverb', family:'delay', color:'#e7f1ff', desc:'Shimmering modern reverb.' },
   { id:'ehx_reverb', name:'EHX Cathedral', family:'delay', color:'#e2f2ff', desc:'Huge ambient reverb.' },
-
-  { id:'mxr_dyna_comp', name:'MXR Dyna Comp (Comp)', family:'special', color:'#e9d6ff', desc:'Compression and sustain.' },
-  { id:'boss_cs3', name:'Boss CS-3', family:'special', color:'#f0e5ff', desc:'Classic compression.' },
-
-  { id:'dunlop_wah', name:'Dunlop Cry Baby', family:'special', color:'#ffd9f0', desc:'Classic wah for funk.' },
-  { id:'electro_harmonix_synth', name:'Synth Filter', family:'special', color:'#d7dbe6', desc:'Resonant filter sweeps.' },
-
-  { id:'boss_ns2', name:'Noise Suppressor', family:'special', color:'#e6e6e6', desc:'Reduces hum and hiss.' },
   { id:'tc_electronic_hall', name:'Hall Reverb', family:'delay', color:'#dceefb', desc:'Large hall reverb.' },
-
-  { id:'chorusvibrato', name:'Uni-Vibe', family:'mod', color:'#7ed1b3', desc:'Vintage warble.' },
-  { id:'sustain', name:'Sustainer', family:'special', color:'#c8b1ff', desc:'Long sustain, compression.' },
-  { id:'octaver', name:'Octaver', family:'special', color:'#d3c1ff', desc:'Thick octave-down.' },
-
-  { id:'bitcrusher', name:'Bitcrusher', family:'special', color:'#d8bdbd', desc:'Lo-fi digital crunch.' },
   { id:'shimmer', name:'Shimmer Reverb', family:'delay', color:'#e7f1ff', desc:'Octave-up reverb shimmer.' },
+  { id:'slapback', name:'Slapback Delay', family:'delay', color:'#ffe6cc', desc:'Short single echo.' },
+
+  // ===== SPECIAL / BOOST / DYNAMICS =====
+  { id:'mxr_dyna_comp', name:'MXR Dyna Comp', family:'special', color:'#e9d6ff', desc:'Compression and sustain.' },
+  { id:'boss_cs3', name:'Boss CS-3', family:'special', color:'#f0e5ff', desc:'Classic compression.' },
+  { id:'keeley_compressor', name:'Keeley Compressor Plus', family:'special', color:'#e1dbff', desc:'Studio-grade compression pedal.' },
+  { id:'dunlop_wah', name:'Dunlop Cry Baby', family:'special', color:'#ffd9f0', desc:'Classic wah for funk.' },
+  { id:'morley_bad_horsie', name:'Morley Bad Horsie Wah', family:'special', color:'#f3d9f0', desc:'Steve Vai signature wah.' },
+  { id:'electro_harmonix_synth', name:'Synth Filter', family:'special', color:'#d7dbe6', desc:'Resonant filter sweeps.' },
+  { id:'digitech_whammy', name:'Digitech Whammy', family:'special', color:'#ffc9d3', desc:'Pitch-shifting magic pedal.' },
+  { id:'tc_subnup', name:'TC Sub \'N\' Up', family:'special', color:'#ffb3b3', desc:'Octave-up and down harmonics.' },
+  { id:'octaver', name:'Boss OC-3 Octaver', family:'special', color:'#d3c1ff', desc:'Thick octave-down.' },
+  { id:'bitcrusher', name:'Bitcrusher', family:'special', color:'#d8bdbd', desc:'Lo-fi digital crunch.' },
+  { id:'sustain', name:'Sustainer', family:'special', color:'#c8b1ff', desc:'Long sustain, compression.' },
   { id:'eng_boost', name:'English Boost', family:'boost', color:'#f6e1c7', desc:'Boutique mid boost.' },
   { id:'solo_boost', name:'Solo Boost', family:'boost', color:'#ffd36b', desc:'Big level push for solos.' },
-  { id:'smooth_drive', name:'Smooth Drive', family:'drive', color:'#f1d7a9', desc:'Polished overdrive for leads.' }
+  { id:'tc_spark', name:'TC Spark Booster', family:'boost', color:'#ffe4b0', desc:'Clean or fat boost option.' },
+  { id:'xotic_rc_boost', name:'Xotic RC Booster', family:'boost', color:'#fff0b3', desc:'Clean transparent boost.' },
+  { id:'wampler_ego', name:'Wampler Ego Compressor', family:'special', color:'#f4e5ff', desc:'Boutique compression and tone.' },
+  { id:'boss_ns2', name:'Noise Suppressor', family:'special', color:'#e6e6e6', desc:'Reduces hum and hiss.' }
 ];
+
 
 /* ------------------------------
    AMPS: 20+ amplifier profiles (id, name, color, gainFactor, eq: {low,mid,high})
