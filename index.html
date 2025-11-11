@@ -341,54 +341,268 @@
    (id, name, color, gain, oscType, toneColor)
    ------------------------------ */
 const GUITARS = [
+  // FENDER STRATOCASTERS (15)
   { id:'fender_strat_sunburst', name:'Fender Stratocaster - Sunburst', color:'#ffb04d', gain:0.32, oscType:'triangle', toneColor:[0.95,0.7,0.45] },
   { id:'fender_strat_white', name:'Fender Stratocaster - White', color:'#f7f7f7', gain:0.30, oscType:'triangle', toneColor:[0.95,0.95,0.95] },
   { id:'fender_strat_black', name:'Fender Stratocaster - Black', color:'#111111', gain:0.31, oscType:'triangle', toneColor:[0.12,0.12,0.12] },
   { id:'fender_strat_hss', name:'Fender Stratocaster HSS', color:'#e6b89c', gain:0.33, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
+  { id:'fender_strat_seafoam', name:'Fender Stratocaster - Seafoam Green', color:'#8cd5b5', gain:0.31, oscType:'triangle', toneColor:[0.55,0.85,0.72] },
+  { id:'fender_strat_fiesta_red', name:'Fender Stratocaster - Fiesta Red', color:'#d63f3f', gain:0.32, oscType:'triangle', toneColor:[0.85,0.25,0.25] },
+  { id:'fender_strat_olympic', name:'Fender Stratocaster - Olympic White', color:'#fffef5', gain:0.30, oscType:'triangle', toneColor:[0.98,0.98,0.95] },
+  { id:'fender_strat_lake_placid', name:'Fender Stratocaster - Lake Placid Blue', color:'#5695c7', gain:0.31, oscType:'triangle', toneColor:[0.35,0.6,0.8] },
+  { id:'fender_strat_daphne', name:'Fender Stratocaster - Daphne Blue', color:'#7fb3d5', gain:0.30, oscType:'triangle', toneColor:[0.5,0.72,0.85] },
+  { id:'fender_strat_shell_pink', name:'Fender Stratocaster - Shell Pink', color:'#f4c2c2', gain:0.30, oscType:'triangle', toneColor:[0.95,0.75,0.75] },
+  { id:'fender_strat_sonic_blue', name:'Fender Stratocaster - Sonic Blue', color:'#7dafca', gain:0.31, oscType:'triangle', toneColor:[0.5,0.7,0.8] },
+  { id:'fender_strat_candy_apple', name:'Fender Stratocaster - Candy Apple Red', color:'#c41e3a', gain:0.32, oscType:'triangle', toneColor:[0.77,0.12,0.23] },
+  { id:'fender_strat_burgundy', name:'Fender Stratocaster - Burgundy Mist', color:'#8b4d5c', gain:0.31, oscType:'triangle', toneColor:[0.55,0.3,0.36] },
+  { id:'fender_strat_surf_green', name:'Fender Stratocaster - Surf Green', color:'#3fb39d', gain:0.30, oscType:'triangle', toneColor:[0.25,0.7,0.62] },
+  { id:'fender_strat_desert_sand', name:'Fender Stratocaster - Desert Sand', color:'#c9b896', gain:0.30, oscType:'triangle', toneColor:[0.8,0.73,0.6] },
+
+  // FENDER TELECASTERS (12)
   { id:'fender_tele_but', name:'Fender Telecaster - Butterscotch', color:'#d2a46a', gain:0.33, oscType:'triangle', toneColor:[0.88,0.66,0.43] },
+  { id:'tele_custom', name:'Custom Telecaster', color:'#c8a06e', gain:0.31, oscType:'triangle', toneColor:[0.85,0.7,0.5] },
+  { id:'fender_tele_black', name:'Fender Telecaster - Black', color:'#0f0f0f', gain:0.33, oscType:'triangle', toneColor:[0.08,0.08,0.08] },
+  { id:'fender_tele_white_blonde', name:'Fender Telecaster - White Blonde', color:'#f2e8d5', gain:0.32, oscType:'triangle', toneColor:[0.95,0.92,0.85] },
+  { id:'fender_tele_sonic_blue', name:'Fender Telecaster - Sonic Blue', color:'#79b0cc', gain:0.32, oscType:'triangle', toneColor:[0.48,0.7,0.8] },
+  { id:'fender_tele_crimson', name:'Fender Telecaster - Crimson Red', color:'#8b1a1a', gain:0.33, oscType:'triangle', toneColor:[0.55,0.1,0.1] },
+  { id:'fender_tele_deluxe', name:'Fender Telecaster Deluxe', color:'#6b4423', gain:0.34, oscType:'triangle', toneColor:[0.42,0.27,0.14] },
+  { id:'fender_tele_thinline', name:'Fender Telecaster Thinline', color:'#b58b64', gain:0.30, oscType:'triangle', toneColor:[0.72,0.55,0.4] },
+  { id:'fender_tele_cabronita', name:'Fender Cabronita Telecaster', color:'#d47d46', gain:0.34, oscType:'triangle', toneColor:[0.85,0.5,0.28] },
+  { id:'fender_tele_nashville', name:'Fender Nashville Telecaster', color:'#e8c8a8', gain:0.31, oscType:'triangle', toneColor:[0.92,0.8,0.67] },
+  { id:'fender_tele_baja', name:'Fender Baja Telecaster', color:'#d8b889', gain:0.32, oscType:'triangle', toneColor:[0.85,0.73,0.55] },
+  { id:'fender_tele_american_ultra', name:'Fender American Ultra Telecaster', color:'#4a5f73', gain:0.33, oscType:'triangle', toneColor:[0.3,0.38,0.46] },
+
+  // FENDER OTHER (5)
+  { id:'fender_jazzmaster', name:'Fender Jazzmaster - Seafoam', color:'#9fe0c9', gain:0.30, oscType:'triangle', toneColor:[0.6,0.9,0.8] },
+  { id:'fender_jaguar_red', name:'Fender Jaguar - Candy Apple Red', color:'#c41e3a', gain:0.30, oscType:'triangle', toneColor:[0.77,0.12,0.23] },
+  { id:'fender_mustang_comp', name:'Fender Mustang - Competition Blue', color:'#5a8db8', gain:0.29, oscType:'triangle', toneColor:[0.36,0.56,0.73] },
+  { id:'fender_duo_sonic', name:'Fender Duo-Sonic', color:'#f2c894', gain:0.28, oscType:'triangle', toneColor:[0.95,0.8,0.6] },
+  { id:'fender_lead_ii', name:'Fender Lead II', color:'#8b4513', gain:0.31, oscType:'triangle', toneColor:[0.55,0.27,0.08] },
+
+  // GIBSON LES PAULS (15)
   { id:'gibson_lespaul_cherry', name:'Gibson Les Paul - Cherry Sunburst', color:'#8a2b19', gain:0.36, oscType:'sawtooth', toneColor:[0.55,0.18,0.12] },
   { id:'gibson_lespaul_gold', name:'Gibson Les Paul - Gold Top', color:'#d1af6a', gain:0.34, oscType:'sawtooth', toneColor:[0.85,0.68,0.4] },
+  { id:'gibson_lp_standard', name:'Gibson Les Paul Standard', color:'#6b2518', gain:0.36, oscType:'sawtooth', toneColor:[0.42,0.15,0.1] },
+  { id:'gibson_lp_custom_black', name:'Gibson Les Paul Custom - Black', color:'#0a0a0a', gain:0.37, oscType:'sawtooth', toneColor:[0.04,0.04,0.04] },
+  { id:'gibson_lp_custom_white', name:'Gibson Les Paul Custom - Alpine White', color:'#f8f8f8', gain:0.35, oscType:'sawtooth', toneColor:[0.97,0.97,0.97] },
+  { id:'gibson_lp_traditional', name:'Gibson Les Paul Traditional', color:'#8b4726', gain:0.35, oscType:'sawtooth', toneColor:[0.55,0.28,0.15] },
+  { id:'gibson_lp_studio', name:'Gibson Les Paul Studio', color:'#4a2c1e', gain:0.34, oscType:'sawtooth', toneColor:[0.3,0.18,0.12] },
+  { id:'gibson_lp_tribute', name:'Gibson Les Paul Tribute', color:'#c8a870', gain:0.34, oscType:'sawtooth', toneColor:[0.8,0.67,0.45] },
+  { id:'gibson_lp_junior', name:'Gibson Les Paul Junior', color:'#d6a94f', gain:0.33, oscType:'sawtooth', toneColor:[0.85,0.67,0.32] },
+  { id:'gibson_lp_special', name:'Gibson Les Paul Special', color:'#d4b896', gain:0.33, oscType:'sawtooth', toneColor:[0.85,0.73,0.6] },
+  { id:'gibson_lp_modern', name:'Gibson Les Paul Modern', color:'#2b3e4f', gain:0.36, oscType:'sawtooth', toneColor:[0.17,0.25,0.32] },
+  { id:'gibson_lp_classic', name:'Gibson Les Paul Classic', color:'#a0522d', gain:0.35, oscType:'sawtooth', toneColor:[0.63,0.32,0.18] },
+  { id:'gibson_lp_60s', name:'Gibson Les Paul 60s Standard', color:'#8a3324', gain:0.35, oscType:'sawtooth', toneColor:[0.55,0.2,0.15] },
+  { id:'gibson_lp_silverburst', name:'Gibson Les Paul - Silverburst', color:'#a8a8a8', gain:0.35, oscType:'sawtooth', toneColor:[0.67,0.67,0.67] },
+  { id:'gibson_lp_smokehouse', name:'Gibson Les Paul - Smokehouse Burst', color:'#5c4033', gain:0.36, oscType:'sawtooth', toneColor:[0.36,0.25,0.2] },
+
+  // GIBSON OTHER (8)
   { id:'gibson_sg_cherry', name:'Gibson SG - Cherry', color:'#8f1a14', gain:0.35, oscType:'sawtooth', toneColor:[0.6,0.12,0.08] },
+  { id:'gibson_sg_standard', name:'Gibson SG Standard', color:'#6b1812', gain:0.35, oscType:'sawtooth', toneColor:[0.42,0.1,0.08] },
+  { id:'gibson_sg_special', name:'Gibson SG Special', color:'#e8d4b4', gain:0.34, oscType:'sawtooth', toneColor:[0.92,0.85,0.72] },
   { id:'gibson_es335', name:'Gibson ES-335', color:'#d8996a', gain:0.31, oscType:'triangle', toneColor:[0.92,0.7,0.6] },
+  { id:'gibson_es339', name:'Gibson ES-339', color:'#8b4513', gain:0.30, oscType:'triangle', toneColor:[0.55,0.27,0.08] },
+  { id:'flying_v', name:'Gibson Flying V', color:'#b12f2f', gain:0.37, oscType:'square', toneColor:[0.6,0.15,0.15] },
+  { id:'gibson_explorer', name:'Gibson Explorer', color:'#1a1a1a', gain:0.37, oscType:'square', toneColor:[0.1,0.1,0.1] },
+  { id:'gibson_firebird', name:'Gibson Firebird', color:'#2b547e', gain:0.34, oscType:'sawtooth', toneColor:[0.17,0.33,0.5] },
+
+  // PRS (12)
   { id:'prs_custom24_blue', name:'PRS Custom 24 - Blue', color:'#1e5f9d', gain:0.33, oscType:'sawtooth', toneColor:[0.2,0.45,0.75] },
   { id:'prs_se', name:'PRS SE - Tobacco Sunburst', color:'#6e3b1f', gain:0.34, oscType:'sawtooth', toneColor:[0.55,0.32,0.18] },
+  { id:'prs_custom22', name:'PRS Custom 22', color:'#5c2e1f', gain:0.34, oscType:'sawtooth', toneColor:[0.36,0.18,0.12] },
+  { id:'prs_mccarty', name:'PRS McCarty', color:'#b8622c', gain:0.33, oscType:'sawtooth', toneColor:[0.73,0.4,0.18] },
+  { id:'prs_ce24', name:'PRS CE 24', color:'#c8443d', gain:0.33, oscType:'sawtooth', toneColor:[0.8,0.27,0.24] },
+  { id:'prs_s2', name:'PRS S2', color:'#3a5f7d', gain:0.32, oscType:'sawtooth', toneColor:[0.23,0.38,0.5] },
+  { id:'prs_singlecut', name:'PRS Singlecut', color:'#8a4a2c', gain:0.35, oscType:'sawtooth', toneColor:[0.55,0.3,0.18] },
+  { id:'prs_hollowbody', name:'PRS Hollowbody II', color:'#c89856', gain:0.30, oscType:'triangle', toneColor:[0.8,0.6,0.35] },
+  { id:'prs_silver_sky', name:'PRS Silver Sky', color:'#7a9fb8', gain:0.30, oscType:'triangle', toneColor:[0.48,0.63,0.73] },
+  { id:'prs_mark_tremonti', name:'PRS Mark Tremonti', color:'#4a2c2a', gain:0.36, oscType:'sawtooth', toneColor:[0.3,0.18,0.17] },
+  { id:'prs_se_custom', name:'PRS SE Custom 24', color:'#2e5266', gain:0.33, oscType:'sawtooth', toneColor:[0.18,0.32,0.4] },
+  { id:'prs_santana', name:'PRS Santana', color:'#d4af37', gain:0.34, oscType:'sawtooth', toneColor:[0.85,0.7,0.22] },
+
+  // IBANEZ (10)
   { id:'ibanez_rg_red', name:'Ibanez RG - Red', color:'#b22222', gain:0.35, oscType:'square', toneColor:[0.75,0.15,0.15] },
   { id:'ibanez_s540', name:'Ibanez S540', color:'#2b4b6f', gain:0.34, oscType:'square', toneColor:[0.28,0.45,0.7] },
+  { id:'ibanez_jem', name:'Ibanez JEM', color:'#ff7f50', gain:0.36, oscType:'square', toneColor:[0.95,0.5,0.3] },
+  { id:'ibanez_rg550', name:'Ibanez RG550', color:'#0f1419', gain:0.35, oscType:'square', toneColor:[0.06,0.08,0.1] },
+  { id:'ibanez_rg_prestige', name:'Ibanez RG Prestige', color:'#4a235a', gain:0.36, oscType:'square', toneColor:[0.3,0.14,0.36] },
+  { id:'ibanez_s_series', name:'Ibanez S Series', color:'#1f4788', gain:0.34, oscType:'square', toneColor:[0.12,0.28,0.54] },
+  { id:'ibanez_rg7', name:'Ibanez RG7 (7-string)', color:'#2c2c2c', gain:0.40, oscType:'square', toneColor:[0.17,0.17,0.17] },
+  { id:'ibanez_artcore', name:'Ibanez Artcore', color:'#b8860b', gain:0.29, oscType:'triangle', toneColor:[0.73,0.53,0.04] },
+  { id:'ibanez_az', name:'Ibanez AZ', color:'#5d8aa8', gain:0.32, oscType:'triangle', toneColor:[0.37,0.55,0.67] },
+  { id:'ibanez_talman', name:'Ibanez Talman', color:'#c97064', gain:0.31, oscType:'triangle', toneColor:[0.8,0.45,0.4] },
+
+  // JACKSON & CHARVEL (8)
   { id:'jackson_soloist_black', name:'Jackson Soloist - Black', color:'#0b0b0b', gain:0.38, oscType:'square', toneColor:[0.08,0.08,0.08] },
-  { id:'esp_eclipse', name:'ESP Eclipse - Matte Black', color:'#131313', gain:0.39, oscType:'square', toneColor:[0.1,0.08,0.08] },
+  { id:'randy_rhoads', name:'Jackson RR', color:'#0f2b3b', gain:0.38, oscType:'square', toneColor:[0.1,0.2,0.35] },
   { id:'charvel_pro', name:'Charvel Pro-Mod', color:'#b23d3d', gain:0.36, oscType:'square', toneColor:[0.6,0.15,0.15] },
+  { id:'jackson_dinky', name:'Jackson Dinky', color:'#1c1c1c', gain:0.37, oscType:'square', toneColor:[0.11,0.11,0.11] },
+  { id:'jackson_king_v', name:'Jackson King V', color:'#8b0000', gain:0.38, oscType:'square', toneColor:[0.55,0,0] },
+  { id:'charvel_san_dimas', name:'Charvel San Dimas', color:'#ff6347', gain:0.35, oscType:'square', toneColor:[0.95,0.4,0.28] },
+  { id:'jackson_kelly', name:'Jackson Kelly', color:'#4169e1', gain:0.37, oscType:'square', toneColor:[0.26,0.42,0.9] },
+  { id:'charvel_dk24', name:'Charvel DK24', color:'#2e8b57', gain:0.35, oscType:'square', toneColor:[0.18,0.55,0.35] },
+
+  // ESP & LTD (8)
+  { id:'esp_eclipse', name:'ESP Eclipse - Matte Black', color:'#131313', gain:0.39, oscType:'square', toneColor:[0.1,0.08,0.08] },
+  { id:'esp_viper', name:'ESP Viper', color:'#111315', gain:0.39, oscType:'square', toneColor:[0.08,0.08,0.08] },
+  { id:'esp_horizon', name:'ESP Horizon', color:'#2e4053', gain:0.38, oscType:'square', toneColor:[0.18,0.25,0.33] },
+  { id:'esp_m_series', name:'ESP M-II', color:'#8b0000', gain:0.38, oscType:'square', toneColor:[0.55,0,0] },
+  { id:'ltd_ec1000', name:'LTD EC-1000', color:'#34495e', gain:0.36, oscType:'square', toneColor:[0.2,0.29,0.37] },
+  { id:'esp_arrow', name:'ESP Arrow', color:'#1c1c1c', gain:0.38, oscType:'square', toneColor:[0.11,0.11,0.11] },
+  { id:'ltd_iron_cross', name:'LTD Iron Cross', color:'#ffffff', gain:0.37, oscType:'square', toneColor:[0.98,0.98,0.98] },
+  { id:'esp_snapper', name:'ESP Snapper', color:'#8e4585', gain:0.35, oscType:'sawtooth', toneColor:[0.56,0.27,0.52] },
+
+  // SCHECTER & BC RICH & DEAN (8)
+  { id:'schecter_c7', name:'Schecter C-7 (7-string)', color:'#2b2b2b', gain:0.45, oscType:'square', toneColor:[0.06,0.06,0.06] },
+  { id:'schecter_hellraiser', name:'Schecter Hellraiser', color:'#a52a2a', gain:0.37, oscType:'square', toneColor:[0.65,0.17,0.17] },
+  { id:'schecter_diamond', name:'Schecter Diamond Series', color:'#4b0082', gain:0.36, oscType:'square', toneColor:[0.3,0,0.52] },
+  { id:'bc_rich_warlock', name:'BC Rich Warlock - Purple', color:'#6b2b7a', gain:0.37, oscType:'square', toneColor:[0.45,0.18,0.45] },
+  { id:'bc_rich_mockingbird', name:'BC Rich Mockingbird', color:'#000000', gain:0.38, oscType:'square', toneColor:[0,0,0] },
+  { id:'dean_ml', name:'Dean ML - Metal Red', color:'#a12020', gain:0.42, oscType:'square', toneColor:[0.6,0.12,0.12] },
+  { id:'dean_razorback', name:'Dean Razorback', color:'#1a1a1a', gain:0.38, oscType:'square', toneColor:[0.1,0.1,0.1] },
+  { id:'dean_v', name:'Dean V', color:'#708090', gain:0.37, oscType:'square', toneColor:[0.44,0.5,0.57] },
+
+  // GRETSCH (8)
   { id:'gretsch_white_falcon', name:'Gretsch White Falcon', color:'#fff9f0', gain:0.29, oscType:'sine', toneColor:[0.98,0.95,0.9] },
-  { id:'rickenbacker_360', name:'Rickenbacker 360 - Fireglo', color:'#c44a2f', gain:0.31, oscType:'triangle', toneColor:[0.85,0.35,0.2] },
   { id:'gretsch_g6120', name:'Gretsch G6120', color:'#e8b58f', gain:0.3, oscType:'triangle', toneColor:[0.95,0.8,0.68] },
-  { id:'fender_jazzmaster', name:'Fender Jazzmaster - Seafoam', color:'#9fe0c9', gain:0.30, oscType:'triangle', toneColor:[0.6,0.9,0.8] },
+  { id:'gretsch_synchro', name:'Gretsch Synchromatic', color:'#d0a97a', gain:0.28, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
+  { id:'gretsch_electromatic', name:'Gretsch Electromatic', color:'#c41e3a', gain:0.29, oscType:'triangle', toneColor:[0.77,0.12,0.23] },
+  { id:'gretsch_duo_jet', name:'Gretsch Duo Jet', color:'#0a0a0a', gain:0.30, oscType:'triangle', toneColor:[0.04,0.04,0.04] },
+  { id:'gretsch_tennessean', name:'Gretsch Tennessean', color:'#8b4513', gain:0.28, oscType:'triangle', toneColor:[0.55,0.27,0.08] },
+  { id:'gretsch_country_gent', name:'Gretsch Country Gentleman', color:'#654321', gain:0.29, oscType:'triangle', toneColor:[0.4,0.27,0.13] },
+  { id:'gretsch_streamliner', name:'Gretsch Streamliner', color:'#ff6347', gain:0.28, oscType:'triangle', toneColor:[0.95,0.4,0.28] },
+
+  // RICKENBACKER (5)
+  { id:'rickenbacker_360', name:'Rickenbacker 360 - Fireglo', color:'#c44a2f', gain:0.31, oscType:'triangle', toneColor:[0.85,0.35,0.2] },
+  { id:'rickenbacker_330', name:'Rickenbacker 330 - Jetglo', color:'#0f0f0f', gain:0.30, oscType:'triangle', toneColor:[0.06,0.06,0.06] },
+  { id:'rickenbacker_620', name:'Rickenbacker 620', color:'#d4a574', gain:0.30, oscType:'triangle', toneColor:[0.85,0.65,0.46] },
+  { id:'rickenbacker_381', name:'Rickenbacker 381', color:'#b8860b', gain:0.29, oscType:'triangle', toneColor:[0.73,0.53,0.04] },
+  { id:'rickenbacker_12_string', name:'Rickenbacker 360/12 (12-string)', color:'#8b4513', gain:0.28, oscType:'triangle', toneColor:[0.55,0.27,0.08] },
+
+  // EPIPHONE (6)
   { id:'epiphone_casino', name:'Epiphone Casino - Sunburst', color:'#c58f5d', gain:0.28, oscType:'triangle', toneColor:[0.85,0.7,0.45] },
   { id:'epiphone_sheraton', name:'Epiphone Sheraton', color:'#cfb59e', gain:0.29, oscType:'triangle', toneColor:[0.92,0.8,0.7] },
-  { id:'gretsch_synchro', name:'Gretsch Synchromatic', color:'#d0a97a', gain:0.28, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
-  { id:'tele_custom', name:'Custom Telecaster', color:'#c8a06e', gain:0.31, oscType:'triangle', toneColor:[0.85,0.7,0.5] },
-  { id:'fender_jazzbass', name:'Fender Jazz Bass', color:'#111111', gain:0.44, oscType:'sine', toneColor:[0.06,0.06,0.06], isBass:true },
-  { id:'fender_p_bass', name:'Fender Precision Bass', color:'#222222', gain:0.46, oscType:'sine', toneColor:[0.08,0.08,0.08], isBass:true },
+  { id:'epiphone_wildkat', name:'Epiphone Wildkat', color:'#e6d7c3', gain:0.29, oscType:'triangle', toneColor:[0.95,0.85,0.75] },
+  { id:'epiphone_riviera', name:'Epiphone Riviera', color:'#4a4a4a', gain:0.29, oscType:'triangle', toneColor:[0.3,0.3,0.3] },
+  { id:'epiphone_dot', name:'Epiphone Dot', color:'#8b0000', gain:0.28, oscType:'triangle', toneColor:[0.55,0,0] },
+  { id:'epiphone_es339', name:'Epiphone ES-339', color:'#b87333', gain:0.29, oscType:'triangle', toneColor:[0.73,0.45,0.2] },
 
-  { id:'martin_d28', name:'Martin D-28 (Acoustic)', color:'#d7c6a1', gain:0.24, oscType:'sine', toneColor:[0.93,0.86,0.7] },
-  { id:'taylor_314ce', name:'Taylor 314ce (Acoustic)', color:'#f1e6d0', gain:0.25, oscType:'sine', toneColor:[0.97,0.92,0.82] },
-  { id:'yamaha_pacifica', name:'Yamaha Pacifica', color:'#4b2f1f', gain:0.30, oscType:'triangle', toneColor:[0.5,0.35,0.25] },
-  { id:'cort_x', name:'Cort X Series', color:'#243b5a', gain:0.33, oscType:'square', toneColor:[0.25,0.4,0.6] },
-  { id:'dean_ml', name:'Dean ML - Metal Red', color:'#a12020', gain:0.42, oscType:'square', toneColor:[0.6,0.12,0.12] },
-  { id:'bc_rich_warlock', name:'BC Rich Warlock - Purple', color:'#6b2b7a', gain:0.37, oscType:'square', toneColor:[0.45,0.18,0.45] },
+  // MUSIC MAN & ERNIE BALL (5)
   { id:'musicman_stingray', name:'Music Man StingRay', color:'#2a6ea5', gain:0.34, oscType:'triangle', toneColor:[0.2,0.45,0.75] },
   { id:'ernie_ball_mattel', name:'Ernie Ball Music Man', color:'#6ea07b', gain:0.33, oscType:'triangle', toneColor:[0.45,0.66,0.5] },
-  { id:'danelectro_hb', name:'Danelectro', color:'#c89f7a', gain:0.29, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
-  { id:'randy_rhoads', name:'Jackson RR', color:'#0f2b3b', gain:0.38, oscType:'square', toneColor:[0.1,0.2,0.35] },
-  { id:'flying_v', name:'Gibson Flying V', color:'#b12f2f', gain:0.37, oscType:'square', toneColor:[0.6,0.15,0.15] },
-  { id:'esp_viper', name:'ESP Viper', color:'#111315', gain:0.39, oscType:'square', toneColor:[0.08,0.08,0.08] },
-  { id:'strandberg', name:'Strandberg', color:'#5a5a5a', gain:0.34, oscType:'triangle', toneColor:[0.5,0.5,0.5] },
-  { id:'schecter_c7', name:'Schecter C-7 (7-string)', color:'#2b2b2b', gain:0.45, oscType:'square', toneColor:[0.06,0.06,0.06] },
-  { id:'ibanez_jem', name:'Ibanez JEM', color:'#ff7f50', gain:0.36, oscType:'square', toneColor:[0.95,0.5,0.3] },
-  { id:'epiphone_wildkat', name:'Epiphone Wildkat', color:'#e6d7c3', gain:0.29, oscType:'triangle', toneColor:[0.95,0.85,0.75] },
-  { id:'squier_classic_vibe', name:'Squier Classic Vibe', color:'#cc8a4a', gain:0.29, oscType:'triangle', toneColor:[0.88,0.66,0.44] },
-  { id:'hofner_violin', name:'Hofner Violin Bass', color:'#c48b4b', gain:0.42, oscType:'sine', toneColor:[0.9,0.7,0.4], isBass:true },
-  { id:'custom_shop', name:'Custom Shop Classic', color:'#b07a4d', gain:0.33, oscType:'sawtooth', toneColor:[0.8,0.6,0.45] }
-];
+  { id:'musicman_jp', name:'Music Man John Petrucci', color:'#191970', gain:0.36, oscType:'sawtooth', toneColor:[0.1,0.1,0.44] },
+  { id:'musicman_luke', name:'Music Man Luke', color:'#cd853f', gain:0.33, oscType:'triangle', toneColor:[0.8,0.52,0.25] },
+  { id:'musicman_axis', name:'Music Man Axis', color:'#2f4f4f', gain:0.34, oscType:'triangle', toneColor:[0.18,0.32,0.32] },
 
+  // ACOUSTIC GUITARS (15)
+  { id:'martin_d28', name:'Martin D-28 (Acoustic)', color:'#d7c6a1', gain:0.24, oscType:'sine', toneColor:[0.93,0.86,0.7] },
+  { id:'taylor_314ce', name:'Taylor 314ce (Acoustic)', color:'#f1e6d0', gain:0.25, oscType:'sine', toneColor:[0.97,0.92,0.82] },
+  { id:'martin_d18', name:'Martin D-18 (Acoustic)', color:'#c8a882', gain:0.24, oscType:'sine', toneColor:[0.8,0.67,0.52] },
+  { id:'gibson_j45', name:'Gibson J-45 (Acoustic)', color:'#cd853f', gain:0.26, oscType:'sine', toneColor:[0.8,0.52,0.25] },
+  { id:'taylor_814ce', name:'Taylor 814ce (Acoustic)', color:'#d2b48c', gain:0.26, oscType:'sine', toneColor:[0.85,0.72,0.56] },
+  { id:'martin_000', name:'Martin 000-28 (Acoustic)', color:'#c9b895', gain:0.23, oscType:'sine', toneColor:[0.8,0.73,0.6] },
+  { id:'gibson_hummingbird', name:'Gibson Hummingbird (Acoustic)', color:'#cd5c5c', gain:0.27, oscType:'sine', toneColor:[0.8,0.36,0.36] },
+  { id:'guild_d55', name:'Guild D-55 (Acoustic)', color:'#daa520', gain:0.25, oscType:'sine', toneColor:[0.86,0.65,0.13] },
+  { id:'taylor_gs_mini', name:'Taylor GS Mini (Acoustic)', color:'#d2b17d', gain:0.22, oscType:'sine', toneColor:[0.85,0.7,0.5] },
+  { id:'yamaha_fg830', name:'Yamaha FG830 (Acoustic)', color:'#b8956a', gain:0.24, oscType:'sine', toneColor:[0.73,0.6,0.42] },
+  { id:'seagull_s6', name:'Seagull S6 (Acoustic)', color:'#c4a57b', gain:0.23, oscType:'sine', toneColor:[0.78,0.66,0.49] },
+  { id:'breedlove_oregon', name:'Breedlove Oregon (Acoustic)', color:'#d9c2a3', gain:0.24, oscType:'sine', toneColor:[0.86,0.77,0.65] },
+  { id:'takamine_eg540c', name:'Takamine EG540C (Acoustic)', color:'#c19a6b', gain:0.25, oscType:'sine', toneColor:[0.76,0.61,0.42] },
+  { id:'ovation_celebrity', name:'Ovation Celebrity (Acoustic)', color:'#8b4513', gain:0.26, oscType:'sine', toneColor:[0.55,0.27,0.08] },
+  { id:'cole_clark', name:'Cole Clark (Acoustic)', color:'#deb887', gain:0.25, oscType:'sine', toneColor:[0.87,0.73,0.53] },
+
+  // SQUIER & BUDGET FENDERS (8)
+  { id:'squier_classic_vibe', name:'Squier Classic Vibe', color:'#cc8a4a', gain:0.29, oscType:'triangle', toneColor:[0.88,0.66,0.44] },
+  { id:'squier_affinity_strat', name:'Squier Affinity Stratocaster', color:'#4169e1', gain:0.28, oscType:'triangle', toneColor:[0.26,0.42,0.9] },
+  { id:'squier_bullet', name:'Squier Bullet', color:'#dc143c', gain:0.27, oscType:'triangle', toneColor:[0.87,0.08,0.24] },
+  { id:'squier_vintage_mod', name:'Squier Vintage Modified', color:'#f5deb3', gain:0.29, oscType:'triangle', toneColor:[0.96,0.87,0.7] },
+  { id:'squier_tele_classic', name:'Squier Classic Vibe Telecaster', color:'#daa520', gain:0.29, oscType:'triangle', toneColor:[0.86,0.65,0.13] },
+  { id:'squier_jaguar', name:'Squier Vintage Modified Jaguar', color:'#2e8b57', gain:0.28, oscType:'triangle', toneColor:[0.18,0.55,0.35] },
+  { id:'squier_jazzmaster', name:'Squier Jazzmaster', color:'#8fbc8f', gain:0.28, oscType:'triangle', toneColor:[0.56,0.74,0.56] },
+  { id:'squier_contemporary', name:'Squier Contemporary', color:'#2f4f4f', gain:0.30, oscType:'triangle', toneColor:[0.18,0.32,0.32] },
+
+  // YAMAHA & OTHER JAPANESE (8)
+  { id:'yamaha_pacifica', name:'Yamaha Pacifica', color:'#4b2f1f', gain:0.30, oscType:'triangle', toneColor:[0.5,0.35,0.25] },
+  { id:'yamaha_revstar', name:'Yamaha Revstar', color:'#8b4789', gain:0.32, oscType:'sawtooth', toneColor:[0.55,0.28,0.54] },
+  { id:'yamaha_sg', name:'Yamaha SG', color:'#800020', gain:0.33, oscType:'sawtooth', toneColor:[0.5,0,0.13] },
+  { id:'tokai_love_rock', name:'Tokai Love Rock', color:'#8b4513', gain:0.34, oscType:'sawtooth', toneColor:[0.55,0.27,0.08] },
+  { id:'fujigen_neo_classic', name:'Fujigen Neo Classic', color:'#5f9ea0', gain:0.31, oscType:'triangle', toneColor:[0.37,0.62,0.63] },
+  { id:'greco_les_paul', name:'Greco Les Paul', color:'#a0522d', gain:0.33, oscType:'sawtooth', toneColor:[0.63,0.32,0.18] },
+  { id:'burny_super_grade', name:'Burny Super Grade', color:'#8b0000', gain:0.34, oscType:'sawtooth', toneColor:[0.55,0,0] },
+  { id:'bacchus_duke', name:'Bacchus Duke', color:'#483d8b', gain:0.31, oscType:'triangle', toneColor:[0.28,0.24,0.55] },
+
+  // BOUTIQUE & SPECIALTY (10)
+  { id:'custom_shop', name:'Custom Shop Classic', color:'#b07a4d', gain:0.33, oscType:'sawtooth', toneColor:[0.8,0.6,0.45] },
+  { id:'strandberg', name:'Strandberg', color:'#5a5a5a', gain:0.34, oscType:'triangle', toneColor:[0.5,0.5,0.5] },
+  { id:'suhr_modern', name:'Suhr Modern', color:'#1c39bb', gain:0.34, oscType:'sawtooth', toneColor:[0.11,0.22,0.75] },
+  { id:'anderson_drop_top', name:'Tom Anderson Drop Top', color:'#4a7c59', gain:0.32, oscType:'triangle', toneColor:[0.3,0.5,0.36] },
+  { id:'kiesel_vader', name:'Kiesel Vader', color:'#2f2f2f', gain:0.36, oscType:'square', toneColor:[0.18,0.18,0.18] },
+  { id:'nik_huber', name:'Nik Huber Krautster', color:'#8b6914', gain:0.33, oscType:'sawtooth', toneColor:[0.55,0.42,0.08] },
+  { id:'collings_360', name:'Collings 360', color:'#d2691e', gain:0.30, oscType:'triangle', toneColor:[0.85,0.42,0.12] },
+  { id:'reverend_sensei', name:'Reverend Sensei', color:'#6a5acd', gain:0.32, oscType:'triangle', toneColor:[0.42,0.36,0.8] },
+  { id:'duesenberg_starplayer', name:'Duesenberg Starplayer', color:'#ffd700', gain:0.30, oscType:'triangle', toneColor:[0.95,0.85,0] },
+  { id:'vigier_excalibur', name:'Vigier Excalibur', color:'#00ced1', gain:0.33, oscType:'triangle', toneColor:[0,0.8,0.82] },
+
+  // VINTAGE REISSUES & RARE (8)
+  { id:'danelectro_hb', name:'Danelectro', color:'#c89f7a', gain:0.29, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
+  { id:'supro_dual_tone', name:'Supro Dual Tone', color:'#4682b4', gain:0.30, oscType:'triangle', toneColor:[0.28,0.52,0.72] },
+  { id:'harmony_rocket', name:'Harmony Rocket', color:'#cd5c5c', gain:0.28, oscType:'triangle', toneColor:[0.8,0.36,0.36] },
+  { id:'silvertone_1448', name:'Silvertone 1448', color:'#778899', gain:0.27, oscType:'triangle', toneColor:[0.47,0.54,0.6] },
+  { id:'kay_value_leader', name:'Kay Value Leader', color:'#8b7355', gain:0.28, oscType:'triangle', toneColor:[0.55,0.45,0.34] },
+  { id:'teisco_spectrum', name:'Teisco Spectrum 5', color:'#ff6347', gain:0.29, oscType:'triangle', toneColor:[0.95,0.4,0.28] },
+  { id:'airline_map', name:'Airline Map', color:'#c0c0c0', gain:0.28, oscType:'triangle', toneColor:[0.75,0.75,0.75] },
+  { id:'mosrite_ventures', name:'Mosrite Ventures', color:'#4b0082', gain:0.30, oscType:'triangle', toneColor:[0.3,0,0.52] },
+
+  // MODERN EXTENDED RANGE (8)
+  { id:'schecter_8_string', name:'Schecter 8-String', color:'#1a1a1a', gain:0.48, oscType:'square', toneColor:[0.1,0.1,0.1] },
+  { id:'ibanez_rgd_7', name:'Ibanez RGD 7-String', color:'#36454f', gain:0.42, oscType:'square', toneColor:[0.21,0.27,0.32] },
+  { id:'strandberg_boden_8', name:'Strandberg Boden 8-String', color:'#4a4a4a', gain:0.50, oscType:'square', toneColor:[0.3,0.3,0.3] },
+  { id:'kiesel_8_string', name:'Kiesel 8-String', color:'#0f52ba', gain:0.49, oscType:'square', toneColor:[0.06,0.32,0.75] },
+  { id:'agile_septor', name:'Agile Septor 7-String', color:'#228b22', gain:0.43, oscType:'square', toneColor:[0.13,0.55,0.13] },
+  { id:'legator_ninja', name:'Legator Ninja 8-String', color:'#2e2e2e', gain:0.48, oscType:'square', toneColor:[0.18,0.18,0.18] },
+  { id:'ormsby_7_string', name:'Ormsby 7-String', color:'#8b008b', gain:0.42, oscType:'square', toneColor:[0.55,0,0.55] },
+  { id:'aristides_070', name:'Aristides 070 7-String', color:'#696969', gain:0.43, oscType:'square', toneColor:[0.42,0.42,0.42] },
+
+  // CORT & OTHER AFFORDABLE (6)
+  { id:'cort_x', name:'Cort X Series', color:'#243b5a', gain:0.33, oscType:'square', toneColor:[0.25,0.4,0.6] },
+  { id:'cort_kx', name:'Cort KX', color:'#8b0000', gain:0.34, oscType:'square', toneColor:[0.55,0,0] },
+  { id:'ltd_1000_series', name:'LTD 1000 Series', color:'#2f4f4f', gain:0.35, oscType:'square', toneColor:[0.18,0.32,0.32] },
+  { id:'chapman_ml1', name:'Chapman ML1', color:'#483d8b', gain:0.33, oscType:'sawtooth', toneColor:[0.28,0.24,0.55] },
+  { id:'sterling_jp', name:'Sterling by Music Man JP', color:'#191970', gain:0.34, oscType:'sawtooth', toneColor:[0.1,0.1,0.44] },
+  { id:'harley_benton_custom', name:'Harley Benton Custom', color:'#8b4513', gain:0.30, oscType:'sawtooth', toneColor:[0.55,0.27,0.08] },
+
+  // BASS GUITARS (30)
+  { id:'fender_jazzbass', name:'Fender Jazz Bass', color:'#111111', gain:0.44, oscType:'sine', toneColor:[0.06,0.06,0.06], isBass:true },
+  { id:'fender_p_bass', name:'Fender Precision Bass', color:'#222222', gain:0.46, oscType:'sine', toneColor:[0.08,0.08,0.08], isBass:true },
+  { id:'hofner_violin', name:'Hofner Violin Bass', color:'#c48b4b', gain:0.42, oscType:'sine', toneColor:[0.9,0.7,0.4], isBass:true },
+  { id:'fender_jazz_sunburst', name:'Fender Jazz Bass - Sunburst', color:'#d4a574', gain:0.44, oscType:'sine', toneColor:[0.85,0.65,0.46], isBass:true },
+  { id:'fender_p_white', name:'Fender Precision Bass - White', color:'#f5f5f5', gain:0.46, oscType:'sine', toneColor:[0.96,0.96,0.96], isBass:true },
+  { id:'musicman_stingray_bass', name:'Music Man StingRay Bass', color:'#8b0000', gain:0.48, oscType:'sine', toneColor:[0.55,0,0], isBass:true },
+  { id:'rickenbacker_4003', name:'Rickenbacker 4003 Bass', color:'#c41e3a', gain:0.43, oscType:'triangle', toneColor:[0.77,0.12,0.23], isBass:true },
+  { id:'gibson_thunderbird', name:'Gibson Thunderbird Bass', color:'#8b4513', gain:0.45, oscType:'sawtooth', toneColor:[0.55,0.27,0.08], isBass:true },
+  { id:'fender_jazz_5string', name:'Fender Jazz Bass V (5-string)', color:'#2f4f4f', gain:0.50, oscType:'sine', toneColor:[0.18,0.32,0.32], isBass:true },
+  { id:'ibanez_sr_bass', name:'Ibanez SR Series Bass', color:'#4a235a', gain:0.42, oscType:'triangle', toneColor:[0.3,0.14,0.36], isBass:true },
+  { id:'warwick_corvette', name:'Warwick Corvette Bass', color:'#654321', gain:0.47, oscType:'sawtooth', toneColor:[0.4,0.27,0.13], isBass:true },
+  { id:'spector_ns', name:'Spector NS Bass', color:'#0f52ba', gain:0.45, oscType:'triangle', toneColor:[0.06,0.32,0.75], isBass:true },
+  { id:'yamaha_bb', name:'Yamaha BB Bass', color:'#8b0000', gain:0.43, oscType:'sine', toneColor:[0.55,0,0], isBass:true },
+  { id:'fender_mustang_bass', name:'Fender Mustang Bass', color:'#ff6347', gain:0.40, oscType:'sine', toneColor:[0.95,0.4,0.28], isBass:true },
+  { id:'squier_jazz_bass', name:'Squier Jazz Bass', color:'#000080', gain:0.41, oscType:'sine', toneColor:[0,0,0.5], isBass:true },
+  { id:'squier_p_bass', name:'Squier Precision Bass', color:'#8b4513', gain:0.42, oscType:'sine', toneColor:[0.55,0.27,0.08], isBass:true },
+  { id:'sterling_ray34', name:'Sterling Ray34 Bass', color:'#2e8b57', gain:0.44, oscType:'sine', toneColor:[0.18,0.55,0.35], isBass:true },
+  { id:'schecter_stiletto', name:'Schecter Stiletto Bass', color:'#1c1c1c', gain:0.46, oscType:'triangle', toneColor:[0.11,0.11,0.11], isBass:true },
+  { id:'esp_ltd_bass', name:'ESP LTD Bass', color:'#696969', gain:0.45, oscType:'triangle', toneColor:[0.42,0.42,0.42], isBass:true },
+  { id:'lakland_skyline', name:'Lakland Skyline Bass', color:'#cd853f', gain:0.44, oscType:'sine', toneColor:[0.8,0.52,0.25], isBass:true },
+  { id:'g&l_l2000', name:'G&L L-2000 Bass', color:'#4169e1', gain:0.46, oscType:'triangle', toneColor:[0.26,0.42,0.9], isBass:true },
+  { id:'cort_bass', name:'Cort Action Bass', color:'#800020', gain:0.40, oscType:'sine', toneColor:[0.5,0,0.13], isBass:true },
+  { id:'epiphone_thunderbird', name:'Epiphone Thunderbird Bass', color:'#654321', gain:0.43, oscType:'sawtooth', toneColor:[0.4,0.27,0.13], isBass:true },
+  { id:'jackson_js_bass', name:'Jackson JS Bass', color:'#0f0f0f', gain:0.44, oscType:'triangle', toneColor:[0.06,0.06,0.06], isBass:true },
+  { id:'dean_edge_bass', name:'Dean Edge Bass', color:'#b22222', gain:0.43, oscType:'triangle', toneColor:[0.75,0.15,0.15], isBass:true },
+  { id:'ibanez_btb', name:'Ibanez BTB Bass', color:'#2f4f4f', gain:0.46, oscType:'triangle', toneColor:[0.18,0.32,0.32], isBass:true },
+  { id:'sadowsky_metro', name:'Sadowsky Metro Bass', color:'#d2691e', gain:0.45, oscType:'sine', toneColor:[0.85,0.42,0.12], isBass:true },
+  { id:'dingwall_combustion', name:'Dingwall Combustion Bass', color:'#4a4a4a', gain:0.47, oscType:'triangle', toneColor:[0.3,0.3,0.3], isBass:true },
+  { id:'fodera_monarch', name:'Fodera Monarch Bass', color:'#8b6914', gain:0.48, oscType:'sine', toneColor:[0.55,0.42,0.08], isBass:true },
+  { id:'mtd_kingston', name:'MTD Kingston Bass', color:'#483d8b', gain:0.44, oscType:'triangle', toneColor:[0.28,0.24,0.55], isBass:true }
+];
 /* ------------------------------
    PEDALS: 40+ real pedals (ids used for behaviour mapping)
    Each: id, name, family, color, desc
@@ -1194,7 +1408,7 @@ window.addEventListener('keydown', (e)=>{
 /* ------------------------------
    Notes
    - This single file includes:
-     * 50+ guitars, 40+ pedals, 20+ amps
+     * 100+ guitars, 40+ pedals, 20+ amps
      * Multi-pedal toggle (click to add/remove). Click order determines signal order.
      * Delay pedals exist in the pedal list — they create DelayNode + feedback.
      * Amp voicing applied at the end (EQ + gain).
