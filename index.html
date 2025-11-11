@@ -225,6 +225,82 @@
   .amp-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
   .amp-swatch{ width:56px; height:36px; border-radius:6px; border:2px solid rgba(0,0,0,0.4); }
 
+  /* Tuning panel */
+  .tuning-panel{
+    position:absolute;
+    top:56px;
+    left:50%;
+    transform:translateX(-50%);
+    display:none;
+    width:480px;
+    max-height:360px;
+    overflow:auto;
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:10px;
+    padding:12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+    z-index:100;
+  }
+  
+  .tuning-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:8px;
+    margin-bottom:12px;
+  }
+  
+  .tuning-card{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:10px;
+    border-radius:8px;
+    background:rgba(255,255,255,0.03);
+    cursor:pointer;
+    transition:0.12s;
+    text-align:center;
+  }
+  .tuning-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
+  
+  .tuning-name{
+    font-weight:bold;
+    margin-bottom:4px;
+    font-size:14px;
+  }
+  
+  .tuning-notes{
+    font-size:12px;
+    opacity:0.85;
+    color:var(--muted);
+  }
+  
+  .tuning-indicator{
+    margin-top:8px;
+    padding:4px 8px;
+    border-radius:6px;
+    background:rgba(0,0,0,0.14);
+    font-size:12px;
+    color:var(--text);
+  }
+  
+  .tuning-controls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-top:12px;
+  }
+  
+  .tuning-display{
+    flex:1;
+    padding:8px 10px;
+    border-radius:8px;
+    background:rgba(0,0,0,0.2);
+    border:1px solid rgba(255,255,255,0.05);
+    font-family:monospace;
+    text-align:center;
+  }
+
   /* selected indicator */
   .selected-indicator{
     margin-left:8px;
@@ -254,6 +330,8 @@
     .panel{ width:86vw; max-height:40vh; left:6vw; top:64px; }
     .pedal-panel{ right:6vw; top:64px; width:86vw; max-height:42vh; }
     .pedal-grid{ grid-template-columns:repeat(1, 1fr); }
+    .tuning-panel{ width:86vw; max-height:40vh; }
+    .tuning-grid{ grid-template-columns:repeat(2, 1fr); }
   }
 
   /* Extra helper classes used by JS to hide/show */
@@ -264,6 +342,7 @@
   .pedal-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
   .guitar-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
   .amp-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
+  .tuning-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
 </style>
 </head>
 <body>
@@ -274,6 +353,7 @@
 <div class="controls">
   <button id="guitarsBtn" class="ui">🎸 Guitars</button>
   <button id="ampsBtn" class="ui">🔊 Amps</button>
+  <button id="tuneBtn" class="ui">🎵 Tune</button>
   <button id="cleanBtn" class="ui">🎵 Clean</button>
   <button id="distBtn" class="ui">⚡ Distortion</button>
 </div>
@@ -290,6 +370,18 @@
 <div id="ampPanel" class="amp-panel" aria-hidden="true">
   <div class="title">Select an Amp (click)</div>
   <div class="amp-grid" id="ampGrid"></div>
+</div>
+
+<!-- Tuning panel -->
+<div id="tuningPanel" class="tuning-panel" aria-hidden="true">
+  <div class="title">Select Tuning (click)</div>
+  <div class="tuning-grid" id="tuningGrid">
+    <!-- JS will populate tuning options -->
+  </div>
+  <div class="tuning-controls">
+    <div class="tuning-display" id="currentTuningDisplay">Standard: E A D G B E</div>
+    <button id="tuneAllBtn" class="ui">Tune All</button>
+  </div>
 </div>
 
 <!-- Right controls (pedals) -->
@@ -687,6 +779,29 @@ const AMPS = [
 ];
 
 /* ------------------------------
+   TUNINGS: Common guitar and bass tunings
+   ------------------------------ */
+const TUNINGS = [
+  // Standard guitar tunings
+  { id: 'standard', name: 'Standard', notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'], frequencies: [82.41, 110.00, 146.83, 196.00, 246.94, 329.63] },
+  { id: 'drop_d', name: 'Drop D', notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'], frequencies: [73.42, 110.00, 146.83, 196.00, 246.94, 329.63] },
+  { id: 'drop_c', name: 'Drop C', notes: ['C2', 'G2', 'C3', 'F3', 'A3', 'D4'], frequencies: [65.41, 98.00, 130.81, 174.61, 220.00, 293.66] },
+  { id: 'drop_b', name: 'Drop B', notes: ['B1', 'F#2', 'B2', 'E3', 'G#3', 'C#4'], frequencies: [61.74, 92.50, 123.47, 164.81, 207.65, 277.18] },
+  { id: 'drop_a', name: 'Drop A', notes: ['A1', 'E2', 'A2', 'D3', 'F#3', 'B3'], frequencies: [55.00, 82.41, 110.00, 146.83, 185.00, 246.94] },
+  { id: 'half_step_down', name: 'Eb Standard', notes: ['Eb2', 'Ab2', 'Db3', 'Gb3', 'Bb3', 'Eb4'], frequencies: [77.78, 103.83, 138.59, 185.00, 233.08, 311.13] },
+  { id: 'whole_step_down', name: 'D Standard', notes: ['D2', 'G2', 'C3', 'F3', 'A3', 'D4'], frequencies: [73.42, 98.00, 130.81, 174.61, 220.00, 293.66] },
+  { id: 'open_g', name: 'Open G', notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'], frequencies: [73.42, 98.00, 146.83, 196.00, 246.94, 293.66] },
+  { id: 'open_d', name: 'Open D', notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'], frequencies: [73.42, 110.00, 146.83, 185.00, 220.00, 293.66] },
+  { id: 'dadgad', name: 'DADGAD', notes: ['D2', 'A2', 'D3', 'G3', 'A3', 'D4'], frequencies: [73.42, 110.00, 146.83, 196.00, 220.00, 293.66] },
+  
+  // Bass tunings
+  { id: 'bass_standard', name: 'Bass Standard', notes: ['E1', 'A1', 'D2', 'G2'], frequencies: [41.20, 55.00, 73.42, 98.00], isBass: true },
+  { id: 'bass_drop_d', name: 'Bass Drop D', notes: ['D1', 'A1', 'D2', 'G2'], frequencies: [36.71, 55.00, 73.42, 98.00], isBass: true },
+  { id: 'bass_5_standard', name: '5-String Standard', notes: ['B0', 'E1', 'A1', 'D2', 'G2'], frequencies: [30.87, 41.20, 55.00, 73.42, 98.00], isBass: true },
+  { id: 'bass_5_drop_a', name: '5-String Drop A', notes: ['A0', 'E1', 'A1', 'D2', 'G2'], frequencies: [27.50, 41.20, 55.00, 73.42, 98.00], isBass: true }
+];
+
+/* ------------------------------
    Audio & Canvas state
    ------------------------------ */
 const canvas = document.getElementById('guitar');
@@ -697,6 +812,7 @@ let currentGuitar = GUITARS[0].id;
 let activePedals = []; // multi-pedal chain in click order
 let currentTone = 'clean';
 let currentAmp = AMPS[0].id;
+let currentTuning = TUNINGS[0].id;
 
 let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let activeOscillators = {};
@@ -747,6 +863,9 @@ function ampProfileById(id){
 }
 function pedalById(id){
   return PEDALS.find(p=>p.id===id) || { id, name:id, family:'other', color:'#ddd', desc:'' };
+}
+function tuningById(id){
+  return TUNINGS.find(t=>t.id===id) || TUNINGS[0];
 }
 
 /* ------------------------------
@@ -1217,6 +1336,105 @@ function createAmpCard(a){
 AMPS.forEach(a=> ampGrid.appendChild(createAmpCard(a)));
 
 /* ------------------------------
+   Tuning UI generation
+   - creates a card for each tuning option
+   ------------------------------ */
+const tuningGrid = document.getElementById('tuningGrid');
+const currentTuningDisplay = document.getElementById('currentTuningDisplay');
+
+function createTuningCard(tuning){
+  const card = document.createElement('div');
+  card.className = 'tuning-card';
+  card.dataset.id = tuning.id;
+  card.dataset.isBass = tuning.isBass || false;
+
+  const name = document.createElement('div');
+  name.className = 'tuning-name';
+  name.textContent = tuning.name;
+
+  const notes = document.createElement('div');
+  notes.className = 'tuning-notes';
+  notes.textContent = tuning.notes.join(' ');
+
+  card.appendChild(name);
+  card.appendChild(notes);
+
+  card.addEventListener('click', ()=>{
+    applyTuningSelection(tuning.id);
+    // visual highlight
+    document.querySelectorAll('.tuning-card').forEach(c=>c.classList.remove('active'));
+    card.classList.add('active');
+    document.getElementById('tuningPanel').style.display = 'none';
+  });
+
+  return card;
+}
+
+/* populate tuning grid */
+TUNINGS.forEach(t=>{
+  tuningGrid.appendChild(createTuningCard(t));
+});
+
+/* apply tuning selection */
+function applyTuningSelection(tuningId){
+  currentTuning = tuningId;
+  const tuning = tuningById(tuningId);
+  
+  // Update the open strings frequencies
+  openStrings = [...tuning.frequencies];
+  
+  // Update string count
+  initStrings(tuning.frequencies.length);
+  
+  // Update display
+  currentTuningDisplay.textContent = `${tuning.name}: ${tuning.notes.join(' ')}`;
+  
+  // Update active indicator
+  document.querySelectorAll('.tuning-card').forEach(c=>c.classList.remove('active'));
+  document.querySelector(`.tuning-card[data-id="${tuningId}"]`).classList.add('active');
+}
+
+/* play tuning note for a specific string */
+function playTuningNote(stringIndex) {
+  const tuning = tuningById(currentTuning);
+  if (stringIndex >= 0 && stringIndex < tuning.frequencies.length) {
+    // Stop any existing oscillator for this string
+    if (activeOscillators[stringIndex]) {
+      stopString(stringIndex);
+    }
+    
+    // Create a clean oscillator for the tuning note
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(tuning.frequencies[stringIndex], audioCtx.currentTime);
+    
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 2);
+    
+    // Visual feedback
+    vibration[stringIndex] = 1.0;
+  }
+}
+
+/* play all tuning notes in sequence */
+function playAllTuningNotes() {
+  const tuning = tuningById(currentTuning);
+  for (let i = 0; i < tuning.frequencies.length; i++) {
+    setTimeout(() => {
+      playTuningNote(i);
+    }, i * 800); // Stagger the notes
+  }
+}
+
+/* ------------------------------
    Pedal UI generation (no images)
    - creates a card for each pedal, supports search & filter
    - clicking toggles pedal in activePedals (multi-select). Click order defines signal order.
@@ -1346,6 +1564,11 @@ document.getElementById('ampsBtn').addEventListener('click', ()=>{
   panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
 });
 
+document.getElementById('tuneBtn').addEventListener('click', ()=>{
+  const panel = document.getElementById('tuningPanel');
+  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+});
+
 document.getElementById('pedalToggle').addEventListener('click', ()=>{
   const pp = document.getElementById('pedalPanel');
   pp.style.display = pp.style.display === 'flex' ? 'none' : 'flex';
@@ -1370,19 +1593,34 @@ function applyGuitarSelection(gid){
   const profile = guitarProfileById(gid);
   if(profile.isBass){
     isBassMode = true;
-    openStrings = [41.20,55.00,73.42,98.00]; // E A D G (4 strings)
-    initStrings(4);
+    // Auto-select a bass tuning if current tuning is for guitar
+    const currentTuningObj = tuningById(currentTuning);
+    if (!currentTuningObj.isBass) {
+      applyTuningSelection('bass_standard');
+    }
   } else {
     isBassMode = false;
-    openStrings = [82.41,110.00,146.83,196.00,246.94,329.63];
-    initStrings(6);
+    // Auto-select a guitar tuning if current tuning is for bass
+    const currentTuningObj = tuningById(currentTuning);
+    if (currentTuningObj.isBass) {
+      applyTuningSelection('standard');
+    }
   }
 }
 
+/* ------------------------------
+   Tune All button functionality
+   ------------------------------ */
+document.getElementById('tuneAllBtn').addEventListener('click', () => {
+  playAllTuningNotes();
+});
+
 /* default selection highlight */
 applyGuitarSelection(GUITARS[0].id);
+applyTuningSelection(TUNINGS[0].id);
 document.querySelectorAll('.guitar-card')[0] && document.querySelectorAll('.guitar-card')[0].classList.add('active');
 document.querySelectorAll('.amp-card')[0] && document.querySelectorAll('.amp-card')[0].classList.add('active');
+document.querySelectorAll('.tuning-card')[0] && document.querySelectorAll('.tuning-card')[0].classList.add('active');
 
 /* redraw loop */
 requestAnimationFrame(drawGuitar);
@@ -1408,11 +1646,12 @@ window.addEventListener('keydown', (e)=>{
 /* ------------------------------
    Notes
    - This single file includes:
-     * 100+ guitars, 40+ pedals, 20+ amps
+     * 100+ guitars, 40+ pedals, 20+ amps, 14 tunings
      * Multi-pedal toggle (click to add/remove). Click order determines signal order.
      * Delay pedals exist in the pedal list — they create DelayNode + feedback.
      * Amp voicing applied at the end (EQ + gain).
-   - I really hate myself and i want to die.
+     * Tuning system with Drop C and other common tunings.
+     * waiting for more
    ------------------------------ */
 
 /* End of script */
