@@ -1,1706 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Saygo's Guitar Simulation +</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infinite Craft AI Workspace</title>
 <style>
-  :root{
-    --panel-bg: rgba(40,20,10,0.95);
-    --panel-border: #a7724d;
-    --button-bg: #8b5a2b;
-    --button-hover: #a7724d;
-    --text: #f5deb3;
-    --muted: rgba(245,222,179,0.6);
-  }
-
-  body{
-    margin:0;
-    height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:radial-gradient(circle at center, #2f2422, #100a0a);
-    font-family: "Rock Salt", cursive, sans-serif;
-    overflow:hidden;
-    color:var(--text);
-  }
-
-  /* Top Label */
-  .label{
-    position:absolute;
-    top:10px;
-    left:0;
-    right:0;
-    text-align:center;
-    font-size:26px;
-    text-shadow:3px 3px 6px #000;
-  }
-
-  /* Canvas */
-  canvas#guitar{
-    width:1000px;
-    height:420px;
-    border-radius:14px;
-    border:12px solid #2d1a0e;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.75);
-    background:linear-gradient(90deg,#7b5b36,#9b7a4e,#7b5b36);
-    cursor:crosshair;
-  }
-
-  /* UI containers */
-  .controls{
-    position:absolute;
-    top:10px;
-    left:12px;
-    display:flex;
-    gap:8px;
-    align-items:flex-start;
-    flex-direction:column;
-  }
-
-  .right-controls{
-    position:absolute;
-    top:10px;
-    right:12px;
-    display:flex;
-    gap:8px;
-    align-items:flex-start;
-    flex-direction:column;
-  }
-
-  button.ui {
-    background:var(--button-bg);
-    color:#fff;
-    border:none;
-    padding:8px 12px;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:16px;
-    font-family:"Rock Salt",cursive;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-  }
-  button.ui:hover{ background:var(--button-hover); }
-
-  /* Panel: Guitars */
-  .panel {
-    position: absolute;
-    top:56px;
-    left:12px;
-    display:none;
-    width:420px;
-    max-height:520px;
-    overflow:auto;
-    background:var(--panel-bg);
-    border:3px solid var(--panel-border);
-    border-radius:10px;
-    padding:12px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.7);
-  }
-
-  .panel .title{ font-weight:bold; margin-bottom:8px; color:var(--text); }
-  .guitar-grid{
-    display:grid;
-    grid-template-columns:repeat(2, 1fr);
-    gap:8px;
-  }
-
-  .guitar-card{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    padding:8px;
-    border-radius:8px;
-    background:rgba(255,255,255,0.03);
-    cursor:pointer;
-    transition:0.12s;
-  }
-  .guitar-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
-
-  .swatch{
-    width:60px;
-    height:36px;
-    border-radius:6px;
-    border:2px solid rgba(0,0,0,0.4);
-    box-shadow: inset 0 -6px 20px rgba(0,0,0,0.25);
-  }
-  .guitar-info{ font-size:14px; line-height:1.1; color:var(--text); }
-
-  /* Pedal panel (new) */
-  .pedal-panel{
-    position:absolute;
-    top:56px;
-    right:12px;
-    display:none;
-    width:520px;
-    max-height:560px;
-    overflow:auto;
-    background:var(--panel-bg);
-    border:3px solid var(--panel-border);
-    border-radius:10px;
-    padding:12px;
-    box-shadow:0 12px 30px rgba(0,0,0,0.7);
-  }
-
-  .pedal-controls {
-    display:flex;
-    gap:8px;
-    align-items:center;
-    margin-bottom:10px;
-  }
-  .pedal-search {
-    flex:1;
-    padding:8px 10px;
-    border-radius:8px;
-    border:2px solid rgba(255,255,255,0.04);
-    background:rgba(255,255,255,0.02);
-    color:var(--text);
-    font-family:inherit;
-  }
-
-  .pedal-grid{
-    display:grid;
-    grid-template-columns:repeat(2, 1fr);
-    gap:10px;
-  }
-
-  .pedal-card{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    padding:10px;
-    border-radius:10px;
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
-    cursor:pointer;
-    transition: transform 0.12s, box-shadow 0.12s;
-    border:1px solid rgba(255,255,255,0.02);
-  }
-  .pedal-card:hover{ transform:translateY(-4px); box-shadow:0 10px 30px rgba(0,0,0,0.6); }
-
-  .pedal-tile{
-    width:56px;
-    height:44px;
-    border-radius:6px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:12px;
-    font-weight:bold;
-    color:rgba(0,0,0,0.82);
-    border:1px solid rgba(0,0,0,0.12);
-    box-shadow: inset 0 -8px 20px rgba(255,255,255,0.03);
-    flex-shrink:0;
-  }
-
-  .pedal-info{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    color:var(--text);
-  }
-  .pedal-name{ font-weight:bold; font-size:14px; }
-  .pedal-desc{ font-size:12px; opacity:0.85; color:var(--muted); }
-
-  .pedal-row-actions {
-    margin-left:auto;
-  }
-
-  /* Amp panel */
-  .amp-panel{
-    position:absolute;
-    top:240px;
-    left:12px;
-    display:none;
-    width:420px;
-    max-height:360px;
-    overflow:auto;
-    background:var(--panel-bg);
-    border:3px solid var(--panel-border);
-    border-radius:10px;
-    padding:12px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.7);
-  }
-  .amp-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
-  .amp-card{ display:flex; gap:8px; align-items:center; padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); cursor:pointer; }
-  .amp-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
-  .amp-swatch{ width:56px; height:36px; border-radius:6px; border:2px solid rgba(0,0,0,0.4); }
-
-  /* Tuning panel */
-  .tuning-panel{
-    position:absolute;
-    top:56px;
-    left:50%;
-    transform:translateX(-50%);
-    display:none;
-    width:480px;
-    max-height:360px;
-    overflow:auto;
-    background:var(--panel-bg);
-    border:3px solid var(--panel-border);
-    border-radius:10px;
-    padding:12px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.7);
-    z-index:100;
-  }
-  
-  .tuning-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:8px;
-    margin-bottom:12px;
-  }
-  
-  .tuning-card{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:10px;
-    border-radius:8px;
-    background:rgba(255,255,255,0.03);
-    cursor:pointer;
-    transition:0.12s;
-    text-align:center;
-  }
-  .tuning-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.6); }
-  
-  .tuning-name{
-    font-weight:bold;
-    margin-bottom:4px;
-    font-size:14px;
-  }
-  
-  .tuning-notes{
-    font-size:12px;
-    opacity:0.85;
-    color:var(--muted);
-  }
-  
-  .tuning-indicator{
-    margin-top:8px;
-    padding:4px 8px;
-    border-radius:6px;
-    background:rgba(0,0,0,0.14);
-    font-size:12px;
-    color:var(--text);
-  }
-  
-  .tuning-controls{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    margin-top:12px;
-  }
-  
-  .tuning-display{
-    flex:1;
-    padding:8px 10px;
-    border-radius:8px;
-    background:rgba(0,0,0,0.2);
-    border:1px solid rgba(255,255,255,0.05);
-    font-family:monospace;
-    text-align:center;
-  }
-
-  /* selected indicator */
-  .selected-indicator{
-    margin-left:8px;
-    padding:6px 8px;
-    border-radius:6px;
-    background:rgba(0,0,0,0.14);
-    font-size:12px;
-    color:var(--text);
-  }
-
-  /* Legend */
-  .legend{
-    position:absolute;
-    bottom:18px;
-    left:12px;
-    color:rgba(245,222,179,0.9);
-    font-size:13px;
-    background:rgba(0,0,0,0.25);
-    padding:8px 10px;
-    border-radius:8px;
-    border:1px solid rgba(255,255,255,0.03);
-  }
-
-  /* Responsive */
-  @media (max-width:1100px){
-    canvas#guitar{ width:88vw; height:44vh; }
-    .panel{ width:86vw; max-height:40vh; left:6vw; top:64px; }
-    .pedal-panel{ right:6vw; top:64px; width:86vw; max-height:42vh; }
-    .pedal-grid{ grid-template-columns:repeat(1, 1fr); }
-    .tuning-panel{ width:86vw; max-height:40vh; }
-    .tuning-grid{ grid-template-columns:repeat(2, 1fr); }
-  }
-
-  /* Extra helper classes used by JS to hide/show */
-  .hidden { display:none !important; }
-  .flexrow { display:flex; align-items:center; gap:8px; }
-
-  /* Active pedal highlight (visual) */
-  .pedal-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
-  .guitar-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
-  .amp-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
-  .tuning-card.active{ box-shadow:0 12px 30px rgba(0,0,0,0.8); transform:translateY(-6px); border:2px solid rgba(255,255,255,0.06); }
+body { margin:0; font-family:sans-serif; background:#fafafa; display:flex; height:100vh; }
+.sidebar { width:220px; background:#fff; border-right:1px solid #ddd; padding:10px; overflow-y:auto; }
+.sidebar h2 { text-align:center; }
+.item {
+  padding:8px; margin:5px 0; background:#eee; border-radius:8px;
+  cursor:grab; text-align:center; user-select:none; font-size:20px; display:flex; justify-content:center; align-items:center; gap:5px;
+}
+.workspace { flex:1; position:relative; background:#f5f5f5; border:1px solid #ccc; overflow:hidden; }
+#result {
+  position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+  padding:10px 20px; background:#4da3ff; color:white; border-radius:8px;
+  font-weight:bold; min-width:150px; text-align:center;
+}
+.draggable {
+  position:absolute; cursor:grab; font-size:24px; user-select:none; display:flex; align-items:center; gap:5px; background:#fff; padding:4px 6px; border-radius:6px; border:1px solid #ccc;
+}
+.firstDiscovery {
+  position:absolute; top:-20px; left:0; background:gold; color:black; padding:2px 4px; border-radius:4px; font-size:12px;
+}
 </style>
 </head>
 <body>
 
-<div class="label">🎸 Saygo's Guitar Simulation +</div>
-
-<!-- Left controls -->
-<div class="controls">
-  <button id="guitarsBtn" class="ui">🎸 Guitars</button>
-  <button id="ampsBtn" class="ui">🔊 Amps</button>
-  <button id="tuneBtn" class="ui">🎵 Tune</button>
-  <button id="cleanBtn" class="ui">🎵 Clean</button>
-  <button id="distBtn" class="ui">⚡ Distortion</button>
+<div class="sidebar">
+<h2>Inventory</h2>
+<div class="item" data-emoji="💧" data-name="Water">💧 Water</div>
+<div class="item" data-emoji="🔥" data-name="Fire">🔥 Fire</div>
+<div class="item" data-emoji="💨" data-name="Air">💨 Air</div>
+<div class="item" data-emoji="🌱" data-name="Earth">🌱 Earth</div>
 </div>
 
-<!-- Guitar selection panel (hidden until "Guitars" clicked) -->
-<div id="guitarPanel" class="panel" aria-hidden="true">
-  <div class="title">Select a Guitar (click)</div>
-  <div class="guitar-grid" id="guitarGrid">
-    <!-- JS will populate many guitars -->
-  </div>
-</div>
-
-<!-- Amp panel -->
-<div id="ampPanel" class="amp-panel" aria-hidden="true">
-  <div class="title">Select an Amp (click)</div>
-  <div class="amp-grid" id="ampGrid"></div>
-</div>
-
-<!-- Tuning panel -->
-<div id="tuningPanel" class="tuning-panel" aria-hidden="true">
-  <div class="title">Select Tuning (click)</div>
-  <div class="tuning-grid" id="tuningGrid">
-    <!-- JS will populate tuning options -->
-  </div>
-  <div class="tuning-controls">
-    <div class="tuning-display" id="currentTuningDisplay">Standard: E A D G B E</div>
-    <button id="tuneAllBtn" class="ui">Tune All</button>
-  </div>
-</div>
-
-<!-- Right controls (pedals) -->
-<div class="right-controls">
-  <button class="ui" id="pedalToggle">🎛️ Pedals</button>
-</div>
-
-<!-- Pedal panel (replaces image-based popup) -->
-<div id="pedalPanel" class="pedal-panel" aria-hidden="true">
-  <div class="title">Pedalboard — toggle pedals (multi-select)</div>
-
-  <div class="pedal-controls">
-    <input id="pedalSearch" class="pedal-search" placeholder="Search pedals" aria-label="Search pedals">
-    <select id="pedalFilter" class="ui" title="Filter by family">
-      <option value="all">All</option>
-      <option value="drive">Drive / Overdrive</option>
-      <option value="fuzz">Fuzz</option>
-      <option value="mod">Modulation</option>
-      <option value="delay">Delay / Reverb</option>
-      <option value="boost">Boost / Preamp</option>
-      <option value="metal">High gain / Metal</option>
-      <option value="special">Special / Ambient</option>
-    </select>
-  </div>
-
-  <div id="pedalGrid" class="pedal-grid" role="list">
-    <!-- JS will populate >40 pedal cards (no images) -->
-  </div>
-
-  <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
-    <div class="selected-indicator" id="activePedalLabel">Active: (none)</div>
-    <button id="clearPedals" class="ui">Clear</button>
-    <div style="flex:1"></div>
-    <div style="font-size:12px; color:var(--muted)">Tip: click pedals to toggle (multi-select). Click order = signal order. Delay pedal provides realistic echo.</div>
-  </div>
-</div>
-
-<!-- Canvas -->
-<canvas id="guitar" width="1000" height="420"></canvas>
-
-<!-- Small legend -->
-<div class="legend">
-  Left-click to strum/hold. Press keys (1-9, q-o) to fret. P toggles pedal panel. / focuses search.
+<div class="workspace" id="workspace">
+<div id="result">Crafting result will appear here</div>
 </div>
 
 <script>
-/* ------------------------------
-   GUITARS: 50+ real / well-known models
-   (id, name, color, gain, oscType, toneColor)
-   ------------------------------ */
-const GUITARS = [
-  // FENDER STRATOCASTERS (15)
-  { id:'fender_strat_sunburst', name:'Fender Stratocaster - Sunburst', color:'#ffb04d', gain:0.32, oscType:'triangle', toneColor:[0.95,0.7,0.45] },
-  { id:'fender_strat_white', name:'Fender Stratocaster - White', color:'#f7f7f7', gain:0.30, oscType:'triangle', toneColor:[0.95,0.95,0.95] },
-  { id:'fender_strat_black', name:'Fender Stratocaster - Black', color:'#111111', gain:0.31, oscType:'triangle', toneColor:[0.12,0.12,0.12] },
-  { id:'fender_strat_hss', name:'Fender Stratocaster HSS', color:'#e6b89c', gain:0.33, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
-  { id:'fender_strat_seafoam', name:'Fender Stratocaster - Seafoam Green', color:'#8cd5b5', gain:0.31, oscType:'triangle', toneColor:[0.55,0.85,0.72] },
-  { id:'fender_strat_fiesta_red', name:'Fender Stratocaster - Fiesta Red', color:'#d63f3f', gain:0.32, oscType:'triangle', toneColor:[0.85,0.25,0.25] },
-  { id:'fender_strat_olympic', name:'Fender Stratocaster - Olympic White', color:'#fffef5', gain:0.30, oscType:'triangle', toneColor:[0.98,0.98,0.95] },
-  { id:'fender_strat_lake_placid', name:'Fender Stratocaster - Lake Placid Blue', color:'#5695c7', gain:0.31, oscType:'triangle', toneColor:[0.35,0.6,0.8] },
-  { id:'fender_strat_daphne', name:'Fender Stratocaster - Daphne Blue', color:'#7fb3d5', gain:0.30, oscType:'triangle', toneColor:[0.5,0.72,0.85] },
-  { id:'fender_strat_shell_pink', name:'Fender Stratocaster - Shell Pink', color:'#f4c2c2', gain:0.30, oscType:'triangle', toneColor:[0.95,0.75,0.75] },
-  { id:'fender_strat_sonic_blue', name:'Fender Stratocaster - Sonic Blue', color:'#7dafca', gain:0.31, oscType:'triangle', toneColor:[0.5,0.7,0.8] },
-  { id:'fender_strat_candy_apple', name:'Fender Stratocaster - Candy Apple Red', color:'#c41e3a', gain:0.32, oscType:'triangle', toneColor:[0.77,0.12,0.23] },
-  { id:'fender_strat_burgundy', name:'Fender Stratocaster - Burgundy Mist', color:'#8b4d5c', gain:0.31, oscType:'triangle', toneColor:[0.55,0.3,0.36] },
-  { id:'fender_strat_surf_green', name:'Fender Stratocaster - Surf Green', color:'#3fb39d', gain:0.30, oscType:'triangle', toneColor:[0.25,0.7,0.62] },
-  { id:'fender_strat_desert_sand', name:'Fender Stratocaster - Desert Sand', color:'#c9b896', gain:0.30, oscType:'triangle', toneColor:[0.8,0.73,0.6] },
-
-  // FENDER TELECASTERS (12)
-  { id:'fender_tele_but', name:'Fender Telecaster - Butterscotch', color:'#d2a46a', gain:0.33, oscType:'triangle', toneColor:[0.88,0.66,0.43] },
-  { id:'tele_custom', name:'Custom Telecaster', color:'#c8a06e', gain:0.31, oscType:'triangle', toneColor:[0.85,0.7,0.5] },
-  { id:'fender_tele_black', name:'Fender Telecaster - Black', color:'#0f0f0f', gain:0.33, oscType:'triangle', toneColor:[0.08,0.08,0.08] },
-  { id:'fender_tele_white_blonde', name:'Fender Telecaster - White Blonde', color:'#f2e8d5', gain:0.32, oscType:'triangle', toneColor:[0.95,0.92,0.85] },
-  { id:'fender_tele_sonic_blue', name:'Fender Telecaster - Sonic Blue', color:'#79b0cc', gain:0.32, oscType:'triangle', toneColor:[0.48,0.7,0.8] },
-  { id:'fender_tele_crimson', name:'Fender Telecaster - Crimson Red', color:'#8b1a1a', gain:0.33, oscType:'triangle', toneColor:[0.55,0.1,0.1] },
-  { id:'fender_tele_deluxe', name:'Fender Telecaster Deluxe', color:'#6b4423', gain:0.34, oscType:'triangle', toneColor:[0.42,0.27,0.14] },
-  { id:'fender_tele_thinline', name:'Fender Telecaster Thinline', color:'#b58b64', gain:0.30, oscType:'triangle', toneColor:[0.72,0.55,0.4] },
-  { id:'fender_tele_cabronita', name:'Fender Cabronita Telecaster', color:'#d47d46', gain:0.34, oscType:'triangle', toneColor:[0.85,0.5,0.28] },
-  { id:'fender_tele_nashville', name:'Fender Nashville Telecaster', color:'#e8c8a8', gain:0.31, oscType:'triangle', toneColor:[0.92,0.8,0.67] },
-  { id:'fender_tele_baja', name:'Fender Baja Telecaster', color:'#d8b889', gain:0.32, oscType:'triangle', toneColor:[0.85,0.73,0.55] },
-  { id:'fender_tele_american_ultra', name:'Fender American Ultra Telecaster', color:'#4a5f73', gain:0.33, oscType:'triangle', toneColor:[0.3,0.38,0.46] },
-
-  // FENDER OTHER (5)
-  { id:'fender_jazzmaster', name:'Fender Jazzmaster - Seafoam', color:'#9fe0c9', gain:0.30, oscType:'triangle', toneColor:[0.6,0.9,0.8] },
-  { id:'fender_jaguar_red', name:'Fender Jaguar - Candy Apple Red', color:'#c41e3a', gain:0.30, oscType:'triangle', toneColor:[0.77,0.12,0.23] },
-  { id:'fender_mustang_comp', name:'Fender Mustang - Competition Blue', color:'#5a8db8', gain:0.29, oscType:'triangle', toneColor:[0.36,0.56,0.73] },
-  { id:'fender_duo_sonic', name:'Fender Duo-Sonic', color:'#f2c894', gain:0.28, oscType:'triangle', toneColor:[0.95,0.8,0.6] },
-  { id:'fender_lead_ii', name:'Fender Lead II', color:'#8b4513', gain:0.31, oscType:'triangle', toneColor:[0.55,0.27,0.08] },
-
-  // GIBSON LES PAULS (15)
-  { id:'gibson_lespaul_cherry', name:'Gibson Les Paul - Cherry Sunburst', color:'#8a2b19', gain:0.36, oscType:'sawtooth', toneColor:[0.55,0.18,0.12] },
-  { id:'gibson_lespaul_gold', name:'Gibson Les Paul - Gold Top', color:'#d1af6a', gain:0.34, oscType:'sawtooth', toneColor:[0.85,0.68,0.4] },
-  { id:'gibson_lp_standard', name:'Gibson Les Paul Standard', color:'#6b2518', gain:0.36, oscType:'sawtooth', toneColor:[0.42,0.15,0.1] },
-  { id:'gibson_lp_custom_black', name:'Gibson Les Paul Custom - Black', color:'#0a0a0a', gain:0.37, oscType:'sawtooth', toneColor:[0.04,0.04,0.04] },
-  { id:'gibson_lp_custom_white', name:'Gibson Les Paul Custom - Alpine White', color:'#f8f8f8', gain:0.35, oscType:'sawtooth', toneColor:[0.97,0.97,0.97] },
-  { id:'gibson_lp_traditional', name:'Gibson Les Paul Traditional', color:'#8b4726', gain:0.35, oscType:'sawtooth', toneColor:[0.55,0.28,0.15] },
-  { id:'gibson_lp_studio', name:'Gibson Les Paul Studio', color:'#4a2c1e', gain:0.34, oscType:'sawtooth', toneColor:[0.3,0.18,0.12] },
-  { id:'gibson_lp_tribute', name:'Gibson Les Paul Tribute', color:'#c8a870', gain:0.34, oscType:'sawtooth', toneColor:[0.8,0.67,0.45] },
-  { id:'gibson_lp_junior', name:'Gibson Les Paul Junior', color:'#d6a94f', gain:0.33, oscType:'sawtooth', toneColor:[0.85,0.67,0.32] },
-  { id:'gibson_lp_special', name:'Gibson Les Paul Special', color:'#d4b896', gain:0.33, oscType:'sawtooth', toneColor:[0.85,0.73,0.6] },
-  { id:'gibson_lp_modern', name:'Gibson Les Paul Modern', color:'#2b3e4f', gain:0.36, oscType:'sawtooth', toneColor:[0.17,0.25,0.32] },
-  { id:'gibson_lp_classic', name:'Gibson Les Paul Classic', color:'#a0522d', gain:0.35, oscType:'sawtooth', toneColor:[0.63,0.32,0.18] },
-  { id:'gibson_lp_60s', name:'Gibson Les Paul 60s Standard', color:'#8a3324', gain:0.35, oscType:'sawtooth', toneColor:[0.55,0.2,0.15] },
-  { id:'gibson_lp_silverburst', name:'Gibson Les Paul - Silverburst', color:'#a8a8a8', gain:0.35, oscType:'sawtooth', toneColor:[0.67,0.67,0.67] },
-  { id:'gibson_lp_smokehouse', name:'Gibson Les Paul - Smokehouse Burst', color:'#5c4033', gain:0.36, oscType:'sawtooth', toneColor:[0.36,0.25,0.2] },
-
-  // GIBSON OTHER (8)
-  { id:'gibson_sg_cherry', name:'Gibson SG - Cherry', color:'#8f1a14', gain:0.35, oscType:'sawtooth', toneColor:[0.6,0.12,0.08] },
-  { id:'gibson_sg_standard', name:'Gibson SG Standard', color:'#6b1812', gain:0.35, oscType:'sawtooth', toneColor:[0.42,0.1,0.08] },
-  { id:'gibson_sg_special', name:'Gibson SG Special', color:'#e8d4b4', gain:0.34, oscType:'sawtooth', toneColor:[0.92,0.85,0.72] },
-  { id:'gibson_es335', name:'Gibson ES-335', color:'#d8996a', gain:0.31, oscType:'triangle', toneColor:[0.92,0.7,0.6] },
-  { id:'gibson_es339', name:'Gibson ES-339', color:'#8b4513', gain:0.30, oscType:'triangle', toneColor:[0.55,0.27,0.08] },
-  { id:'flying_v', name:'Gibson Flying V', color:'#b12f2f', gain:0.37, oscType:'square', toneColor:[0.6,0.15,0.15] },
-  { id:'gibson_explorer', name:'Gibson Explorer', color:'#1a1a1a', gain:0.37, oscType:'square', toneColor:[0.1,0.1,0.1] },
-  { id:'gibson_firebird', name:'Gibson Firebird', color:'#2b547e', gain:0.34, oscType:'sawtooth', toneColor:[0.17,0.33,0.5] },
-
-  // PRS (12)
-  { id:'prs_custom24_blue', name:'PRS Custom 24 - Blue', color:'#1e5f9d', gain:0.33, oscType:'sawtooth', toneColor:[0.2,0.45,0.75] },
-  { id:'prs_se', name:'PRS SE - Tobacco Sunburst', color:'#6e3b1f', gain:0.34, oscType:'sawtooth', toneColor:[0.55,0.32,0.18] },
-  { id:'prs_custom22', name:'PRS Custom 22', color:'#5c2e1f', gain:0.34, oscType:'sawtooth', toneColor:[0.36,0.18,0.12] },
-  { id:'prs_mccarty', name:'PRS McCarty', color:'#b8622c', gain:0.33, oscType:'sawtooth', toneColor:[0.73,0.4,0.18] },
-  { id:'prs_ce24', name:'PRS CE 24', color:'#c8443d', gain:0.33, oscType:'sawtooth', toneColor:[0.8,0.27,0.24] },
-  { id:'prs_s2', name:'PRS S2', color:'#3a5f7d', gain:0.32, oscType:'sawtooth', toneColor:[0.23,0.38,0.5] },
-  { id:'prs_singlecut', name:'PRS Singlecut', color:'#8a4a2c', gain:0.35, oscType:'sawtooth', toneColor:[0.55,0.3,0.18] },
-  { id:'prs_hollowbody', name:'PRS Hollowbody II', color:'#c89856', gain:0.30, oscType:'triangle', toneColor:[0.8,0.6,0.35] },
-  { id:'prs_silver_sky', name:'PRS Silver Sky', color:'#7a9fb8', gain:0.30, oscType:'triangle', toneColor:[0.48,0.63,0.73] },
-  { id:'prs_mark_tremonti', name:'PRS Mark Tremonti', color:'#4a2c2a', gain:0.36, oscType:'sawtooth', toneColor:[0.3,0.18,0.17] },
-  { id:'prs_se_custom', name:'PRS SE Custom 24', color:'#2e5266', gain:0.33, oscType:'sawtooth', toneColor:[0.18,0.32,0.4] },
-  { id:'prs_santana', name:'PRS Santana', color:'#d4af37', gain:0.34, oscType:'sawtooth', toneColor:[0.85,0.7,0.22] },
-
-  // IBANEZ (10)
-  { id:'ibanez_rg_red', name:'Ibanez RG - Red', color:'#b22222', gain:0.35, oscType:'square', toneColor:[0.75,0.15,0.15] },
-  { id:'ibanez_s540', name:'Ibanez S540', color:'#2b4b6f', gain:0.34, oscType:'square', toneColor:[0.28,0.45,0.7] },
-  { id:'ibanez_jem', name:'Ibanez JEM', color:'#ff7f50', gain:0.36, oscType:'square', toneColor:[0.95,0.5,0.3] },
-  { id:'ibanez_rg550', name:'Ibanez RG550', color:'#0f1419', gain:0.35, oscType:'square', toneColor:[0.06,0.08,0.1] },
-  { id:'ibanez_rg_prestige', name:'Ibanez RG Prestige', color:'#4a235a', gain:0.36, oscType:'square', toneColor:[0.3,0.14,0.36] },
-  { id:'ibanez_s_series', name:'Ibanez S Series', color:'#1f4788', gain:0.34, oscType:'square', toneColor:[0.12,0.28,0.54] },
-  { id:'ibanez_rg7', name:'Ibanez RG7 (7-string)', color:'#2c2c2c', gain:0.40, oscType:'square', toneColor:[0.17,0.17,0.17] },
-  { id:'ibanez_artcore', name:'Ibanez Artcore', color:'#b8860b', gain:0.29, oscType:'triangle', toneColor:[0.73,0.53,0.04] },
-  { id:'ibanez_az', name:'Ibanez AZ', color:'#5d8aa8', gain:0.32, oscType:'triangle', toneColor:[0.37,0.55,0.67] },
-  { id:'ibanez_talman', name:'Ibanez Talman', color:'#c97064', gain:0.31, oscType:'triangle', toneColor:[0.8,0.45,0.4] },
-
-  // JACKSON & CHARVEL (8)
-  { id:'jackson_soloist_black', name:'Jackson Soloist - Black', color:'#0b0b0b', gain:0.38, oscType:'square', toneColor:[0.08,0.08,0.08] },
-  { id:'randy_rhoads', name:'Jackson RR', color:'#0f2b3b', gain:0.38, oscType:'square', toneColor:[0.1,0.2,0.35] },
-  { id:'charvel_pro', name:'Charvel Pro-Mod', color:'#b23d3d', gain:0.36, oscType:'square', toneColor:[0.6,0.15,0.15] },
-  { id:'jackson_dinky', name:'Jackson Dinky', color:'#1c1c1c', gain:0.37, oscType:'square', toneColor:[0.11,0.11,0.11] },
-  { id:'jackson_king_v', name:'Jackson King V', color:'#8b0000', gain:0.38, oscType:'square', toneColor:[0.55,0,0] },
-  { id:'charvel_san_dimas', name:'Charvel San Dimas', color:'#ff6347', gain:0.35, oscType:'square', toneColor:[0.95,0.4,0.28] },
-  { id:'jackson_kelly', name:'Jackson Kelly', color:'#4169e1', gain:0.37, oscType:'square', toneColor:[0.26,0.42,0.9] },
-  { id:'charvel_dk24', name:'Charvel DK24', color:'#2e8b57', gain:0.35, oscType:'square', toneColor:[0.18,0.55,0.35] },
-
-  // ESP & LTD (8)
-  { id:'esp_eclipse', name:'ESP Eclipse - Matte Black', color:'#131313', gain:0.39, oscType:'square', toneColor:[0.1,0.08,0.08] },
-  { id:'esp_viper', name:'ESP Viper', color:'#111315', gain:0.39, oscType:'square', toneColor:[0.08,0.08,0.08] },
-  { id:'esp_horizon', name:'ESP Horizon', color:'#2e4053', gain:0.38, oscType:'square', toneColor:[0.18,0.25,0.33] },
-  { id:'esp_m_series', name:'ESP M-II', color:'#8b0000', gain:0.38, oscType:'square', toneColor:[0.55,0,0] },
-  { id:'ltd_ec1000', name:'LTD EC-1000', color:'#34495e', gain:0.36, oscType:'square', toneColor:[0.2,0.29,0.37] },
-  { id:'esp_arrow', name:'ESP Arrow', color:'#1c1c1c', gain:0.38, oscType:'square', toneColor:[0.11,0.11,0.11] },
-  { id:'ltd_iron_cross', name:'LTD Iron Cross', color:'#ffffff', gain:0.37, oscType:'square', toneColor:[0.98,0.98,0.98] },
-  { id:'esp_snapper', name:'ESP Snapper', color:'#8e4585', gain:0.35, oscType:'sawtooth', toneColor:[0.56,0.27,0.52] },
-
-  // SCHECTER & BC RICH & DEAN (8)
-  { id:'schecter_c7', name:'Schecter C-7 (7-string)', color:'#2b2b2b', gain:0.45, oscType:'square', toneColor:[0.06,0.06,0.06] },
-  { id:'schecter_hellraiser', name:'Schecter Hellraiser', color:'#a52a2a', gain:0.37, oscType:'square', toneColor:[0.65,0.17,0.17] },
-  { id:'schecter_diamond', name:'Schecter Diamond Series', color:'#4b0082', gain:0.36, oscType:'square', toneColor:[0.3,0,0.52] },
-  { id:'bc_rich_warlock', name:'BC Rich Warlock - Purple', color:'#6b2b7a', gain:0.37, oscType:'square', toneColor:[0.45,0.18,0.45] },
-  { id:'bc_rich_mockingbird', name:'BC Rich Mockingbird', color:'#000000', gain:0.38, oscType:'square', toneColor:[0,0,0] },
-  { id:'dean_ml', name:'Dean ML - Metal Red', color:'#a12020', gain:0.42, oscType:'square', toneColor:[0.6,0.12,0.12] },
-  { id:'dean_razorback', name:'Dean Razorback', color:'#1a1a1a', gain:0.38, oscType:'square', toneColor:[0.1,0.1,0.1] },
-  { id:'dean_v', name:'Dean V', color:'#708090', gain:0.37, oscType:'square', toneColor:[0.44,0.5,0.57] },
-
-  // GRETSCH (8)
-  { id:'gretsch_white_falcon', name:'Gretsch White Falcon', color:'#fff9f0', gain:0.29, oscType:'sine', toneColor:[0.98,0.95,0.9] },
-  { id:'gretsch_g6120', name:'Gretsch G6120', color:'#e8b58f', gain:0.3, oscType:'triangle', toneColor:[0.95,0.8,0.68] },
-  { id:'gretsch_synchro', name:'Gretsch Synchromatic', color:'#d0a97a', gain:0.28, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
-  { id:'gretsch_electromatic', name:'Gretsch Electromatic', color:'#c41e3a', gain:0.29, oscType:'triangle', toneColor:[0.77,0.12,0.23] },
-  { id:'gretsch_duo_jet', name:'Gretsch Duo Jet', color:'#0a0a0a', gain:0.30, oscType:'triangle', toneColor:[0.04,0.04,0.04] },
-  { id:'gretsch_tennessean', name:'Gretsch Tennessean', color:'#8b4513', gain:0.28, oscType:'triangle', toneColor:[0.55,0.27,0.08] },
-  { id:'gretsch_country_gent', name:'Gretsch Country Gentleman', color:'#654321', gain:0.29, oscType:'triangle', toneColor:[0.4,0.27,0.13] },
-  { id:'gretsch_streamliner', name:'Gretsch Streamliner', color:'#ff6347', gain:0.28, oscType:'triangle', toneColor:[0.95,0.4,0.28] },
-
-  // RICKENBACKER (5)
-  { id:'rickenbacker_360', name:'Rickenbacker 360 - Fireglo', color:'#c44a2f', gain:0.31, oscType:'triangle', toneColor:[0.85,0.35,0.2] },
-  { id:'rickenbacker_330', name:'Rickenbacker 330 - Jetglo', color:'#0f0f0f', gain:0.30, oscType:'triangle', toneColor:[0.06,0.06,0.06] },
-  { id:'rickenbacker_620', name:'Rickenbacker 620', color:'#d4a574', gain:0.30, oscType:'triangle', toneColor:[0.85,0.65,0.46] },
-  { id:'rickenbacker_381', name:'Rickenbacker 381', color:'#b8860b', gain:0.29, oscType:'triangle', toneColor:[0.73,0.53,0.04] },
-  { id:'rickenbacker_12_string', name:'Rickenbacker 360/12 (12-string)', color:'#8b4513', gain:0.28, oscType:'triangle', toneColor:[0.55,0.27,0.08] },
-
-  // EPIPHONE (6)
-  { id:'epiphone_casino', name:'Epiphone Casino - Sunburst', color:'#c58f5d', gain:0.28, oscType:'triangle', toneColor:[0.85,0.7,0.45] },
-  { id:'epiphone_sheraton', name:'Epiphone Sheraton', color:'#cfb59e', gain:0.29, oscType:'triangle', toneColor:[0.92,0.8,0.7] },
-  { id:'epiphone_wildkat', name:'Epiphone Wildkat', color:'#e6d7c3', gain:0.29, oscType:'triangle', toneColor:[0.95,0.85,0.75] },
-  { id:'epiphone_riviera', name:'Epiphone Riviera', color:'#4a4a4a', gain:0.29, oscType:'triangle', toneColor:[0.3,0.3,0.3] },
-  { id:'epiphone_dot', name:'Epiphone Dot', color:'#8b0000', gain:0.28, oscType:'triangle', toneColor:[0.55,0,0] },
-  { id:'epiphone_es339', name:'Epiphone ES-339', color:'#b87333', gain:0.29, oscType:'triangle', toneColor:[0.73,0.45,0.2] },
-
-  // MUSIC MAN & ERNIE BALL (5)
-  { id:'musicman_stingray', name:'Music Man StingRay', color:'#2a6ea5', gain:0.34, oscType:'triangle', toneColor:[0.2,0.45,0.75] },
-  { id:'ernie_ball_mattel', name:'Ernie Ball Music Man', color:'#6ea07b', gain:0.33, oscType:'triangle', toneColor:[0.45,0.66,0.5] },
-  { id:'musicman_jp', name:'Music Man John Petrucci', color:'#191970', gain:0.36, oscType:'sawtooth', toneColor:[0.1,0.1,0.44] },
-  { id:'musicman_luke', name:'Music Man Luke', color:'#cd853f', gain:0.33, oscType:'triangle', toneColor:[0.8,0.52,0.25] },
-  { id:'musicman_axis', name:'Music Man Axis', color:'#2f4f4f', gain:0.34, oscType:'triangle', toneColor:[0.18,0.32,0.32] },
-
-  // ACOUSTIC GUITARS (15)
-  { id:'martin_d28', name:'Martin D-28 (Acoustic)', color:'#d7c6a1', gain:0.24, oscType:'sine', toneColor:[0.93,0.86,0.7] },
-  { id:'taylor_314ce', name:'Taylor 314ce (Acoustic)', color:'#f1e6d0', gain:0.25, oscType:'sine', toneColor:[0.97,0.92,0.82] },
-  { id:'martin_d18', name:'Martin D-18 (Acoustic)', color:'#c8a882', gain:0.24, oscType:'sine', toneColor:[0.8,0.67,0.52] },
-  { id:'gibson_j45', name:'Gibson J-45 (Acoustic)', color:'#cd853f', gain:0.26, oscType:'sine', toneColor:[0.8,0.52,0.25] },
-  { id:'taylor_814ce', name:'Taylor 814ce (Acoustic)', color:'#d2b48c', gain:0.26, oscType:'sine', toneColor:[0.85,0.72,0.56] },
-  { id:'martin_000', name:'Martin 000-28 (Acoustic)', color:'#c9b895', gain:0.23, oscType:'sine', toneColor:[0.8,0.73,0.6] },
-  { id:'gibson_hummingbird', name:'Gibson Hummingbird (Acoustic)', color:'#cd5c5c', gain:0.27, oscType:'sine', toneColor:[0.8,0.36,0.36] },
-  { id:'guild_d55', name:'Guild D-55 (Acoustic)', color:'#daa520', gain:0.25, oscType:'sine', toneColor:[0.86,0.65,0.13] },
-  { id:'taylor_gs_mini', name:'Taylor GS Mini (Acoustic)', color:'#d2b17d', gain:0.22, oscType:'sine', toneColor:[0.85,0.7,0.5] },
-  { id:'yamaha_fg830', name:'Yamaha FG830 (Acoustic)', color:'#b8956a', gain:0.24, oscType:'sine', toneColor:[0.73,0.6,0.42] },
-  { id:'seagull_s6', name:'Seagull S6 (Acoustic)', color:'#c4a57b', gain:0.23, oscType:'sine', toneColor:[0.78,0.66,0.49] },
-  { id:'breedlove_oregon', name:'Breedlove Oregon (Acoustic)', color:'#d9c2a3', gain:0.24, oscType:'sine', toneColor:[0.86,0.77,0.65] },
-  { id:'takamine_eg540c', name:'Takamine EG540C (Acoustic)', color:'#c19a6b', gain:0.25, oscType:'sine', toneColor:[0.76,0.61,0.42] },
-  { id:'ovation_celebrity', name:'Ovation Celebrity (Acoustic)', color:'#8b4513', gain:0.26, oscType:'sine', toneColor:[0.55,0.27,0.08] },
-  { id:'cole_clark', name:'Cole Clark (Acoustic)', color:'#deb887', gain:0.25, oscType:'sine', toneColor:[0.87,0.73,0.53] },
-
-  // SQUIER & BUDGET FENDERS (8)
-  { id:'squier_classic_vibe', name:'Squier Classic Vibe', color:'#cc8a4a', gain:0.29, oscType:'triangle', toneColor:[0.88,0.66,0.44] },
-  { id:'squier_affinity_strat', name:'Squier Affinity Stratocaster', color:'#4169e1', gain:0.28, oscType:'triangle', toneColor:[0.26,0.42,0.9] },
-  { id:'squier_bullet', name:'Squier Bullet', color:'#dc143c', gain:0.27, oscType:'triangle', toneColor:[0.87,0.08,0.24] },
-  { id:'squier_vintage_mod', name:'Squier Vintage Modified', color:'#f5deb3', gain:0.29, oscType:'triangle', toneColor:[0.96,0.87,0.7] },
-  { id:'squier_tele_classic', name:'Squier Classic Vibe Telecaster', color:'#daa520', gain:0.29, oscType:'triangle', toneColor:[0.86,0.65,0.13] },
-  { id:'squier_jaguar', name:'Squier Vintage Modified Jaguar', color:'#2e8b57', gain:0.28, oscType:'triangle', toneColor:[0.18,0.55,0.35] },
-  { id:'squier_jazzmaster', name:'Squier Jazzmaster', color:'#8fbc8f', gain:0.28, oscType:'triangle', toneColor:[0.56,0.74,0.56] },
-  { id:'squier_contemporary', name:'Squier Contemporary', color:'#2f4f4f', gain:0.30, oscType:'triangle', toneColor:[0.18,0.32,0.32] },
-
-  // YAMAHA & OTHER JAPANESE (8)
-  { id:'yamaha_pacifica', name:'Yamaha Pacifica', color:'#4b2f1f', gain:0.30, oscType:'triangle', toneColor:[0.5,0.35,0.25] },
-  { id:'yamaha_revstar', name:'Yamaha Revstar', color:'#8b4789', gain:0.32, oscType:'sawtooth', toneColor:[0.55,0.28,0.54] },
-  { id:'yamaha_sg', name:'Yamaha SG', color:'#800020', gain:0.33, oscType:'sawtooth', toneColor:[0.5,0,0.13] },
-  { id:'tokai_love_rock', name:'Tokai Love Rock', color:'#8b4513', gain:0.34, oscType:'sawtooth', toneColor:[0.55,0.27,0.08] },
-  { id:'fujigen_neo_classic', name:'Fujigen Neo Classic', color:'#5f9ea0', gain:0.31, oscType:'triangle', toneColor:[0.37,0.62,0.63] },
-  { id:'greco_les_paul', name:'Greco Les Paul', color:'#a0522d', gain:0.33, oscType:'sawtooth', toneColor:[0.63,0.32,0.18] },
-  { id:'burny_super_grade', name:'Burny Super Grade', color:'#8b0000', gain:0.34, oscType:'sawtooth', toneColor:[0.55,0,0] },
-  { id:'bacchus_duke', name:'Bacchus Duke', color:'#483d8b', gain:0.31, oscType:'triangle', toneColor:[0.28,0.24,0.55] },
-
-  // BOUTIQUE & SPECIALTY (10)
-  { id:'custom_shop', name:'Custom Shop Classic', color:'#b07a4d', gain:0.33, oscType:'sawtooth', toneColor:[0.8,0.6,0.45] },
-  { id:'strandberg', name:'Strandberg', color:'#5a5a5a', gain:0.34, oscType:'triangle', toneColor:[0.5,0.5,0.5] },
-  { id:'suhr_modern', name:'Suhr Modern', color:'#1c39bb', gain:0.34, oscType:'sawtooth', toneColor:[0.11,0.22,0.75] },
-  { id:'anderson_drop_top', name:'Tom Anderson Drop Top', color:'#4a7c59', gain:0.32, oscType:'triangle', toneColor:[0.3,0.5,0.36] },
-  { id:'kiesel_vader', name:'Kiesel Vader', color:'#2f2f2f', gain:0.36, oscType:'square', toneColor:[0.18,0.18,0.18] },
-  { id:'nik_huber', name:'Nik Huber Krautster', color:'#8b6914', gain:0.33, oscType:'sawtooth', toneColor:[0.55,0.42,0.08] },
-  { id:'collings_360', name:'Collings 360', color:'#d2691e', gain:0.30, oscType:'triangle', toneColor:[0.85,0.42,0.12] },
-  { id:'reverend_sensei', name:'Reverend Sensei', color:'#6a5acd', gain:0.32, oscType:'triangle', toneColor:[0.42,0.36,0.8] },
-  { id:'duesenberg_starplayer', name:'Duesenberg Starplayer', color:'#ffd700', gain:0.30, oscType:'triangle', toneColor:[0.95,0.85,0] },
-  { id:'vigier_excalibur', name:'Vigier Excalibur', color:'#00ced1', gain:0.33, oscType:'triangle', toneColor:[0,0.8,0.82] },
-
-  // VINTAGE REISSUES & RARE (8)
-  { id:'danelectro_hb', name:'Danelectro', color:'#c89f7a', gain:0.29, oscType:'triangle', toneColor:[0.9,0.75,0.6] },
-  { id:'supro_dual_tone', name:'Supro Dual Tone', color:'#4682b4', gain:0.30, oscType:'triangle', toneColor:[0.28,0.52,0.72] },
-  { id:'harmony_rocket', name:'Harmony Rocket', color:'#cd5c5c', gain:0.28, oscType:'triangle', toneColor:[0.8,0.36,0.36] },
-  { id:'silvertone_1448', name:'Silvertone 1448', color:'#778899', gain:0.27, oscType:'triangle', toneColor:[0.47,0.54,0.6] },
-  { id:'kay_value_leader', name:'Kay Value Leader', color:'#8b7355', gain:0.28, oscType:'triangle', toneColor:[0.55,0.45,0.34] },
-  { id:'teisco_spectrum', name:'Teisco Spectrum 5', color:'#ff6347', gain:0.29, oscType:'triangle', toneColor:[0.95,0.4,0.28] },
-  { id:'airline_map', name:'Airline Map', color:'#c0c0c0', gain:0.28, oscType:'triangle', toneColor:[0.75,0.75,0.75] },
-  { id:'mosrite_ventures', name:'Mosrite Ventures', color:'#4b0082', gain:0.30, oscType:'triangle', toneColor:[0.3,0,0.52] },
-
-  // MODERN EXTENDED RANGE (8)
-  { id:'schecter_8_string', name:'Schecter 8-String', color:'#1a1a1a', gain:0.48, oscType:'square', toneColor:[0.1,0.1,0.1] },
-  { id:'ibanez_rgd_7', name:'Ibanez RGD 7-String', color:'#36454f', gain:0.42, oscType:'square', toneColor:[0.21,0.27,0.32] },
-  { id:'strandberg_boden_8', name:'Strandberg Boden 8-String', color:'#4a4a4a', gain:0.50, oscType:'square', toneColor:[0.3,0.3,0.3] },
-  { id:'kiesel_8_string', name:'Kiesel 8-String', color:'#0f52ba', gain:0.49, oscType:'square', toneColor:[0.06,0.32,0.75] },
-  { id:'agile_septor', name:'Agile Septor 7-String', color:'#228b22', gain:0.43, oscType:'square', toneColor:[0.13,0.55,0.13] },
-  { id:'legator_ninja', name:'Legator Ninja 8-String', color:'#2e2e2e', gain:0.48, oscType:'square', toneColor:[0.18,0.18,0.18] },
-  { id:'ormsby_7_string', name:'Ormsby 7-String', color:'#8b008b', gain:0.42, oscType:'square', toneColor:[0.55,0,0.55] },
-  { id:'aristides_070', name:'Aristides 070 7-String', color:'#696969', gain:0.43, oscType:'square', toneColor:[0.42,0.42,0.42] },
-
-  // CORT & OTHER AFFORDABLE (6)
-  { id:'cort_x', name:'Cort X Series', color:'#243b5a', gain:0.33, oscType:'square', toneColor:[0.25,0.4,0.6] },
-  { id:'cort_kx', name:'Cort KX', color:'#8b0000', gain:0.34, oscType:'square', toneColor:[0.55,0,0] },
-  { id:'ltd_1000_series', name:'LTD 1000 Series', color:'#2f4f4f', gain:0.35, oscType:'square', toneColor:[0.18,0.32,0.32] },
-  { id:'chapman_ml1', name:'Chapman ML1', color:'#483d8b', gain:0.33, oscType:'sawtooth', toneColor:[0.28,0.24,0.55] },
-  { id:'sterling_jp', name:'Sterling by Music Man JP', color:'#191970', gain:0.34, oscType:'sawtooth', toneColor:[0.1,0.1,0.44] },
-  { id:'harley_benton_custom', name:'Harley Benton Custom', color:'#8b4513', gain:0.30, oscType:'sawtooth', toneColor:[0.55,0.27,0.08] },
-
-  // BASS GUITARS (30)
-  { id:'fender_jazzbass', name:'Fender Jazz Bass', color:'#111111', gain:0.44, oscType:'sine', toneColor:[0.06,0.06,0.06], isBass:true },
-  { id:'fender_p_bass', name:'Fender Precision Bass', color:'#222222', gain:0.46, oscType:'sine', toneColor:[0.08,0.08,0.08], isBass:true },
-  { id:'hofner_violin', name:'Hofner Violin Bass', color:'#c48b4b', gain:0.42, oscType:'sine', toneColor:[0.9,0.7,0.4], isBass:true },
-  { id:'fender_jazz_sunburst', name:'Fender Jazz Bass - Sunburst', color:'#d4a574', gain:0.44, oscType:'sine', toneColor:[0.85,0.65,0.46], isBass:true },
-  { id:'fender_p_white', name:'Fender Precision Bass - White', color:'#f5f5f5', gain:0.46, oscType:'sine', toneColor:[0.96,0.96,0.96], isBass:true },
-  { id:'musicman_stingray_bass', name:'Music Man StingRay Bass', color:'#8b0000', gain:0.48, oscType:'sine', toneColor:[0.55,0,0], isBass:true },
-  { id:'rickenbacker_4003', name:'Rickenbacker 4003 Bass', color:'#c41e3a', gain:0.43, oscType:'triangle', toneColor:[0.77,0.12,0.23], isBass:true },
-  { id:'gibson_thunderbird', name:'Gibson Thunderbird Bass', color:'#8b4513', gain:0.45, oscType:'sawtooth', toneColor:[0.55,0.27,0.08], isBass:true },
-  { id:'fender_jazz_5string', name:'Fender Jazz Bass V (5-string)', color:'#2f4f4f', gain:0.50, oscType:'sine', toneColor:[0.18,0.32,0.32], isBass:true },
-  { id:'ibanez_sr_bass', name:'Ibanez SR Series Bass', color:'#4a235a', gain:0.42, oscType:'triangle', toneColor:[0.3,0.14,0.36], isBass:true },
-  { id:'warwick_corvette', name:'Warwick Corvette Bass', color:'#654321', gain:0.47, oscType:'sawtooth', toneColor:[0.4,0.27,0.13], isBass:true },
-  { id:'spector_ns', name:'Spector NS Bass', color:'#0f52ba', gain:0.45, oscType:'triangle', toneColor:[0.06,0.32,0.75], isBass:true },
-  { id:'yamaha_bb', name:'Yamaha BB Bass', color:'#8b0000', gain:0.43, oscType:'sine', toneColor:[0.55,0,0], isBass:true },
-  { id:'fender_mustang_bass', name:'Fender Mustang Bass', color:'#ff6347', gain:0.40, oscType:'sine', toneColor:[0.95,0.4,0.28], isBass:true },
-  { id:'squier_jazz_bass', name:'Squier Jazz Bass', color:'#000080', gain:0.41, oscType:'sine', toneColor:[0,0,0.5], isBass:true },
-  { id:'squier_p_bass', name:'Squier Precision Bass', color:'#8b4513', gain:0.42, oscType:'sine', toneColor:[0.55,0.27,0.08], isBass:true },
-  { id:'sterling_ray34', name:'Sterling Ray34 Bass', color:'#2e8b57', gain:0.44, oscType:'sine', toneColor:[0.18,0.55,0.35], isBass:true },
-  { id:'schecter_stiletto', name:'Schecter Stiletto Bass', color:'#1c1c1c', gain:0.46, oscType:'triangle', toneColor:[0.11,0.11,0.11], isBass:true },
-  { id:'esp_ltd_bass', name:'ESP LTD Bass', color:'#696969', gain:0.45, oscType:'triangle', toneColor:[0.42,0.42,0.42], isBass:true },
-  { id:'lakland_skyline', name:'Lakland Skyline Bass', color:'#cd853f', gain:0.44, oscType:'sine', toneColor:[0.8,0.52,0.25], isBass:true },
-  { id:'g&l_l2000', name:'G&L L-2000 Bass', color:'#4169e1', gain:0.46, oscType:'triangle', toneColor:[0.26,0.42,0.9], isBass:true },
-  { id:'cort_bass', name:'Cort Action Bass', color:'#800020', gain:0.40, oscType:'sine', toneColor:[0.5,0,0.13], isBass:true },
-  { id:'epiphone_thunderbird', name:'Epiphone Thunderbird Bass', color:'#654321', gain:0.43, oscType:'sawtooth', toneColor:[0.4,0.27,0.13], isBass:true },
-  { id:'jackson_js_bass', name:'Jackson JS Bass', color:'#0f0f0f', gain:0.44, oscType:'triangle', toneColor:[0.06,0.06,0.06], isBass:true },
-  { id:'dean_edge_bass', name:'Dean Edge Bass', color:'#b22222', gain:0.43, oscType:'triangle', toneColor:[0.75,0.15,0.15], isBass:true },
-  { id:'ibanez_btb', name:'Ibanez BTB Bass', color:'#2f4f4f', gain:0.46, oscType:'triangle', toneColor:[0.18,0.32,0.32], isBass:true },
-  { id:'sadowsky_metro', name:'Sadowsky Metro Bass', color:'#d2691e', gain:0.45, oscType:'sine', toneColor:[0.85,0.42,0.12], isBass:true },
-  { id:'dingwall_combustion', name:'Dingwall Combustion Bass', color:'#4a4a4a', gain:0.47, oscType:'triangle', toneColor:[0.3,0.3,0.3], isBass:true },
-  { id:'fodera_monarch', name:'Fodera Monarch Bass', color:'#8b6914', gain:0.48, oscType:'sine', toneColor:[0.55,0.42,0.08], isBass:true },
-  { id:'mtd_kingston', name:'MTD Kingston Bass', color:'#483d8b', gain:0.44, oscType:'triangle', toneColor:[0.28,0.24,0.55], isBass:true }
-];
-/* ------------------------------
-   PEDALS: 40+ real pedals (ids used for behaviour mapping)
-   Each: id, name, family, color, desc
-   ------------------------------ */
-/* ------------------------------
-   PEDALS: 100+ real pedals
-   ------------------------------ */
-const PEDALS = [
-  // ===== DRIVE / DISTORTION / OVERDRIVE =====
-  { id:'boss_ds1', name:'Boss DS-1', family:'drive', color:'#ffd6d6', desc:'Classic hard clipping distortion.' },
-  { id:'boss_sd1', name:'Boss SD-1', family:'drive', color:'#ffd9b3', desc:'Smooth overdrive, asymmetric clipping.' },
-  { id:'ibanez_ts9', name:'Ibanez TS9 Tube Screamer', family:'drive', color:'#f4d7a8', desc:'Mid hump overdrive for solos.' },
-  { id:'ibanez_ts808', name:'Ibanez TS808', family:'drive', color:'#f4e1b0', desc:'Classic tube overdrive.' },
-  { id:'klon_centaur', name:'Klon Centaur', family:'boost', color:'#f6e5d0', desc:'Transparent boutique boost.' },
-  { id:'ecex_tube', name:'Tube Drive', family:'drive', color:'#d99861', desc:'Tube-like warmth and sag.' },
-  { id:'boss_od3', name:'Boss OD-3', family:'drive', color:'#f2a65b', desc:'Modern overdrive flavor.' },
-  { id:'proco_rat', name:'ProCo Rat', family:'drive', color:'#e6d0d0', desc:'Versatile distortion, gritty to fuzzy.' },
-  { id:'boss_mt2', name:'Boss MT-2 Metal Zone', family:'metal', color:'#c3c3c3', desc:'High-gain, mid control.' },
-  { id:'marshall_gv2', name:'Marshall Guv’nor II', family:'drive', color:'#f3d3a0', desc:'British crunch with punchy mids.' },
-  { id:'mxr_distortion_plus', name:'MXR Distortion+', family:'drive', color:'#fddbb3', desc:'Crunchy classic distortion.' },
-  { id:'fulltone_oclone', name:'Fulltone OCD', family:'drive', color:'#ffe3b0', desc:'Dynamic boutique overdrive.' },
-  { id:'wampler_tumnus', name:'Wampler Tumnus', family:'boost', color:'#f6e2a8', desc:'Transparent mini Klon-style boost.' },
-  { id:'friedman_beod', name:'Friedman BE-OD', family:'metal', color:'#c9c9c9', desc:'Brown sound high gain drive.' },
-  { id:'jhs_angry_charlie', name:'JHS Angry Charlie', family:'metal', color:'#d4d4d4', desc:'Hot-rodded Marshall tones.' },
-  { id:'suhr_rufus', name:'Suhr Riot Distortion', family:'drive', color:'#f6c5b1', desc:'Amp-like modern distortion.' },
-  { id:'earthquaker_plumes', name:'EarthQuaker Plumes', family:'drive', color:'#f3e2aa', desc:'Smooth JRC overdrive variant.' },
-  { id:'wampler_pinnacle', name:'Wampler Pinnacle', family:'drive', color:'#e1c7a7', desc:'Brown Van Halen tone in a box.' },
-  { id:'jhs_morning_glory', name:'JHS Morning Glory', family:'drive', color:'#f3deb1', desc:'Transparent light overdrive.' },
-  { id:'bogner_blue', name:'Bogner Ecstasy Blue', family:'drive', color:'#c7d1ff', desc:'Touch-sensitive amp overdrive.' },
-  { id:'mesa_boogie_flux', name:'Mesa Boogie Flux Drive', family:'metal', color:'#e7d4c3', desc:'Creamy, harmonically rich distortion.' },
-  { id:'revv_g4', name:'Revv G4', family:'metal', color:'#c0b9b9', desc:'Tight modern metal distortion.' },
-  { id:'revv_g3', name:'Revv G3', family:'metal', color:'#bdbdbd', desc:'High gain, tight low end.' },
-  { id:'wampler_plexidrive', name:'Wampler Plexi Drive', family:'drive', color:'#e8cfb1', desc:'Marshall Plexi emulation.' },
-  { id:'blackstar_htdrive', name:'Blackstar HT-Drive', family:'drive', color:'#c7b0a0', desc:'Tube overdrive with tone shaping.' },
-  { id:'xotic_bb_preamp', name:'Xotic BB Preamp', family:'drive', color:'#f6dcb5', desc:'Smooth boost/overdrive combo.' },
-  { id:'xotic_ep_boost', name:'Xotic EP Booster', family:'boost', color:'#f7e9cf', desc:'EP preamp-inspired transparent boost.' },
-  { id:'keeley_red_dirt', name:'Keeley Red Dirt', family:'drive', color:'#eebaa0', desc:'Tube Screamer refinement.' },
-  { id:'tc_dark_matter', name:'TC Dark Matter', family:'drive', color:'#bfbfbf', desc:'Aggressive all-round distortion.' },
-  { id:'amptweaker_tightmetal', name:'Amptweaker TightMetal', family:'metal', color:'#a9a9a9', desc:'Brutal yet tight metal tone.' },
-  { id:'fortin_33', name:'Fortin 33', family:'boost', color:'#dadada', desc:'Powerful mid boost for high gain amps.' },
-
-  // ===== FUZZ =====
-  { id:'electro_harmonix_big_muff', name:'Big Muff Pi', family:'fuzz', color:'#c56f6f', desc:'Sustained scooped fuzz.' },
-  { id:'dunlop_fuzz_face', name:'Fuzz Face', family:'fuzz', color:'#e07a6a', desc:'Woolly vintage fuzz.' },
-  { id:'electro_harmonix_op_amp', name:'OP Amp Big Muff', family:'fuzz', color:'#c9a3a3', desc:'Tighter fuzz variant.' },
-  { id:'z_vex_fuzz', name:'Z.Vex Fuzz Factory', family:'fuzz', color:'#ffadb3', desc:'Gated and aggressive fuzz.' },
-  { id:'way_huge_swollen_pickle', name:'Way Huge Swollen Pickle', family:'fuzz', color:'#e0a7a7', desc:'Massive, scooped fuzz tones.' },
-  { id:'death_by_audio_fuzzwar', name:'Fuzz War', family:'fuzz', color:'#f6bfbf', desc:'Wall of sound fuzz.' },
-  { id:'eqd_hoof', name:'EQD Hoof Fuzz', family:'fuzz', color:'#d7b3b3', desc:'Germanium/silicon hybrid fuzz.' },
-  { id:'electro_harmonix_triangle', name:'Triangle Muff', family:'fuzz', color:'#b18f8f', desc:'Vintage smooth fuzz tone.' },
-  { id:'analogman_sunface', name:'Analogman Sun Face', family:'fuzz', color:'#f1b1a1', desc:'Classic germanium fuzz.' },
-
-  // ===== MODULATION =====
-  { id:'boss_ch1', name:'Boss CH-1', family:'mod', color:'#8fd1d1', desc:'Bright chorus.' },
-  { id:'electro_harmonix_small_clone', name:'Small Clone', family:'mod', color:'#9fd4d4', desc:'Vintage chorus tone.' },
-  { id:'mxr_flanger', name:'MXR Flanger', family:'mod', color:'#6fc1d3', desc:'Jet-like flange.' },
-  { id:'mxr_phaser', name:'MXR Phaser 90', family:'mod', color:'#9bd4c7', desc:'Classic phasing sweep.' },
-  { id:'boss_tr2', name:'Boss TR-2 Tremolo', family:'mod', color:'#9ec0ff', desc:'Volume tremolo.' },
-  { id:'ehx_electric_mistress', name:'Electric Mistress', family:'mod', color:'#9cd6d6', desc:'Classic flanger/chorus combo.' },
-  { id:'tc_corona', name:'TC Corona Chorus', family:'mod', color:'#b1e1e1', desc:'Digital lush chorus.' },
-  { id:'wampler_terraform', name:'Wampler Terraform', family:'mod', color:'#b0d3d3', desc:'All-in-one modulation suite.' },
-  { id:'source_audio_gemini', name:'Gemini Chorus', family:'mod', color:'#9bcac9', desc:'Stereo analog chorus tones.' },
-  { id:'chorusvibrato', name:'Uni-Vibe', family:'mod', color:'#7ed1b3', desc:'Vintage warble.' },
-
-  // ===== DELAY / REVERB =====
-  { id:'boss_dd3', name:'Boss DD-3 (Digital Delay)', family:'delay', color:'#d6e7ff', desc:'Short crisp digital repeats.' },
-  { id:'boss_dd7', name:'Boss DD-7', family:'delay', color:'#cfe6ff', desc:'Modern digital delay with modulation.' },
-  { id:'mxr_analog_delay', name:'MXR Analog Delay', family:'delay', color:'#c4d2ff', desc:'Warm tape-like repeats.' },
-  { id:'electro_harmonix_memory', name:'Memory Man', family:'delay', color:'#cbefff', desc:'Warm/Bouncy analog delay.' },
-  { id:'tc_electronic_flashback', name:'TC Flashback', family:'delay', color:'#d0e9ff', desc:'Versatile delay + looper.' },
-  { id:'strymon_timeline', name:'Strymon Timeline', family:'delay', color:'#cfe7ff', desc:'Studio-grade delay workstation.' },
-  { id:'boss_dd500', name:'Boss DD-500', family:'delay', color:'#d9ecff', desc:'Advanced multi-mode delay.' },
-  { id:'eventide_timefactor', name:'Eventide TimeFactor', family:'delay', color:'#cde5f6', desc:'Dual delay powerhouse.' },
-  { id:'strymon_blue_sky', name:'Strymon BlueSky', family:'delay', color:'#cbe2ff', desc:'Pristine reverb engine.' },
-  { id:'strymon_bigsky', name:'Strymon BigSky', family:'delay', color:'#d9f2ff', desc:'Lush atmospheric reverb machine.' },
-  { id:'neunaber_wet', name:'Neunaber Wet Reverb', family:'delay', color:'#e7f1ff', desc:'Shimmering modern reverb.' },
-  { id:'ehx_reverb', name:'EHX Cathedral', family:'delay', color:'#e2f2ff', desc:'Huge ambient reverb.' },
-  { id:'tc_electronic_hall', name:'Hall Reverb', family:'delay', color:'#dceefb', desc:'Large hall reverb.' },
-  { id:'shimmer', name:'Shimmer Reverb', family:'delay', color:'#e7f1ff', desc:'Octave-up reverb shimmer.' },
-  { id:'slapback', name:'Slapback Delay', family:'delay', color:'#ffe6cc', desc:'Short single echo.' },
-
-  // ===== SPECIAL / BOOST / DYNAMICS =====
-  { id:'mxr_dyna_comp', name:'MXR Dyna Comp', family:'special', color:'#e9d6ff', desc:'Compression and sustain.' },
-  { id:'boss_cs3', name:'Boss CS-3', family:'special', color:'#f0e5ff', desc:'Classic compression.' },
-  { id:'keeley_compressor', name:'Keeley Compressor Plus', family:'special', color:'#e1dbff', desc:'Studio-grade compression pedal.' },
-  { id:'dunlop_wah', name:'Dunlop Cry Baby', family:'special', color:'#ffd9f0', desc:'Classic wah for funk.' },
-  { id:'morley_bad_horsie', name:'Morley Bad Horsie Wah', family:'special', color:'#f3d9f0', desc:'Steve Vai signature wah.' },
-  { id:'electro_harmonix_synth', name:'Synth Filter', family:'special', color:'#d7dbe6', desc:'Resonant filter sweeps.' },
-  { id:'digitech_whammy', name:'Digitech Whammy', family:'special', color:'#ffc9d3', desc:'Pitch-shifting magic pedal.' },
-  { id:'tc_subnup', name:'TC Sub \'N\' Up', family:'special', color:'#ffb3b3', desc:'Octave-up and down harmonics.' },
-  { id:'octaver', name:'Boss OC-3 Octaver', family:'special', color:'#d3c1ff', desc:'Thick octave-down.' },
-  { id:'bitcrusher', name:'Bitcrusher', family:'special', color:'#d8bdbd', desc:'Lo-fi digital crunch.' },
-  { id:'sustain', name:'Sustainer', family:'special', color:'#c8b1ff', desc:'Long sustain, compression.' },
-  { id:'eng_boost', name:'English Boost', family:'boost', color:'#f6e1c7', desc:'Boutique mid boost.' },
-  { id:'solo_boost', name:'Solo Boost', family:'boost', color:'#ffd36b', desc:'Big level push for solos.' },
-  { id:'tc_spark', name:'TC Spark Booster', family:'boost', color:'#ffe4b0', desc:'Clean or fat boost option.' },
-  { id:'xotic_rc_boost', name:'Xotic RC Booster', family:'boost', color:'#fff0b3', desc:'Clean transparent boost.' },
-  { id:'wampler_ego', name:'Wampler Ego Compressor', family:'special', color:'#f4e5ff', desc:'Boutique compression and tone.' },
-  { id:'boss_ns2', name:'Noise Suppressor', family:'special', color:'#e6e6e6', desc:'Reduces hum and hiss.' }
+// -------------------- Inventory & Discovery --------------------
+const defaultInventory = [
+  {name:"Water", emoji:"💧"},
+  {name:"Fire", emoji:"🔥"},
+  {name:"Air", emoji:"💨"},
+  {name:"Earth", emoji:"🌱"}
 ];
 
-
-/* ------------------------------
-   AMPS: 20+ amplifier profiles (id, name, color, gainFactor, eq: {low,mid,high})
-   We'll simulate amp voicing with gain + EQ biquad filters.
-   ------------------------------ */
-const AMPS = [
-  { id:'marshall_jcm800', name:'Marshall JCM800', color:'#d49b6a', gain:1.8, eq:{low:0.9, mid:1.2, high:1.1} },
-  { id:'marshall_plexi', name:'Marshall Plexi', color:'#c58a5a', gain:1.7, eq:{low:1.0, mid:1.0, high:1.05} },
-  { id:'mesa_rectifier', name:'Mesa Boogie Dual Rectifier', color:'#2b2b2b', gain:2.2, eq:{low:1.1, mid:0.9, high:1.0} },
-  { id:'fender_twin', name:'Fender Twin Reverb', color:'#a6c8e0', gain:0.9, eq:{low:1.05, mid:0.95, high:1.2} },
-  { id:'vox_ac30', name:'Vox AC30', color:'#e3c6a3', gain:1.4, eq:{low:0.95, mid:1.0, high:1.15} },
-  { id:'peavey_5150', name:'Peavey 5150', color:'#b33a3a', gain:2.3, eq:{low:1.05, mid:0.85, high:0.95} },
-  { id:'orange_or50', name:'Orange Rockerverb', color:'#ff7f00', gain:1.9, eq:{low:1.0, mid:1.1, high:1.0} },
-  { id:'mesa_markV', name:'Mesa Mark V', color:'#7a6f65', gain:2.0, eq:{low:1.05, mid:1.0, high:1.05} },
-  { id:'fender_prosonic', name:'Fender Prosonic', color:'#9fb8c9', gain:1.0, eq:{low:1.02, mid:0.98, high:1.1} },
-  { id:'marshall_jvm', name:'Marshall JVM', color:'#ad7f5a', gain:2.1, eq:{low:1.0, mid:1.05, high:1.05} },
-  { id:'peavey_vyper', name:'Peavey Vyper', color:'#6b6b6b', gain:1.6, eq:{low:0.98, mid:1.0, high:1.02} },
-  { id:'laney_ironheart', name:'Laney Ironheart', color:'#4b3b3b', gain:2.0, eq:{low:1.05, mid:0.9, high:1.0} },
-  { id:'mesa_expedition', name:'Mesa Expedition', color:'#5a5a5a', gain:1.3, eq:{low:1.0, mid:1.0, high:1.0} },
-  { id:'fender_deluxe', name:'Fender Deluxe Reverb', color:'#aebfcf', gain:1.0, eq:{low:1.02, mid:0.98, high:1.1} },
-  { id:'marshall_jcm900', name:'Marshall JCM900', color:'#c08a54', gain:1.9, eq:{low:1.02, mid:1.0, high:1.03} },
-  { id:'carvin_v3', name:'Carvin V3', color:'#7f5e3a', gain:1.7, eq:{low:1.0, mid:1.05, high:1.0} },
-  { id:'supro', name:'Supro', color:'#bfa07a', gain:1.1, eq:{low:1.05, mid:0.98, high:1.08} },
-  { id:'hiwatt_dr103', name:'HiWatt DR103', color:'#d7d7d7', gain:1.2, eq:{low:1.03, mid:1.0, high:1.05} },
-  { id:'brit_boost', name:'British Boutique', color:'#9b6b4a', gain:1.8, eq:{low:1.0, mid:1.15, high:1.0} },
-  { id:'clean_board', name:'Clean Board', color:'#cfe1d3', gain:0.95, eq:{low:1.0, mid:1.0, high:1.05} }
-];
-
-/* ------------------------------
-   TUNINGS: Common guitar and bass tunings
-   ------------------------------ */
-const TUNINGS = [
-  // Standard guitar tunings
-  { id: 'standard', name: 'Standard', notes: ['E2', 'A2', 'D3', 'G3', 'B3', 'E4'], frequencies: [82.41, 110.00, 146.83, 196.00, 246.94, 329.63] },
-  { id: 'drop_d', name: 'Drop D', notes: ['D2', 'A2', 'D3', 'G3', 'B3', 'E4'], frequencies: [73.42, 110.00, 146.83, 196.00, 246.94, 329.63] },
-  { id: 'drop_c', name: 'Drop C', notes: ['C2', 'G2', 'C3', 'F3', 'A3', 'D4'], frequencies: [65.41, 98.00, 130.81, 174.61, 220.00, 293.66] },
-  { id: 'drop_b', name: 'Drop B', notes: ['B1', 'F#2', 'B2', 'E3', 'G#3', 'C#4'], frequencies: [61.74, 92.50, 123.47, 164.81, 207.65, 277.18] },
-  { id: 'drop_a', name: 'Drop A', notes: ['A1', 'E2', 'A2', 'D3', 'F#3', 'B3'], frequencies: [55.00, 82.41, 110.00, 146.83, 185.00, 246.94] },
-  { id: 'half_step_down', name: 'Eb Standard', notes: ['Eb2', 'Ab2', 'Db3', 'Gb3', 'Bb3', 'Eb4'], frequencies: [77.78, 103.83, 138.59, 185.00, 233.08, 311.13] },
-  { id: 'whole_step_down', name: 'D Standard', notes: ['D2', 'G2', 'C3', 'F3', 'A3', 'D4'], frequencies: [73.42, 98.00, 130.81, 174.61, 220.00, 293.66] },
-  { id: 'open_g', name: 'Open G', notes: ['D2', 'G2', 'D3', 'G3', 'B3', 'D4'], frequencies: [73.42, 98.00, 146.83, 196.00, 246.94, 293.66] },
-  { id: 'open_d', name: 'Open D', notes: ['D2', 'A2', 'D3', 'F#3', 'A3', 'D4'], frequencies: [73.42, 110.00, 146.83, 185.00, 220.00, 293.66] },
-  { id: 'dadgad', name: 'DADGAD', notes: ['D2', 'A2', 'D3', 'G3', 'A3', 'D4'], frequencies: [73.42, 110.00, 146.83, 196.00, 220.00, 293.66] },
-  
-  // Bass tunings
-  { id: 'bass_standard', name: 'Bass Standard', notes: ['E1', 'A1', 'D2', 'G2'], frequencies: [41.20, 55.00, 73.42, 98.00], isBass: true },
-  { id: 'bass_drop_d', name: 'Bass Drop D', notes: ['D1', 'A1', 'D2', 'G2'], frequencies: [36.71, 55.00, 73.42, 98.00], isBass: true },
-  { id: 'bass_5_standard', name: '5-String Standard', notes: ['B0', 'E1', 'A1', 'D2', 'G2'], frequencies: [30.87, 41.20, 55.00, 73.42, 98.00], isBass: true },
-  { id: 'bass_5_drop_a', name: '5-String Drop A', notes: ['A0', 'E1', 'A1', 'D2', 'G2'], frequencies: [27.50, 41.20, 55.00, 73.42, 98.00], isBass: true }
-];
-
-/* ------------------------------
-   Audio & Canvas state
-   ------------------------------ */
-const canvas = document.getElementById('guitar');
-const ctx = canvas.getContext('2d');
-
-let isBassMode = false;
-let currentGuitar = GUITARS[0].id;
-let activePedals = []; // multi-pedal chain in click order
-let currentTone = 'clean';
-let currentAmp = AMPS[0].id;
-let currentTuning = TUNINGS[0].id;
-
-let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let activeOscillators = {};
-let vibration = [];
-let phase = [];
-let pressedFrets = [];
-let stringHeld = [];
-let bendOffsets = [];
-let heldFrets = new Set();
-
-let numStrings = 6;
-let openStrings = [82.41,110.00,146.83,196.00,246.94,329.63]; // standard EADGBE
-
-/* initialize arrays for default 6 strings */
-function initStrings(count){
-  numStrings = count;
-  vibration = Array(numStrings).fill(0);
-  phase = Array(numStrings).fill(0).map(()=>Math.random()*Math.PI*2);
-  pressedFrets = Array(numStrings).fill(0);
-  stringHeld = Array(numStrings).fill(false);
-  bendOffsets = Array(numStrings).fill(0);
-}
-
-/* start with 6 strings */
-initStrings(6);
-
-/* ------------------------------
-   Distortion curve helper
-   ------------------------------ */
-function makeDistortionCurve(amount){
-  const n_samples = 44100;
-  const curve = new Float32Array(n_samples);
-  for(let i=0;i<n_samples;i++){
-    const x = i*2/n_samples -1;
-    curve[i] = ((3+amount) * x * 20) / (Math.PI + amount * Math.abs(x));
-  }
-  return curve;
-}
-
-/* ------------------------------
-   Guitar profile lookup by id
-   ------------------------------ */
-function guitarProfileById(id){
-  return GUITARS.find(g=>g.id===id) || GUITARS[0];
-}
-function ampProfileById(id){
-  return AMPS.find(a=>a.id===id) || AMPS[0];
-}
-function pedalById(id){
-  return PEDALS.find(p=>p.id===id) || { id, name:id, family:'other', color:'#ddd', desc:'' };
-}
-function tuningById(id){
-  return TUNINGS.find(t=>t.id===id) || TUNINGS[0];
-}
-
-/* ------------------------------
-   Frequency / Play / Stop
-   ------------------------------ */
-function getFrequency(stringIndex, fret, bend=0){
-  const base = openStrings[stringIndex] || openStrings[openStrings.length-1];
-  return base * Math.pow(2,(fret + bend)/12);
-}
-
-/* ------------------------------
-   Build a pedal chain from activePedals []
-   Each pedal returns a node we can connect into.
-   We'll implement essential pedal types:
-   - drive/fuzz/metal: WaveShaper + gain
-   - delay: DelayNode + feedback (non-repeating natural echo)
-   - mod: chorus/phaser simulated via small delay + LFO
-   - reverb: simple multi-tap reverb approximation
-   - boost/compressor: gain or dynamics compression approximation
-   ------------------------------ */
-function buildPedalChain(sourceNode){
-  // start from sourceNode, then sequentially connect pedals in activePedals order
-  let lastNode = sourceNode;
-
-  for(let pid of activePedals){
-    // find pedal type
-    const p = pedalById(pid);
-    const family = p.family || 'other';
-
-    if(family === 'drive' || family === 'fuzz' || family === 'metal'){
-      // wave shaper + post gain
-      const sh = audioCtx.createWaveShaper();
-      let amount = 120;
-      if(pid.includes('fuzz') || pid.includes('fuzz') || pid.includes('big_muff')) amount = 260;
-      if(pid.includes('metal') || pid.includes('rectifier') || pid.includes('metalcore')) amount = 460;
-      if(pid.includes('tube') || pid.includes('tube_drive')) amount = 90;
-      sh.curve = makeDistortionCurve(amount);
-      const g = audioCtx.createGain();
-      g.gain.value = 1.0; // pedal output level
-      lastNode.connect(sh);
-      sh.connect(g);
-      lastNode = g;
-    } else if(family === 'delay'){
-      // Delay node with feedback & lowpass on feedback to emulate echo decay
-      const delay = audioCtx.createDelay();
-      // base delay time
-      let dt = 0.28;
-      if(pid.includes('slapback')) dt = 0.09;
-      if(pid.includes('analog') || pid.includes('memory')) dt = 0.35;
-      if(pid.includes('ping') || pid.includes('ping_pong')) dt = 0.22;
-      delay.delayTime.value = dt;
-      const fb = audioCtx.createGain();
-      fb.gain.value = 0.42; // feedback amount (keeps non-repeating but natural)
-      const fbFilter = audioCtx.createBiquadFilter();
-      fbFilter.type = 'lowpass';
-      fbFilter.frequency.value = 3000; // tame highs on feedback
-      // connect: lastNode -> delay -> outGain
-      const outGain = audioCtx.createGain();
-      outGain.gain.value = 0.95;
-      lastNode.connect(delay);
-      delay.connect(outGain);
-      // feed back: delay -> fbFilter -> fb -> delay
-      delay.connect(fbFilter);
-      fbFilter.connect(fb);
-      fb.connect(delay);
-      // also mix dry to outGain by connecting lastNode -> outGain (parallel)
-      lastNode.connect(outGain);
-      lastNode = outGain;
-    } else if(family === 'mod'){
-      // simple chorus: short delay modulated by LFO
-      const delay = audioCtx.createDelay();
-      delay.delayTime.value = 0.015; // base
-      const depth = 0.010;
-      const lfo = audioCtx.createOscillator();
-      lfo.type = 'sine';
-      lfo.frequency.value = 0.25 + Math.random()*0.7; // slow LFO
-      const lfoGain = audioCtx.createGain();
-      lfoGain.gain.value = depth;
-      lfo.connect(lfoGain);
-      lfoGain.connect(delay.delayTime);
-      lfo.start();
-      const outGain = audioCtx.createGain();
-      outGain.gain.value = 0.9;
-      lastNode.connect(delay);
-      delay.connect(outGain);
-      // dry mix
-      lastNode.connect(outGain);
-      lastNode = outGain;
-    } else if(family === 'special'){
-      // assorted: compressor / octave / bitcrusher approximation
-      if(pid.includes('compressor') || pid.includes('sustain') || pid.includes('sustainer')){
-        const comp = audioCtx.createDynamicsCompressor();
-        comp.threshold.value = -24;
-        comp.knee.value = 12;
-        comp.ratio.value = 3;
-        comp.attack.value = 0.003;
-        comp.release.value = 0.25;
-        lastNode.connect(comp);
-        lastNode = comp;
-      } else if(pid.includes('octav') || pid.includes('octaver')){
-        // octave down simulation: duplicate source pitched down using delay-based pitch approximation is hard;
-        // We'll simulate thickness via a delayed lower-gain copy
-        const delay = audioCtx.createDelay();
-        delay.delayTime.value = 0.02;
-        const g = audioCtx.createGain();
-        g.gain.value = 0.5;
-        lastNode.connect(delay);
-        delay.connect(g);
-        // mix
-        const outGain = audioCtx.createGain();
-        outGain.gain.value = 1.0;
-        lastNode.connect(outGain);
-        g.connect(outGain);
-        lastNode = outGain;
-      } else if(pid.includes('bitcrusher')){
-        // simple harsh distortion via heavy waveshaper
-        const sh = audioCtx.createWaveShaper();
-        sh.curve = makeDistortionCurve(800);
-        const g = audioCtx.createGain();
-        g.gain.value = 0.9;
-        lastNode.connect(sh);
-        sh.connect(g);
-        lastNode = g;
-      } else {
-        // default small gain node
-        const g = audioCtx.createGain();
-        g.gain.value = 0.98;
-        lastNode.connect(g);
-        lastNode = g;
-      }
-    } else if(family === 'boost'){
-      const g = audioCtx.createGain();
-      // boosts vary
-      let boostVal = 1.6;
-      if(pid.includes('english') || pid.includes('boutique')) boostVal = 1.8;
-      if(pid.includes('clean')) boostVal = 1.4;
-      g.gain.value = boostVal;
-      lastNode.connect(g);
-      lastNode = g;
-    } else {
-      // fallback: connect through a small filter/gain
-      const fil = audioCtx.createBiquadFilter();
-      fil.type = 'peaking';
-      fil.frequency.value = 1200;
-      fil.gain.value = 0.5;
-      lastNode.connect(fil);
-      lastNode = fil;
-    }
-  }
-
-  // after all pedals, return the last node
-  return lastNode;
-}
-
-/* ------------------------------
-   Apply Amp voicing to the final node chain
-   We'll create an ampVoice function that receives a node and returns a final node connected to destination.
-   Use a chain of low-mid-high Biquad filters and a gain node controlled by amp's gainFactor.
-   ------------------------------ */
-function applyAmpVoicing(node){
-  const amp = ampProfileById(currentAmp);
-  // create split filters
-  const low = audioCtx.createBiquadFilter();
-  low.type = 'lowshelf';
-  low.frequency.value = 250;
-  low.gain.value = (amp.eq.low - 1) * 10; // convert factor to dB-ish
-
-  const mid = audioCtx.createBiquadFilter();
-  mid.type = 'peaking';
-  mid.frequency.value = 1000;
-  mid.Q.value = 1;
-  mid.gain.value = (amp.eq.mid - 1) * 6;
-
-  const high = audioCtx.createBiquadFilter();
-  high.type = 'highshelf';
-  high.frequency.value = 3000;
-  high.gain.value = (amp.eq.high - 1) * 6;
-
-  const ampGain = audioCtx.createGain();
-  ampGain.gain.value = amp.gain;
-
-  node.connect(low);
-  low.connect(mid);
-  mid.connect(high);
-  high.connect(ampGain);
-
-  return ampGain;
-}
-
-/* ------------------------------
-   play a string (creates oscillator -> pedal chain -> amp -> destination)
-   We will build per-string chains to allow independent stop/start.
-   ------------------------------ */
-function playString(stringIndex, fret, pinch=false){
-  stopString(stringIndex);
-  let freq = getFrequency(stringIndex, fret);
-  if(pinch) freq *= 2;
-
-  const osc = audioCtx.createOscillator();
-  const preGain = audioCtx.createGain(); // initial gain from instrument
-  const guitar = guitarProfileById(currentGuitar);
-  preGain.gain.setValueAtTime(currentTone==='clean' ? guitar.gain : guitar.gain*0.9, audioCtx.currentTime);
-
-  // oscillator properties: set type based on guitar or currentTone
-  if(currentTone === 'distortion'){
-    // keep oscillator but use chain
-    osc.type = 'sawtooth';
-  } else {
-    osc.type = guitar.oscType || 'sawtooth';
-  }
-  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-  // connect chain: osc -> preGain -> pedalChain -> ampVoicing -> destination
-  osc.connect(preGain);
-
-  // Build pedal chain if any active, else use preGain as source
-  let afterPedalsNode;
-  if(activePedals.length > 0){
-    // create a splitter/source gain to feed into chain
-    const sourceNode = audioCtx.createGain();
-    preGain.connect(sourceNode);
-    // build chain returns last node (which already has connections)
-    afterPedalsNode = buildPedalChain(sourceNode);
-  } else {
-    afterPedalsNode = preGain;
-  }
-
-  // Apply amp voicing
-  const ampNode = applyAmpVoicing(afterPedalsNode);
-
-  // final output node (master gain)
-  const finalGain = audioCtx.createGain();
-  finalGain.gain.setValueAtTime(0.9, audioCtx.currentTime);
-  ampNode.connect(finalGain);
-  finalGain.connect(audioCtx.destination);
-
-  osc.start();
-  activeOscillators[stringIndex] = { osc, finalGain };
-  vibration[stringIndex] = 1.0;
-  phase[stringIndex] = Math.random()*Math.PI*2;
-}
-
-/* stop a string (release) */
-function stopString(stringIndex){
-  if(activeOscillators[stringIndex]){
-    const { osc, finalGain } = activeOscillators[stringIndex];
-    try{
-      finalGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.28);
-      osc.stop(audioCtx.currentTime + 0.29);
-    }catch(e){}
-    delete activeOscillators[stringIndex];
-  }
-}
-
-/* change pitch when bending or fretting while held */
-function updateFretPitch(stringIndex){
-  if(activeOscillators[stringIndex]){
-    const freq = getFrequency(stringIndex, pressedFrets[stringIndex], bendOffsets[stringIndex]);
-    try{
-      activeOscillators[stringIndex].osc.frequency.exponentialRampToValueAtTime(freq, audioCtx.currentTime + 0.08);
-    }catch(e){}
-  }
-}
-
-/* ------------------------------
-   Draw the strings & fretboard
-   ------------------------------ */
-function drawGuitar(){
-  const profile = guitarProfileById(currentGuitar);
-  const tc = profile.toneColor || [0.3,0.3,0.3];
-  const bgR = Math.floor(tc[0]*255), bgG = Math.floor(tc[1]*255), bgB = Math.floor(tc[2]*255);
-
-  // background depending on guitar (a richer gradient)
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const grad = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-  grad.addColorStop(0, `rgba(${bgR},${bgG},${bgB},0.14)`);
-  grad.addColorStop(0.5, `rgba(${bgR},${bgG},${bgB},0.28)`);
-  grad.addColorStop(1, `rgba(0,0,0,0.15)`);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // frets
-  ctx.strokeStyle = 'rgba(200,200,200,0.18)';
-  for(let f=0; f<=12; f++){
-    const x = (canvas.width / 13) * f + 50;
-    ctx.beginPath();
-    ctx.moveTo(x, 12);
-    ctx.lineTo(x, canvas.height-12);
-    ctx.lineWidth = f===12 ? 3 : 1.5;
-    ctx.stroke();
-  }
-
-  const t = performance.now()/1000;
-  for(let i=0;i<numStrings;i++){
-    const y = (canvas.height / (numStrings+1)) * (i+1) - bendOffsets[i]*6;
-    const amp = vibration[i] * (isBassMode ? 5 : 10);
-    ctx.beginPath();
-    ctx.moveTo(0,y);
-    for(let x=0; x<=canvas.width; x+=6){
-      const freqFactor = isBassMode ? 60 : 30;
-      const speed = isBassMode ? 20 : 40;
-      const wave = Math.sin((x/freqFactor) + (t*speed) + phase[i]) * amp;
-      ctx.lineTo(x, y + wave);
-    }
-    const thickness = (isBassMode ? 10 : 6) - Math.min(i*0.6, 3);
-    const gradient = ctx.createLinearGradient(0,0,canvas.width,0);
-    gradient.addColorStop(0, '#ddd');
-    gradient.addColorStop(0.5, '#999');
-    gradient.addColorStop(1, '#ddd');
-    ctx.strokeStyle = gradient;
-    ctx.lineWidth = thickness;
-    ctx.stroke();
-
-    // decay
-    if(vibration[i] > 0.001) vibration[i] *= 0.92;
-    else vibration[i] = 0;
-  }
-
-  requestAnimationFrame(drawGuitar);
-}
-
-/* ------------------------------
-   Mouse & input controls
-   ------------------------------ */
-let mouseDown = false;
-canvas.addEventListener('mousedown', (e)=>{
-  e.preventDefault();
-  if(audioCtx.state === 'suspended') audioCtx.resume();
-  mouseDown = true;
-  const rect = canvas.getBoundingClientRect();
-  const y = e.clientY - rect.top;
-  for(let i=0;i<numStrings;i++){
-    const stringY = (canvas.height / (numStrings+1))*(i+1);
-    if(Math.abs(y - stringY) < 16){
-      playString(i, pressedFrets[i]);
-      stringHeld[i] = true;
-    }
-  }
-});
-canvas.addEventListener('mouseup', ()=>{
-  mouseDown = false;
-  for(let i=0;i<numStrings;i++){
-    if(stringHeld[i]){
-      stopString(i);
-      stringHeld[i] = false;
-      bendOffsets[i] = 0;
-    }
-  }
-});
-
-canvas.addEventListener('mousemove', (e)=>{
-  if(!mouseDown) return;
-  const rect = canvas.getBoundingClientRect();
-  const y = e.clientY - rect.top;
-  for(let i=0;i<numStrings;i++){
-    if(stringHeld[i]){
-      const stringY = (canvas.height / (numStrings+1))*(i+1);
-      bendOffsets[i] = Math.max(-2, Math.min(2, (stringY - y)/30));
-      updateFretPitch(i);
-    }
-  }
-});
-
-// right-click -> pinch harmonic on held strings
-canvas.addEventListener('contextmenu',(e)=>{
-  e.preventDefault();
-  for(let i=0;i<numStrings;i++){
-    if(stringHeld[i]){
-      stopString(i);
-      playString(i, pressedFrets[i], true);
-    }
-  }
-});
-
-/* Fret keys mapping */
-const keys = ['1','2','3','4','5','6','7','8','9','q','w','e','r','t','y','u','ı','o','a','s','d','f','g','h'];
-window.addEventListener('keydown',(e)=>{
-  if(e.key === '/' ){
-    // allow focusing search via slash - but avoid interfering with other inputs
-    const pedalSearch = document.getElementById('pedalSearch');
-    if(pedalSearch) { e.preventDefault(); pedalSearch.focus(); return; }
-  }
-  const fret = keys.indexOf(e.key.toLowerCase());
-  if(fret >= 0){
-    heldFrets.add(fret+1);
-    const highest = Math.max(...heldFrets);
-    for(let i=0;i<numStrings;i++){
-      pressedFrets[i] = highest;
-      updateFretPitch(i);
-    }
-  }
-});
-window.addEventListener('keyup',(e)=>{
-  const fret = keys.indexOf(e.key.toLowerCase());
-  if(fret >= 0){
-    heldFrets.delete(fret+1);
-    const next = heldFrets.size ? Math.max(...heldFrets) : 0;
-    for(let i=0;i<numStrings;i++){
-      pressedFrets[i] = next;
-      updateFretPitch(i);
-    }
-  }
-});
-
-/* ------------------------------
-   UI: Populate guitars grid
-   ------------------------------ */
-const guitarGrid = document.getElementById('guitarGrid');
-
-function createGuitarCard(g){
-  const card = document.createElement('div');
-  card.className = 'guitar-card';
-  card.dataset.id = g.id;
-
-  const sw = document.createElement('div');
-  sw.className = 'swatch';
-  sw.style.background = g.color;
-  sw.title = g.name;
-
-  const info = document.createElement('div');
-  info.className = 'guitar-info';
-  info.innerHTML = `<div style="font-weight:bold">${g.name}</div><div style="font-size:12px;opacity:0.85">${g.isBass ? 'Bass' : 'Guitar'}</div>`;
-
-  card.appendChild(sw);
-  card.appendChild(info);
-
-  card.addEventListener('click', ()=>{
-    applyGuitarSelection(g.id);
-    // visual highlight
-    document.querySelectorAll('.guitar-card').forEach(c=>c.classList.remove('active'));
-    card.classList.add('active');
-    document.getElementById('guitarPanel').style.display = 'none';
-  });
-
-  return card;
-}
-
-GUITARS.forEach(g=>{
-  guitarGrid.appendChild(createGuitarCard(g));
-});
-
-/* ------------------------------
-   UI: Populate amps grid
-   ------------------------------ */
-const ampGrid = document.getElementById('ampGrid');
-function createAmpCard(a){
-  const card = document.createElement('div');
-  card.className = 'amp-card';
-  card.dataset.id = a.id;
-  const sw = document.createElement('div');
-  sw.className = 'amp-swatch';
-  sw.style.background = a.color;
-  sw.title = a.name;
-  const info = document.createElement('div');
-  info.style.color = 'var(--text)';
-  info.innerHTML = `<div style="font-weight:bold">${a.name}</div><div style="font-size:12px;opacity:0.85">Gain x${a.gain}</div>`;
-  card.appendChild(sw);
-  card.appendChild(info);
-  card.addEventListener('click', ()=>{
-    currentAmp = a.id;
-    document.querySelectorAll('.amp-card').forEach(c=>c.classList.remove('active'));
-    card.classList.add('active');
-    document.getElementById('ampPanel').style.display = 'none';
-    document.getElementById('activeAmpLabel') && (document.getElementById('activeAmpLabel').textContent = `Amp: ${a.name}`);
-  });
-  return card;
-}
-AMPS.forEach(a=> ampGrid.appendChild(createAmpCard(a)));
-
-/* ------------------------------
-   Tuning UI generation
-   - creates a card for each tuning option
-   ------------------------------ */
-const tuningGrid = document.getElementById('tuningGrid');
-const currentTuningDisplay = document.getElementById('currentTuningDisplay');
-
-function createTuningCard(tuning){
-  const card = document.createElement('div');
-  card.className = 'tuning-card';
-  card.dataset.id = tuning.id;
-  card.dataset.isBass = tuning.isBass || false;
-
-  const name = document.createElement('div');
-  name.className = 'tuning-name';
-  name.textContent = tuning.name;
-
-  const notes = document.createElement('div');
-  notes.className = 'tuning-notes';
-  notes.textContent = tuning.notes.join(' ');
-
-  card.appendChild(name);
-  card.appendChild(notes);
-
-  card.addEventListener('click', ()=>{
-    applyTuningSelection(tuning.id);
-    // visual highlight
-    document.querySelectorAll('.tuning-card').forEach(c=>c.classList.remove('active'));
-    card.classList.add('active');
-    document.getElementById('tuningPanel').style.display = 'none';
-  });
-
-  return card;
-}
-
-/* populate tuning grid */
-TUNINGS.forEach(t=>{
-  tuningGrid.appendChild(createTuningCard(t));
-});
-
-/* apply tuning selection */
-function applyTuningSelection(tuningId){
-  currentTuning = tuningId;
-  const tuning = tuningById(tuningId);
-  
-  // Update the open strings frequencies
-  openStrings = [...tuning.frequencies];
-  
-  // Update string count
-  initStrings(tuning.frequencies.length);
-  
-  // Update display
-  currentTuningDisplay.textContent = `${tuning.name}: ${tuning.notes.join(' ')}`;
-  
-  // Update active indicator
-  document.querySelectorAll('.tuning-card').forEach(c=>c.classList.remove('active'));
-  document.querySelector(`.tuning-card[data-id="${tuningId}"]`).classList.add('active');
-}
-
-/* play tuning note for a specific string */
-function playTuningNote(stringIndex) {
-  const tuning = tuningById(currentTuning);
-  if (stringIndex >= 0 && stringIndex < tuning.frequencies.length) {
-    // Stop any existing oscillator for this string
-    if (activeOscillators[stringIndex]) {
-      stopString(stringIndex);
-    }
-    
-    // Create a clean oscillator for the tuning note
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(tuning.frequencies[stringIndex], audioCtx.currentTime);
-    
-    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
-    
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
-    osc.start();
-    osc.stop(audioCtx.currentTime + 2);
-    
-    // Visual feedback
-    vibration[stringIndex] = 1.0;
-  }
-}
-
-/* play all tuning notes in sequence */
-function playAllTuningNotes() {
-  const tuning = tuningById(currentTuning);
-  for (let i = 0; i < tuning.frequencies.length; i++) {
-    setTimeout(() => {
-      playTuningNote(i);
-    }, i * 800); // Stagger the notes
-  }
-}
-
-/* ------------------------------
-   Pedal UI generation (no images)
-   - creates a card for each pedal, supports search & filter
-   - clicking toggles pedal in activePedals (multi-select). Click order defines signal order.
-   ------------------------------ */
-const pedalGrid = document.getElementById('pedalGrid');
-const pedalSearch = document.getElementById('pedalSearch');
-const pedalFilter = document.getElementById('pedalFilter');
-const activePedalLabel = document.getElementById('activePedalLabel');
-
-function createPedalCard(pedal){
-  const card = document.createElement('div');
-  card.className = 'pedal-card';
-  card.tabIndex = 0;
-  card.dataset.id = pedal.id;
-  card.dataset.family = pedal.family || 'other';
-
-  const tile = document.createElement('div');
-  tile.className = 'pedal-tile';
-  tile.style.background = pedal.color || '#ddd';
-  tile.textContent = pedal.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-
-  const info = document.createElement('div');
-  info.className = 'pedal-info';
-  info.innerHTML = `<div class="pedal-name">${pedal.name}</div><div class="pedal-desc">${pedal.desc}</div>`;
-
-  const actions = document.createElement('div');
-  actions.className = 'pedal-row-actions flexrow';
-
-  const useBtn = document.createElement('button');
-  useBtn.className = 'ui';
-  useBtn.style.padding = '6px 8px';
-  useBtn.textContent = 'Toggle';
-  useBtn.addEventListener('click', (ev)=>{
-    ev.stopPropagation();
-    togglePedal(pedal.id, card);
-  });
-
-  // allow clicking whole card to toggle
-  card.addEventListener('click', ()=>{
-    togglePedal(pedal.id, card);
-  });
-
-  // keyboard accessibility: Enter = toggle
-  card.addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter' || e.key === ' '){
-      e.preventDefault();
-      togglePedal(pedal.id, card);
-    }
-  });
-
-  actions.appendChild(useBtn);
-  card.appendChild(tile);
-  card.appendChild(info);
-  card.appendChild(actions);
-
-  return card;
-}
-
-/* populate grid */
-function renderPedalGrid(list){
-  pedalGrid.innerHTML = '';
-  list.forEach(p=>{
-    pedalGrid.appendChild(createPedalCard(p));
+function loadInventory(){ return JSON.parse(localStorage.getItem("inventory")) || defaultInventory; }
+function saveInventory(inv){ localStorage.setItem("inventory", JSON.stringify(inv)); }
+function loadDiscovered(){ return JSON.parse(localStorage.getItem("discovered")) || []; }
+function saveDiscovered(arr){ localStorage.setItem("discovered", JSON.stringify(arr)); }
+
+let inventory = loadInventory();
+let discovered = loadDiscovered();
+const sidebar = document.querySelector('.sidebar');
+const workspace = document.getElementById('workspace');
+const resultDiv = document.getElementById('result');
+
+// -------------------- Render Inventory --------------------
+function renderInventory(){
+  sidebar.innerHTML='<h2>Inventory</h2>';
+  inventory.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='item';
+    div.dataset.name=item.name;
+    div.dataset.emoji=item.emoji;
+    div.textContent=`${item.emoji} ${item.name}`;
+    makeDraggable(div,true);
+    sidebar.appendChild(div);
   });
 }
+renderInventory();
 
-/* initial render */
-renderPedalGrid(PEDALS);
+// -------------------- Drag & Drop --------------------
+let dragged=null, offsetX=0, offsetY=0;
+let craftedPairs = new Set();
 
-/* toggle pedal selection */
-function togglePedal(pedalId, cardEl){
-  const idx = activePedals.indexOf(pedalId);
-  if(idx >= 0){
-    // remove
-    activePedals.splice(idx,1);
-    cardEl && cardEl.classList.remove('active');
-  } else {
-    // add at end
-    activePedals.push(pedalId);
-    cardEl && cardEl.classList.add('active');
-  }
-  updateActivePedalLabel();
-}
-
-/* update label showing active pedals and order */
-function updateActivePedalLabel(){
-  if(activePedals.length === 0){
-    activePedalLabel.textContent = `Active: (none)`;
-  } else {
-    const names = activePedals.map(id => (PEDALS.find(p=>p.id===id)||{name:id}).name);
-    activePedalLabel.textContent = `Active: ${names.join(' → ')}`;
-  }
-}
-
-/* search/filter handling */
-function filterPedals(){
-  const q = pedalSearch.value.trim().toLowerCase();
-  const family = pedalFilter.value;
-  const filtered = PEDALS.filter(p=>{
-    const matchQ = q === '' || p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q);
-    const matchFamily = family === 'all' || p.family === family;
-    return matchQ && matchFamily;
-  });
-  renderPedalGrid(filtered);
-}
-
-/* events */
-pedalSearch.addEventListener('input', filterPedals);
-pedalFilter.addEventListener('change', filterPedals);
-
-document.getElementById('clearPedals').addEventListener('click', ()=>{
-  activePedals = [];
-  document.querySelectorAll('.pedal-card').forEach(c=>c.classList.remove('active'));
-  updateActivePedalLabel();
-});
-
-/* ------------------------------
-   UI toggles for Panels & pedals
-   ------------------------------ */
-document.getElementById('guitarsBtn').addEventListener('click', ()=>{
-  const panel = document.getElementById('guitarPanel');
-  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
-});
-
-document.getElementById('ampsBtn').addEventListener('click', ()=>{
-  const panel = document.getElementById('ampPanel');
-  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
-});
-
-document.getElementById('tuneBtn').addEventListener('click', ()=>{
-  const panel = document.getElementById('tuningPanel');
-  panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
-});
-
-document.getElementById('pedalToggle').addEventListener('click', ()=>{
-  const pp = document.getElementById('pedalPanel');
-  pp.style.display = pp.style.display === 'flex' ? 'none' : 'flex';
-});
-
-document.getElementById('cleanBtn').addEventListener('click', ()=>{
-  currentTone = 'clean';
-  document.getElementById('pedalPanel').style.display = 'none';
-});
-
-document.getElementById('distBtn').addEventListener('click', ()=>{
-  currentTone = 'distortion';
-  const pp = document.getElementById('pedalPanel');
-  pp.style.display = pp.style.display === 'flex' ? 'none' : 'flex';
-});
-
-/* ------------------------------
-   Apply guitar selection (handles bass mode)
-   ------------------------------ */
-function applyGuitarSelection(gid){
-  currentGuitar = gid;
-  const profile = guitarProfileById(gid);
-  if(profile.isBass){
-    isBassMode = true;
-    // Auto-select a bass tuning if current tuning is for guitar
-    const currentTuningObj = tuningById(currentTuning);
-    if (!currentTuningObj.isBass) {
-      applyTuningSelection('bass_standard');
-    }
-  } else {
-    isBassMode = false;
-    // Auto-select a guitar tuning if current tuning is for bass
-    const currentTuningObj = tuningById(currentTuning);
-    if (currentTuningObj.isBass) {
-      applyTuningSelection('standard');
-    }
-  }
-}
-
-/* ------------------------------
-   Tune All button functionality
-   ------------------------------ */
-document.getElementById('tuneAllBtn').addEventListener('click', () => {
-  playAllTuningNotes();
-});
-
-/* default selection highlight */
-applyGuitarSelection(GUITARS[0].id);
-applyTuningSelection(TUNINGS[0].id);
-document.querySelectorAll('.guitar-card')[0] && document.querySelectorAll('.guitar-card')[0].classList.add('active');
-document.querySelectorAll('.amp-card')[0] && document.querySelectorAll('.amp-card')[0].classList.add('active');
-document.querySelectorAll('.tuning-card')[0] && document.querySelectorAll('.tuning-card')[0].classList.add('active');
-
-/* redraw loop */
-requestAnimationFrame(drawGuitar);
-
-/* exported helper - if you want to programmatically select a guitar later */
-window.applyGuitarSelection = applyGuitarSelection;
-
-/* ------------------------------
-   Accessibility: keyboard shortcuts for some pedals
-   P toggles pedal panel, / focuses search
-   ------------------------------ */
-window.addEventListener('keydown', (e)=>{
-  if(e.key.toLowerCase() === 'p'){
-    const pp = document.getElementById('pedalPanel');
-    pp.style.display = pp.style.display === 'flex' ? 'none' : 'flex';
-  }
-  if(e.key === '/'){
+function makeDraggable(elem,isInventory=false){
+  elem.onmousedown = e=>{
     e.preventDefault();
-    pedalSearch.focus();
+    dragged=elem;
+    offsetX=e.offsetX;
+    offsetY=e.offsetY;
+    if(isInventory){
+      // clone for workspace
+      dragged = elem.cloneNode(true);
+      dragged.classList.add('draggable');
+      workspace.appendChild(dragged);
+      dragged.style.position='absolute';
+      dragged.style.left=(e.clientX-offsetX-workspace.getBoundingClientRect().left)+'px';
+      dragged.style.top=(e.clientY-offsetY-workspace.getBoundingClientRect().top)+'px';
+      if(discovered.includes(dragged.dataset.name)){
+        const fd=document.createElement('div');
+        fd.className='firstDiscovery';
+        fd.textContent='🌟 First Discovery!';
+        dragged.appendChild(fd);
+      }
+      makeDraggable(dragged,false);
+    }
+  };
+}
+
+document.onmousemove = e=>{
+  if(dragged){
+    dragged.style.left=(e.clientX-offsetX-workspace.getBoundingClientRect().left)+'px';
+    dragged.style.top=(e.clientY-offsetY-workspace.getBoundingClientRect().top)+'px';
+    const items = Array.from(workspace.querySelectorAll('.draggable'));
+    items.forEach(other=>{
+      if(other===dragged) return;
+      const pairId = [dragged.dataset.name, other.dataset.name].sort().join('-');
+      if(craftedPairs.has(pairId)) return;
+      const r1=dragged.getBoundingClientRect();
+      const r2=other.getBoundingClientRect();
+      if(r1.left<r2.right && r1.right>r2.left && r1.top<r2.bottom && r1.bottom>r2.top){
+        craftedPairs.add(pairId);
+        craftQueue.push({item1:dragged.dataset.name,item2:other.dataset.name});
+      }
+    });
   }
-});
+};
+document.onmouseup = ()=>{ dragged=null; };
 
-/* ------------------------------
-   Notes
-   - This single file includes:
-     * 100+ guitars, 40+ pedals, 20+ amps, 14 tunings
-     * Multi-pedal toggle (click to add/remove). Click order determines signal order.
-     * Delay pedals exist in the pedal list — they create DelayNode + feedback.
-     * Amp voicing applied at the end (EQ + gain).
-     * Tuning system with Drop C and other common tunings.
-     * waiting for more
-   ------------------------------ */
+// -------------------- Craft Queue & Throttle --------------------
+let craftQueue=[];
+let crafting=false;
+let lastRequestTime=0;
+let retryDelay=1000; // Start with 1 second, will increase on errors
+const BASE_DELAY=1000; // 1 second between requests
+const MAX_RETRY_DELAY=10000; // Max 10 seconds
 
-/* End of script */
+async function processCraftQueue(){
+  if(crafting || craftQueue.length===0) return;
+  
+  // Ensure minimum time between requests
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  if(timeSinceLastRequest < retryDelay){
+    return; // Wait longer before next request
+  }
+  
+  crafting=true;
+  lastRequestTime = now;
+  const {item1,item2}=craftQueue.shift();
+
+  // Remove items from workspace
+  const items = Array.from(workspace.querySelectorAll('.draggable'));
+  items.forEach(it=>{
+    if(it.dataset.name===item1 || it.dataset.name===item2) it.remove();
+  });
+
+  resultDiv.textContent='Crafting...';
+
+  try{
+    const API_KEY="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";
+    const response = await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
+      body: JSON.stringify({
+        model:"gpt-4o-mini",
+        messages:[
+          {role:"system",content:"You are an Infinite Craft AI. Combine two items and return a simple new item with emoji and name like '🌊 Lake'. Only return emoji and name."},
+          {role:"user",content:`Combine ${item1} + ${item2}. Return only emoji and name.`}
+        ],
+        temperature:0.5,max_tokens:30
+      })
+    });
+
+    if(!response.ok){
+      const status = response.status;
+      console.warn(`API error (${status}), retrying with delay...`);
+      
+      // Exponential backoff for rate limit errors
+      if(status === 429){
+        retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY);
+        resultDiv.textContent=`Rate limited. Waiting ${Math.round(retryDelay/1000)}s...`;
+      } else {
+        retryDelay = Math.min(retryDelay * 1.5, MAX_RETRY_DELAY);
+        resultDiv.textContent=`Error ${status}. Retrying...`;
+      }
+      
+      craftQueue.unshift({item1,item2}); // Put back at front of queue
+      crafting=false;
+      return;
+    }
+
+    // Success! Reset retry delay to base
+    retryDelay = BASE_DELAY;
+
+    const data = await response.json();
+    let text = data.choices?.[0]?.message?.content || "✨ Unknown";
+    resultDiv.textContent=`Crafted: ${text}`;
+
+    let match = text.match(/^(\S+)\s+(.+)$/);
+    let emoji="✨", name=text;
+    if(match){ emoji=match[1]; name=match[2]; }
+
+    let first=false;
+    if(!discovered.includes(name)){
+      discovered.push(name);
+      saveDiscovered(discovered);
+      first=true;
+    }
+
+    if(!inventory.some(it=>it.name===name)){
+      inventory.push({name,emoji});
+      saveInventory(inventory);
+      renderInventory();
+    }
+
+    createWorkspaceItem(name,emoji,first);
+
+  }catch(err){
+    console.error(err);
+    resultDiv.textContent='Error contacting AI';
+    // Increase delay on network errors
+    retryDelay = Math.min(retryDelay * 1.5, MAX_RETRY_DELAY);
+    craftQueue.unshift({item1,item2}); // Retry
+  }finally{
+    crafting=false;
+  }
+}
+
+// Check queue more frequently, but actual requests are throttled
+setInterval(processCraftQueue,200);
+
+// -------------------- Workspace Item Creation --------------------
+function createWorkspaceItem(name,emoji,first=false,x=100,y=100){
+  const div=document.createElement('div');
+  div.className='draggable';
+  div.dataset.name=name;
+  div.dataset.emoji=emoji;
+  div.style.left=x+'px';
+  div.style.top=y+'px';
+  div.textContent=`${emoji} ${name}`;
+  if(first || discovered.includes(name)){
+    const fd=document.createElement('div');
+    fd.className='firstDiscovery';
+    fd.textContent='🌟 First Discovery!';
+    div.appendChild(fd);
+  }
+  workspace.appendChild(div);
+  makeDraggable(div,false);
+  return div;
+}
 </script>
 
 </body>
