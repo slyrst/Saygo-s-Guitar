@@ -1,252 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Infinite Craft AI Workspace</title>
-<style>
-body { margin:0; font-family:sans-serif; background:#fafafa; display:flex; height:100vh; }
-.sidebar { width:220px; background:#fff; border-right:1px solid #ddd; padding:10px; overflow-y:auto; }
-.sidebar h2 { text-align:center; }
-.item {
-  padding:8px; margin:5px 0; background:#eee; border-radius:8px;
-  cursor:grab; text-align:center; user-select:none; font-size:20px; display:flex; justify-content:center; align-items:center; gap:5px;
-}
-.workspace { flex:1; position:relative; background:#f5f5f5; border:1px solid #ccc; overflow:hidden; }
-#result {
-  position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-  padding:10px 20px; background:#4da3ff; color:white; border-radius:8px;
-  font-weight:bold; min-width:150px; text-align:center;
-}
-.draggable {
-  position:absolute; cursor:grab; font-size:24px; user-select:none; display:flex; align-items:center; gap:5px; background:#fff; padding:4px 6px; border-radius:6px; border:1px solid #ccc;
-}
-.firstDiscovery {
-  position:absolute; top:-20px; left:0; background:gold; color:black; padding:2px 4px; border-radius:4px; font-size:12px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saygos Fun</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 20px 0;
+            background: #ffffff;
+            border-bottom: 2px solid #ddd;
+        }
+
+        header img {
+            height: 70px;
+        }
+
+        .games-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            padding: 40px 20px;
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        .game-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+        }
+
+        .game-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .game-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #222;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding: 15px;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
 
-<div class="sidebar">
-<h2>Inventory</h2>
-<div class="item" data-emoji="💧" data-name="Water">💧 Water</div>
-<div class="item" data-emoji="🔥" data-name="Fire">🔥 Fire</div>
-<div class="item" data-emoji="💨" data-name="Air">💨 Air</div>
-<div class="item" data-emoji="🌱" data-name="Earth">🌱 Earth</div>
-</div>
+    <header>
+        <img src="logo.png" alt="Saygos Logo">
+    </header>
 
-<div class="workspace" id="workspace">
-<div id="result">Crafting result will appear here</div>
-</div>
+    <div class="games-container">
 
-<script>
-// -------------------- Inventory & Discovery --------------------
-const defaultInventory = [
-  {name:"Water", emoji:"💧"},
-  {name:"Fire", emoji:"🔥"},
-  {name:"Air", emoji:"💨"},
-  {name:"Earth", emoji:"🌱"}
-];
+        <!-- Saygos Guitar Card -->
+        <div class="game-card" onclick="window.location.href='saygosguitar.html'">
+            <img src="saygosguitar.png" alt="Saygos Guitar">
+            <div class="game-title">Saygos Guitar</div>
+        </div>
 
-function loadInventory(){ return JSON.parse(localStorage.getItem("inventory")) || defaultInventory; }
-function saveInventory(inv){ localStorage.setItem("inventory", JSON.stringify(inv)); }
-function loadDiscovered(){ return JSON.parse(localStorage.getItem("discovered")) || []; }
-function saveDiscovered(arr){ localStorage.setItem("discovered", JSON.stringify(arr)); }
+    </div>
 
-let inventory = loadInventory();
-let discovered = loadDiscovered();
-const sidebar = document.querySelector('.sidebar');
-const workspace = document.getElementById('workspace');
-const resultDiv = document.getElementById('result');
-
-// -------------------- Render Inventory --------------------
-function renderInventory(){
-  sidebar.innerHTML='<h2>Inventory</h2>';
-  inventory.forEach(item=>{
-    const div=document.createElement('div');
-    div.className='item';
-    div.dataset.name=item.name;
-    div.dataset.emoji=item.emoji;
-    div.textContent=`${item.emoji} ${item.name}`;
-    makeDraggable(div,true);
-    sidebar.appendChild(div);
-  });
-}
-renderInventory();
-
-// -------------------- Drag & Drop --------------------
-let dragged=null, offsetX=0, offsetY=0;
-let craftedPairs = new Set();
-
-function makeDraggable(elem,isInventory=false){
-  elem.onmousedown = e=>{
-    e.preventDefault();
-    dragged=elem;
-    offsetX=e.offsetX;
-    offsetY=e.offsetY;
-    if(isInventory){
-      // clone for workspace
-      dragged = elem.cloneNode(true);
-      dragged.classList.add('draggable');
-      workspace.appendChild(dragged);
-      dragged.style.position='absolute';
-      dragged.style.left=(e.clientX-offsetX-workspace.getBoundingClientRect().left)+'px';
-      dragged.style.top=(e.clientY-offsetY-workspace.getBoundingClientRect().top)+'px';
-      if(discovered.includes(dragged.dataset.name)){
-        const fd=document.createElement('div');
-        fd.className='firstDiscovery';
-        fd.textContent='🌟 First Discovery!';
-        dragged.appendChild(fd);
-      }
-      makeDraggable(dragged,false);
-    }
-  };
-}
-
-document.onmousemove = e=>{
-  if(dragged){
-    dragged.style.left=(e.clientX-offsetX-workspace.getBoundingClientRect().left)+'px';
-    dragged.style.top=(e.clientY-offsetY-workspace.getBoundingClientRect().top)+'px';
-    const items = Array.from(workspace.querySelectorAll('.draggable'));
-    items.forEach(other=>{
-      if(other===dragged) return;
-      const pairId = [dragged.dataset.name, other.dataset.name].sort().join('-');
-      if(craftedPairs.has(pairId)) return;
-      const r1=dragged.getBoundingClientRect();
-      const r2=other.getBoundingClientRect();
-      if(r1.left<r2.right && r1.right>r2.left && r1.top<r2.bottom && r1.bottom>r2.top){
-        craftedPairs.add(pairId);
-        craftQueue.push({item1:dragged.dataset.name,item2:other.dataset.name});
-      }
-    });
-  }
-};
-document.onmouseup = ()=>{ dragged=null; };
-
-// -------------------- Craft Queue & Throttle --------------------
-let craftQueue=[];
-let crafting=false;
-let lastRequestTime=0;
-let retryDelay=1000; // Start with 1 second, will increase on errors
-const BASE_DELAY=1000; // 1 second between requests
-const MAX_RETRY_DELAY=10000; // Max 10 seconds
-
-async function processCraftQueue(){
-  if(crafting || craftQueue.length===0) return;
-  
-  // Ensure minimum time between requests
-  const now = Date.now();
-  const timeSinceLastRequest = now - lastRequestTime;
-  if(timeSinceLastRequest < retryDelay){
-    return; // Wait longer before next request
-  }
-  
-  crafting=true;
-  lastRequestTime = now;
-  const {item1,item2}=craftQueue.shift();
-
-  // Remove items from workspace
-  const items = Array.from(workspace.querySelectorAll('.draggable'));
-  items.forEach(it=>{
-    if(it.dataset.name===item1 || it.dataset.name===item2) it.remove();
-  });
-
-  resultDiv.textContent='Crafting...';
-
-  try{
-    const API_KEY="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";
-    const response = await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
-      body: JSON.stringify({
-        model:"gpt-4o-mini",
-        messages:[
-          {role:"system",content:"You are an Infinite Craft AI. Combine two items and return a simple new item with emoji and name like '🌊 Lake'. Only return emoji and name."},
-          {role:"user",content:`Combine ${item1} + ${item2}. Return only emoji and name.`}
-        ],
-        temperature:0.5,max_tokens:30
-      })
-    });
-
-    if(!response.ok){
-      const status = response.status;
-      console.warn(`API error (${status}), retrying with delay...`);
-      
-      // Exponential backoff for rate limit errors
-      if(status === 429){
-        retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY);
-        resultDiv.textContent=`Rate limited. Waiting ${Math.round(retryDelay/1000)}s...`;
-      } else {
-        retryDelay = Math.min(retryDelay * 1.5, MAX_RETRY_DELAY);
-        resultDiv.textContent=`Error ${status}. Retrying...`;
-      }
-      
-      craftQueue.unshift({item1,item2}); // Put back at front of queue
-      crafting=false;
-      return;
-    }
-
-    // Success! Reset retry delay to base
-    retryDelay = BASE_DELAY;
-
-    const data = await response.json();
-    let text = data.choices?.[0]?.message?.content || "✨ Unknown";
-    resultDiv.textContent=`Crafted: ${text}`;
-
-    let match = text.match(/^(\S+)\s+(.+)$/);
-    let emoji="✨", name=text;
-    if(match){ emoji=match[1]; name=match[2]; }
-
-    let first=false;
-    if(!discovered.includes(name)){
-      discovered.push(name);
-      saveDiscovered(discovered);
-      first=true;
-    }
-
-    if(!inventory.some(it=>it.name===name)){
-      inventory.push({name,emoji});
-      saveInventory(inventory);
-      renderInventory();
-    }
-
-    createWorkspaceItem(name,emoji,first);
-
-  }catch(err){
-    console.error(err);
-    resultDiv.textContent='Error contacting AI';
-    // Increase delay on network errors
-    retryDelay = Math.min(retryDelay * 1.5, MAX_RETRY_DELAY);
-    craftQueue.unshift({item1,item2}); // Retry
-  }finally{
-    crafting=false;
-  }
-}
-
-// Check queue more frequently, but actual requests are throttled
-setInterval(processCraftQueue,200);
-
-// -------------------- Workspace Item Creation --------------------
-function createWorkspaceItem(name,emoji,first=false,x=100,y=100){
-  const div=document.createElement('div');
-  div.className='draggable';
-  div.dataset.name=name;
-  div.dataset.emoji=emoji;
-  div.style.left=x+'px';
-  div.style.top=y+'px';
-  div.textContent=`${emoji} ${name}`;
-  if(first || discovered.includes(name)){
-    const fd=document.createElement('div');
-    fd.className='firstDiscovery';
-    fd.textContent='🌟 First Discovery!';
-    div.appendChild(fd);
-  }
-  workspace.appendChild(div);
-  makeDraggable(div,false);
-  return div;
-}
-</script>
+    <footer>© 2025 Saygos Fun</footer>
 
 </body>
 </html>
