@@ -11,16 +11,20 @@
             font-family: Arial, sans-serif;
             background: #f4f4f4;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main center layout */
+        .main-container {
+            width: 900px;
+            text-align: center;
         }
 
         header {
-            width: 100%;
-            text-align: center;
             padding: 20px 0;
             background: #ffffff;
             border-bottom: 2px solid #ddd;
+            width: 100%;
         }
 
         header img {
@@ -32,8 +36,6 @@
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 20px;
             padding: 40px 20px;
-            width: 90%;
-            max-width: 1000px;
         }
 
         .game-card {
@@ -69,25 +71,147 @@
             padding: 15px;
             color: #555;
         }
+
+        /* Dynamic Banner Ads */
+        .ad-container {
+            width: 160px;
+            min-height: 100vh;
+            background: #ffffff;
+            border-left: 2px solid #ddd;
+            border-right: 2px solid #ddd;
+            padding: 10px;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .ad {
+            width: 140px;
+            height: 140px;
+            margin: 10px auto;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid #ccc;
+        }
+
+        .ad img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Add Banner Form */
+        .add-banner-box {
+            margin: 20px 0;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        input {
+            width: 90%;
+            margin-bottom: 7px;
+            padding: 8px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 95%;
+            padding: 10px;
+            background: #2e89ff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1f6ed4;
+        }
+
     </style>
 </head>
 <body>
 
-    <header>
-        <img src="logo.png" alt="Saygos Logo">
-    </header>
+    <!-- Left Banner Ads -->
+    <div class="ad-container" id="leftAds">
+        <h4>Ads</h4>
+    </div>
 
-    <div class="games-container">
+    <!-- Main Content -->
+    <div class="main-container">
 
-        <!-- Saygos Guitar Card -->
-        <div class="game-card" onclick="window.location.href='saygosguitar.html'">
-            <img src="saygosguitar.png" alt="Saygos Guitar">
-            <div class="game-title">Saygos Guitar</div>
+        <header>
+            <img src="logo.png" alt="Saygos Logo">
+        </header>
+
+        <div class="games-container">
+            <div class="game-card" onclick="location.href='saygosguitar.html'">
+                <img src="saygosguitar.png" alt="Saygos Guitar">
+                <div class="game-title">Saygos Guitar</div>
+            </div>
         </div>
+
+        <!-- Add New Banner Form -->
+        <div class="add-banner-box">
+            <h3>Add Your Banner (Free!)</h3>
+            <input type="text" id="bannerTitle" placeholder="Banner Name">
+            <input type="text" id="bannerImage" placeholder="Image URL (PNG/JPG)">
+            <input type="text" id="bannerLink" placeholder="Website Link">
+            <button onclick="addBanner()">Add Banner</button>
+        </div>
+
+        <footer>© 2025 Saygos Fun</footer>
 
     </div>
 
-    <footer>© 2025 Saygos Fun</footer>
+    <!-- Right Banner Ads -->
+    <div class="ad-container" id="rightAds">
+        <h4>Ads</h4>
+    </div>
+
+<script>
+    let banners = JSON.parse(localStorage.getItem("banners")) || [];
+
+    function addBanner() {
+        const title = document.getElementById("bannerTitle").value;
+        const image = document.getElementById("bannerImage").value;
+        const link = document.getElementById("bannerLink").value;
+
+        if(!title || !image || !link) return alert("Fill all inputs!");
+
+        banners.push({ title, image, link });
+        localStorage.setItem("banners", JSON.stringify(banners));
+
+        location.reload();
+    }
+
+    function loadBanners() {
+        const left = document.getElementById("leftAds");
+        const right = document.getElementById("rightAds");
+
+        let isLeft = true;
+
+        banners.forEach(b => {
+            let ad = document.createElement("div");
+            ad.className = "ad";
+            ad.innerHTML = `<img src="${b.image}" alt="${b.title}">`;
+            ad.onclick = () => {
+                window.open(b.link, "_blank");
+            };
+
+            if(isLeft) left.appendChild(ad);
+            else right.appendChild(ad);
+
+            isLeft = !isLeft;
+        });
+    }
+
+    loadBanners();
+</script>
 
 </body>
 </html>
