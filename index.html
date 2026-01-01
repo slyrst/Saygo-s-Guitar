@@ -1,107 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saygos Fun</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saygos Fun</title>
 
-        header {
-            width: 100%;
-            text-align: center;
-            padding: 20px 0;
-            background: #ffffff;
-            border-bottom: 2px solid #ddd;
-        }
+<style>
+/* ===== RESET ===== */
+* {
+    box-sizing: border-box;
+}
 
-        header img {
-            height: 70px;
-        }
+/* ===== THEME ===== */
+body {
+    margin: 0;
+    font-family: "Courier New", monospace;
+    background: radial-gradient(circle at top, #1a1a1a, #000);
+    color: #cfcfcf;
+    overflow-x: hidden;
+}
 
-        .games-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 20px;
-            padding: 40px 20px;
-            width: 90%;
-            max-width: 1000px;
-        }
+/* ===== SNOW ===== */
+.snowflake {
+    position: fixed;
+    top: -10px;
+    color: white;
+    font-size: 14px;
+    opacity: 0.8;
+    pointer-events: none;
+    animation: fall linear infinite;
+}
 
-        .game-card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-        }
+@keyframes fall {
+    to {
+        transform: translateY(110vh);
+    }
+}
 
-        .game-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 8px 18px rgba(0,0,0,0.1);
-        }
+/* ===== HEADER ===== */
+header {
+    text-align: center;
+    padding: 25px;
+    border-bottom: 1px solid #333;
+}
 
-        .game-card img {
-            width: 100%;
-            height: 120px;
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
+header img {
+    height: 70px;
+    filter: grayscale(1) contrast(1.2);
+}
 
-        .game-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #222;
-        }
+/* ===== CONTROLS ===== */
+.audio-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 
-        footer {
-            margin-top: 40px;
-            padding: 15px;
-            color: #555;
-        }
-    </style>
+.audio-controls button {
+    background: #111;
+    color: #0f0;
+    border: 1px solid #333;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.audio-controls button:hover {
+    background: #0f0;
+    color: #000;
+}
+
+.audio-controls input[type="range"] {
+    width: 90px;
+}
+
+/* ===== GAMES ===== */
+.games-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+    padding: 40px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.game-card {
+    background: #0d0d0d;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.game-card:hover {
+    transform: translateY(-5px) rotate(-0.5deg);
+    box-shadow: 0 0 20px rgba(0,255,0,0.15);
+}
+
+.game-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: contain;
+    filter: grayscale(1);
+}
+
+.game-title {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #0f0;
+}
+
+/* ===== FOOTER ===== */
+footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* ===== CRT FLICKER ===== */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+        transparent,
+        transparent 2px,
+        rgba(255,255,255,0.02) 3px
+    );
+    pointer-events: none;
+}
+</style>
 </head>
+
 <body>
 
-    <!-- 🎵 Background Music -->
-    <audio id="bgMusic" autoplay loop>
-        <source src="festiveevenings.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+<!-- 🎵 AUDIO -->
+<audio id="bgMusic" loop>
+    <source src="festiveevenings.mp3" type="audio/mpeg">
+</audio>
 
-    <header>
-        <img src="logo.png" alt="Saygos Logo">
-    </header>
+<header>
+    <img src="logo.png" alt="Saygos Logo">
+    <div style="margin-top:10px;color:#0f0;">welcome to the festive shitpost zone</div>
+</header>
 
-    <div class="games-container">
-
-        <!-- Saygos Guitar Card -->
-        <div class="game-card" onclick="window.location.href='saygosguitar.html'">
-            <img src="saygosguitar.png" alt="Saygos Guitar">
-            <div class="game-title">Saygos Guitar</div>
-        </div>
-
+<div class="games-container">
+    <div class="game-card" onclick="location.href='saygosguitar.html'">
+        <img src="saygosguitar.png">
+        <div class="game-title">Saygos Guitar</div>
     </div>
+</div>
 
-    <footer>© 2025 Saygos Fun</footer>
+<footer>
+    © 2025 SAYGOS FUN — anonymous approved
+</footer>
 
-    <!-- Fix autoplay by playing after first click -->
-    <script>
-        document.body.addEventListener("click", () => {
-            const music = document.getElementById("bgMusic");
-            music.play();
-        }, { once: true });
-    </script>
+<!-- 🔊 CONTROLS -->
+<div class="audio-controls">
+    <button id="muteBtn">UNMUTE</button>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+</div>
+
+<script>
+/* ===== AUDIO ===== */
+const music = document.getElementById("bgMusic");
+const muteBtn = document.getElementById("muteBtn");
+const volumeSlider = document.getElementById("volumeSlider");
+
+music.volume = 0.5;
+
+document.body.addEventListener("click", () => {
+    music.play();
+}, { once: true });
+
+muteBtn.onclick = () => {
+    music.muted = !music.muted;
+    muteBtn.textContent = music.muted ? "MUTED" : "UNMUTE";
+};
+
+volumeSlider.oninput = () => {
+    music.volume = volumeSlider.value;
+};
+
+/* ===== SNOW GENERATOR ===== */
+function spawnSnow() {
+    const snow = document.createElement("div");
+    snow.className = "snowflake";
+    snow.textContent = Math.random() > 0.5 ? "❄" : "*";
+    snow.style.left = Math.random() * 100 + "vw";
+    snow.style.fontSize = (Math.random() * 10 + 10) + "px";
+    snow.style.animationDuration = (Math.random() * 5 + 5) + "s";
+    document.body.appendChild(snow);
+
+    setTimeout(() => snow.remove(), 10000);
+}
+
+setInterval(spawnSnow, 200);
+</script>
 
 </body>
 </html>
