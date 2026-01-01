@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>/soy/ festive board</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saygos Fun</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -11,106 +11,151 @@
 body {
     margin: 0;
     font-family: "Courier New", monospace;
-    background: radial-gradient(circle at top, #240000, #000);
+    background: radial-gradient(circle at top, #1b0000, #000);
     color: #9cff9c;
     overflow-x: hidden;
 }
 
-/* SNOW */
-.snow {
+/* ===== /say/ LINK ===== */
+.say-link {
+    position: fixed;
+    top: 15px;
+    right: 20px;
+    color: #3cff3c;
+    text-decoration: none;
+    font-size: 20px;
+    border: 2px solid #3cff3c;
+    padding: 6px 12px;
+    z-index: 9999;
+    transition: all 0.2s;
+}
+.say-link:hover {
+    background: #3cff3c;
+    color: #000;
+    box-shadow: 0 0 10px green;
+}
+
+/* ===== SNOW ===== */
+.snowflake {
     position: fixed;
     top: -10px;
-    color: white;
-    opacity: 0.8;
+    color: #fff;
+    font-size: 14px;
+    opacity: 0.85;
     pointer-events: none;
     animation: fall linear infinite;
 }
+
 @keyframes fall {
     to { transform: translateY(110vh); }
 }
 
-/* HEADER */
+/* ===== HEADER ===== */
 header {
     text-align: center;
-    padding: 20px;
-    border-bottom: 2px solid #400;
-    background: #120000;
-}
-header h1 {
-    margin: 0;
-    color: #ff3c3c;
-}
-header small {
-    color: #3cff3c;
+    padding: 25px;
+    border-bottom: 2px solid #2d0000;
+    background: linear-gradient(to bottom, #120000, #050000);
 }
 
-/* CHAT */
-#chat {
-    max-width: 700px;
-    margin: 20px auto;
-    background: #080000;
-    border: 2px solid #400;
-    padding: 10px;
+header img {
+    height: 70px;
+    filter: drop-shadow(0 0 10px red);
 }
 
-#messages {
-    height: 350px;
-    overflow-y: auto;
-    border: 1px solid #300;
-    padding: 5px;
-}
-
-.msg {
-    background: #100;
-    border: 1px solid #300;
-    padding: 6px;
-    margin-bottom: 8px;
-}
-.msg img {
-    max-width: 200px;
-    display: block;
-    margin-top: 5px;
-}
-
-/* INPUTS */
-.controls {
-    display: flex;
-    gap: 5px;
+/* ===== FESTIVE TEXT ===== */
+.subtext {
     margin-top: 10px;
+    color: #ff4d4d;
+    text-shadow: 0 0 5px red;
 }
-.controls input[type="text"] {
-    flex: 1;
-    background: #120000;
-    color: #0f0;
-    border: 1px solid #400;
-    padding: 5px;
+
+/* ===== GAMES ===== */
+.games-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+    padding: 40px;
+    max-width: 1000px;
+    margin: auto;
 }
-.controls button {
-    background: #200;
-    color: #0f0;
-    border: 1px solid #400;
+
+.game-card {
+    background: linear-gradient(145deg, #0a0000, #120000);
+    border: 2px solid #1f0000;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
     cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* AUDIO */
-.audio {
+.game-card:hover {
+    transform: translateY(-6px) rotate(-0.6deg);
+    box-shadow:
+        0 0 20px rgba(255,0,0,0.3),
+        0 0 20px rgba(0,255,0,0.2);
+}
+
+.game-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: contain;
+    filter: grayscale(1);
+}
+
+.game-title {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #3cff3c;
+    text-shadow: 0 0 6px green;
+}
+
+/* ===== AUDIO CONTROLS ===== */
+.audio-controls {
     position: fixed;
-    bottom: 15px;
-    right: 15px;
-    background: #100;
-    border: 2px solid #400;
-    padding: 10px;
-}
-.audio button {
-    background: #200;
-    color: #0f0;
-    border: 1px solid #400;
-}
-.audio input {
-    width: 80px;
+    bottom: 20px;
+    right: 20px;
+    background: #070000;
+    border: 2px solid #2b0000;
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 0 20px rgba(255,0,0,0.4);
 }
 
-/* CRT */
+.audio-controls button {
+    background: #100000;
+    color: #3cff3c;
+    border: 2px solid #1f0000;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.audio-controls button:hover {
+    background: #3cff3c;
+    color: #000;
+    box-shadow: 0 0 10px green;
+}
+
+.audio-controls input[type="range"] {
+    accent-color: red;
+    width: 90px;
+}
+
+/* ===== FOOTER ===== */
+footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 13px;
+    color: #ff5c5c;
+}
+
+/* ===== CRT SCANLINES ===== */
 body::after {
     content: "";
     position: fixed;
@@ -127,106 +172,70 @@ body::after {
 
 <body>
 
-<header>
-    <h1>/soy/</h1>
-    <small>anon festive board 🎄</small>
-</header>
+<!-- /say/ LINK -->
+<a class="say-link" href="say.html">/say/</a>
 
-<div id="chat">
-    <div id="messages"></div>
-    <div class="controls">
-        <input id="text" placeholder="anon post...">
-        <input type="file" id="image">
-        <button onclick="post()">POST</button>
-    </div>
-</div>
-
-<!-- MUSIC -->
-<audio id="music" loop>
+<!-- 🎵 MUSIC -->
+<audio id="bgMusic" loop>
     <source src="festiveevenings.mp3" type="audio/mpeg">
 </audio>
 
-<div class="audio">
-    <button id="mute">UNMUTE</button>
-    <input id="vol" type="range" min="0" max="1" step="0.01" value="0.5">
+<header>
+    <img src="logo.png" alt="Saygos Logo">
+    <div class="subtext">happy new year 🎄</div>
+</header>
+
+<div class="games-container">
+    <div class="game-card" onclick="location.href='saygosguitar.html'">
+        <img src="saygosguitar.png">
+        <div class="game-title">Saygos Guitar</div>
+    </div>
 </div>
 
-<!-- FIREBASE (INLINE) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<footer>
+    © 2025 SAYGOS FUN
+</footer>
+
+<!-- 🔊 AUDIO UI -->
+<div class="audio-controls">
+    <button id="muteBtn">UNMUTE</button>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+</div>
 
 <script>
-/* 🔑 PASTE YOUR FIREBASE CONFIG HERE */
-firebase.initializeApp({
-  apiKey: "PASTE_HERE",
-  authDomain: "PASTE_HERE",
-  databaseURL: "PASTE_HERE",
-  projectId: "PASTE_HERE",
-  storageBucket: "PASTE_HERE"
-});
-
-/* CHAT */
-const db = firebase.database().ref("soy");
-const storage = firebase.storage();
-const messages = document.getElementById("messages");
-
-db.limitToLast(100).on("child_added", s => {
-    const d = s.val();
-    const div = document.createElement("div");
-    div.className = "msg";
-    if (d.text) div.textContent = d.text;
-    if (d.img) {
-        const i = document.createElement("img");
-        i.src = d.img;
-        div.appendChild(i);
-    }
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-});
-
-function post() {
-    const t = text.value;
-    const f = image.files[0];
-
-    if (f) {
-        const r = storage.ref("img/" + Date.now());
-        r.put(f).then(() => r.getDownloadURL().then(url => {
-            db.push({ text: t, img: url });
-        }));
-    } else {
-        db.push({ text: t });
-    }
-
-    text.value = "";
-    image.value = "";
-}
-
-/* MUSIC */
-const music = document.getElementById("music");
-const mute = document.getElementById("mute");
-const vol = document.getElementById("vol");
+/* ===== AUDIO ===== */
+const music = document.getElementById("bgMusic");
+const muteBtn = document.getElementById("muteBtn");
+const volumeSlider = document.getElementById("volumeSlider");
 
 music.volume = 0.5;
-document.addEventListener("click", () => music.play(), { once: true });
 
-mute.onclick = () => {
+document.body.addEventListener("click", () => {
+    music.play();
+}, { once: true });
+
+muteBtn.onclick = () => {
     music.muted = !music.muted;
-    mute.textContent = music.muted ? "MUTED" : "UNMUTE";
+    muteBtn.textContent = music.muted ? "MUTED" : "UNMUTE";
 };
-vol.oninput = () => music.volume = vol.value;
 
-/* SNOW */
-setInterval(() => {
-    const s = document.createElement("div");
-    s.className = "snow";
-    s.textContent = "❄";
-    s.style.left = Math.random() * 100 + "vw";
-    s.style.fontSize = Math.random() * 10 + 10 + "px";
-    s.style.animationDuration = Math.random() * 5 + 5 + "s";
-    document.body.appendChild(s);
-    setTimeout(() => s.remove(), 10000);
-}, 200);
+volumeSlider.oninput = () => {
+    music.volume = volumeSlider.value;
+};
+
+/* ===== SNOW ===== */
+function spawnSnow() {
+    const snow = document.createElement("div");
+    snow.className = "snowflake";
+    snow.textContent = Math.random() > 0.5 ? "❄" : "✶";
+    snow.style.left = Math.random() * 100 + "vw";
+    snow.style.fontSize = (Math.random() * 10 + 10) + "px";
+    snow.style.animationDuration = (Math.random() * 5 + 5) + "s";
+    document.body.appendChild(snow);
+    setTimeout(() => snow.remove(), 10000);
+}
+
+setInterval(spawnSnow, 180);
 </script>
 
 </body>
