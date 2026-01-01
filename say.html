@@ -15,7 +15,6 @@ body {
     color: #9cff9c;
 }
 
-/* HEADER */
 header {
     padding: 12px;
     text-align: center;
@@ -31,11 +30,11 @@ header a {
     margin-right: 10px;
 }
 
-/* CHAT */
 #chat {
     max-width: 900px;
     margin: auto;
     padding: 15px;
+    padding-bottom: 120px;
 }
 
 .post {
@@ -64,7 +63,6 @@ header a {
     border: 2px solid #1f0000;
 }
 
-/* FORM */
 form {
     position: fixed;
     bottom: 0;
@@ -96,10 +94,6 @@ button:hover {
     background: #3cff3c;
     color: #000;
 }
-
-input[type="file"] {
-    color: #9cff9c;
-}
 </style>
 </head>
 
@@ -114,34 +108,27 @@ input[type="file"] {
 
 <form id="postForm">
     <textarea id="text" placeholder="say something..."></textarea>
-    <input type="file" id="image">
+    <input type="file" id="image" accept="image/*">
     <button type="submit">POST</button>
 </form>
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <script>
-/* 🔥 FIREBASE CONFIG — REPLACE THESE */
 const firebaseConfig = {
   apiKey: "AIzaSyCVKtkhsShaE5lOk1w4BsAIGb4Y3bqV_OA",
   authDomain: "saygos-fun.firebaseapp.com",
-  projectId: "saygos-fun",
-  storageBucket: "saygos-fun.firebasestorage.app",
-  messagingSenderId: "346342949444",
-  appId: "1:346342949444:web:7115576e4bce17138ff211",
-  measurementId: "G-G8K6CV102C"
+  databaseURL: "https://saygos-fun-default-rtdb.firebaseio.com",
+  projectId: "saygos-fun"
 };
 
 firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
-const storage = firebase.storage();
 const chatRef = db.ref("say");
 
-/* RANDOM ANON ID */
 const anon = "Anon" + Math.floor(Math.random()*9999);
 
 /* LOAD MESSAGES */
@@ -152,7 +139,7 @@ chatRef.limitToLast(100).on("child_added", snap => {
 
     div.innerHTML = `
         <div class="name">${data.name} <span class="time">${data.time}</span></div>
-        <div class="message">${escapeHTML(data.text)}</div>
+        <div class="message">${escapeHTML(data.text || "")}</div>
         ${data.img ? `<img src="${data.img}">` : ""}
     `;
 
@@ -161,31 +148,36 @@ chatRef.limitToLast(100).on("child_added", snap => {
 });
 
 /* POST */
-document.getElementById("postForm").onsubmit = async e => {
+document.getElementById("postForm").onsubmit = e => {
     e.preventDefault();
+
     const text = document.getElementById("text").value.trim();
     const file = document.getElementById("image").files[0];
 
     if (!text && !file) return;
 
-    let imgURL = "";
-
     if (file) {
-        const ref = storage.ref("images/" + Date.now() + "_" + file.name);
-        await ref.put(file);
-        imgURL = await ref.getDownloadURL();
+        const reader = new FileReader();
+        reader.onload = () => {
+            sendMessage(text, reader.result);
+        };
+        reader.readAsDataURL(file);
+    } else {
+        sendMessage(text, "");
     }
-
-    chatRef.push({
-        name: anon,
-        text,
-        img: imgURL,
-        time: new Date().toLocaleString()
-    });
 
     document.getElementById("text").value = "";
     document.getElementById("image").value = "";
 };
+
+function sendMessage(text, img) {
+    chatRef.push({
+        name: anon,
+        text,
+        img,
+        time: new Date().toLocaleString()
+    });
+}
 
 /* XSS SAFE */
 function escapeHTML(str) {
