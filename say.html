@@ -34,7 +34,7 @@ header a {
     max-width: 900px;
     margin: auto;
     padding: 15px;
-    padding-bottom: 120px;
+    padding-bottom: 140px;
 }
 
 .post {
@@ -56,6 +56,23 @@ header a {
     margin-top: 4px;
 }
 
+.reply-box {
+    border-left: 3px solid #3cff3c;
+    padding-left: 6px;
+    margin: 6px 0;
+    font-size: 13px;
+    color: #7dff7d;
+    opacity: 0.9;
+}
+
+.reply-btn {
+    font-size: 12px;
+    cursor: pointer;
+    color: #3cff3c;
+    margin-top: 4px;
+    display: inline-block;
+}
+
 .post img {
     max-width: 200px;
     display: block;
@@ -70,6 +87,15 @@ form {
     background: #070000;
     border-top: 2px solid #2b0000;
     padding: 10px;
+}
+
+#replyPreview {
+    display: none;
+    border-left: 4px solid #3cff3c;
+    padding: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #7dff7d;
 }
 
 input, textarea, button {
@@ -107,12 +133,12 @@ button:hover {
 <div id="chat"></div>
 
 <form id="postForm">
+    <div id="replyPreview"></div>
     <textarea id="text" placeholder="say something..."></textarea>
     <input type="file" id="image" accept="image/*">
     <button type="submit">POST</button>
 </form>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -131,6 +157,8 @@ const chatRef = db.ref("say");
 
 const anon = "Anon" + Math.floor(Math.random()*9999);
 
+let replyTo = null;
+
 /* LOAD MESSAGES */
 chatRef.limitToLast(100).on("child_added", snap => {
     const data = snap.val();
@@ -139,9 +167,23 @@ chatRef.limitToLast(100).on("child_added", snap => {
 
     div.innerHTML = `
         <div class="name">${data.name} <span class="time">${data.time}</span></div>
+        ${data.reply ? `<div class="reply-box">${escapeHTML(data.reply)}</div>` : ""}
         <div class="message">${escapeHTML(data.text || "")}</div>
         ${data.img ? `<img src="${data.img}">` : ""}
+        <div class="reply-btn">Reply</div>
     `;
+
+    div.querySelector(".reply-btn").onclick = () => {
+        replyTo = data.text || "[image]";
+        const rp = document.getElementById("replyPreview");
+        rp.style.display = "block";
+        rp.innerHTML = `Replying to: ${escapeHTML(replyTo)} <br><span style="cursor:pointer">[cancel]</span>`;
+        rp.querySelector("span").onclick = () => {
+            replyTo = null;
+            rp.style.display = "none";
+        };
+        document.getElementById("text").focus();
+    };
 
     document.getElementById("chat").appendChild(div);
     window.scrollTo(0, document.body.scrollHeight);
@@ -168,6 +210,8 @@ document.getElementById("postForm").onsubmit = e => {
 
     document.getElementById("text").value = "";
     document.getElementById("image").value = "";
+    document.getElementById("replyPreview").style.display = "none";
+    replyTo = null;
 };
 
 function sendMessage(text, img) {
@@ -175,6 +219,7 @@ function sendMessage(text, img) {
         name: anon,
         text,
         img,
+        reply: replyTo,
         time: new Date().toLocaleString()
     });
 }
