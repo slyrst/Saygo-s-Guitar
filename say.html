@@ -54,6 +54,7 @@ header a {
 .message {
     white-space: pre-wrap;
     margin-top: 4px;
+    text-align: left;
 }
 
 .reply-box {
@@ -63,6 +64,13 @@ header a {
     font-size: 13px;
     color: #7dff7d;
     opacity: 0.9;
+}
+
+.reply-box img {
+    max-width: 80px;
+    display: block;
+    margin-top: 4px;
+    border: 1px solid #1f0000;
 }
 
 .reply-btn {
@@ -96,6 +104,12 @@ form {
     margin-bottom: 6px;
     font-size: 13px;
     color: #7dff7d;
+}
+
+#replyPreview img {
+    max-width: 80px;
+    display: block;
+    margin-top: 4px;
 }
 
 input, textarea, button {
@@ -159,29 +173,49 @@ const anon = "Anon" + Math.floor(Math.random()*9999);
 
 let replyTo = null;
 
-/* LOAD MESSAGES */
+/* LOAD */
 chatRef.limitToLast(100).on("child_added", snap => {
     const data = snap.val();
     const div = document.createElement("div");
     div.className = "post";
 
+    let replyHTML = "";
+    if (data.reply) {
+        replyHTML = `
+        <div class="reply-box">
+            ${data.reply.text ? escapeHTML(data.reply.text) : ""}
+            ${data.reply.img ? `<img src="${data.reply.img}">` : ""}
+        </div>`;
+    }
+
     div.innerHTML = `
         <div class="name">${data.name} <span class="time">${data.time}</span></div>
-        ${data.reply ? `<div class="reply-box">${escapeHTML(data.reply)}</div>` : ""}
+        ${replyHTML}
         <div class="message">${escapeHTML(data.text || "")}</div>
         ${data.img ? `<img src="${data.img}">` : ""}
         <div class="reply-btn">Reply</div>
     `;
 
     div.querySelector(".reply-btn").onclick = () => {
-        replyTo = data.text || "[image]";
+        replyTo = {
+            text: data.text || "",
+            img: data.img || ""
+        };
+
         const rp = document.getElementById("replyPreview");
         rp.style.display = "block";
-        rp.innerHTML = `Replying to: ${escapeHTML(replyTo)} <br><span style="cursor:pointer">[cancel]</span>`;
+        rp.innerHTML = `
+            Replying to:
+            ${replyTo.text ? escapeHTML(replyTo.text) : ""}
+            ${replyTo.img ? `<img src="${replyTo.img}">` : ""}
+            <span style="cursor:pointer">[cancel]</span>
+        `;
+
         rp.querySelector("span").onclick = () => {
             replyTo = null;
             rp.style.display = "none";
         };
+
         document.getElementById("text").focus();
     };
 
@@ -200,9 +234,7 @@ document.getElementById("postForm").onsubmit = e => {
 
     if (file) {
         const reader = new FileReader();
-        reader.onload = () => {
-            sendMessage(text, reader.result);
-        };
+        reader.onload = () => sendMessage(text, reader.result);
         reader.readAsDataURL(file);
     } else {
         sendMessage(text, "");
