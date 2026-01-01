@@ -12,43 +12,63 @@
 body {
     margin: 0;
     font-family: "Courier New", monospace;
-    background: radial-gradient(circle at top, #1b0000, #000);
-    color: #9cff9c;
+    background: radial-gradient(circle at top, #0b0b0b, #000);
+    color: #ffffff;
     overflow: hidden;
 }
 
-/* ===== HEADER (TOP TAB TEXT) ===== */
+/* ===== HEADER ===== */
 header {
     position: fixed;
     top: 0;
     width: 100%;
     text-align: center;
-    padding: 18px;
-    border-bottom: 2px solid #2d0000;
-    background: linear-gradient(to bottom, #120000, #050000);
+    padding: 14px;
+    background: rgba(0,0,0,0.6);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
     z-index: 10;
 }
 
 header .top-text {
-    font-size: 20px;
-    color: #ff4d4d;
-    text-shadow: 0 0 6px red;
+    font-size: 18px;
     letter-spacing: 2px;
+    color: #ffffff;
+    text-shadow: 0 0 6px #fff;
 }
 
-/* ===== CENTER LOGO ===== */
+/* ===== /say/ TEXT ===== */
+.say-link {
+    position: fixed;
+    top: 65px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 22px;
+    border: 2px solid #ffffff;
+    padding: 6px 14px;
+    transition: 0.2s;
+    z-index: 10;
+}
+
+.say-link:hover {
+    background: #ffffff;
+    color: #000;
+    box-shadow: 0 0 12px #fff;
+}
+
+/* ===== CENTER LOGO (SMALL) ===== */
 .center-logo {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    text-align: center;
 }
 
 .center-logo img {
-    width: 380px;
-    max-width: 80vw;
-    filter: drop-shadow(0 0 25px red);
+    width: 140px;
+    opacity: 0.95;
+    filter: drop-shadow(0 0 12px #fff);
 }
 
 /* ===== AUDIO CONTROLS ===== */
@@ -56,35 +76,32 @@ header .top-text {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #070000;
-    border: 2px solid #2b0000;
-    padding: 12px;
-    border-radius: 12px;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 10px;
+    border-radius: 10px;
     display: flex;
     gap: 10px;
     align-items: center;
-    box-shadow: 0 0 20px rgba(255,0,0,0.4);
     z-index: 10;
 }
 
 .audio-controls button {
-    background: #100000;
-    color: #3cff3c;
-    border: 2px solid #1f0000;
+    background: transparent;
+    color: #fff;
+    border: 1px solid #fff;
     padding: 6px 10px;
     cursor: pointer;
     font-family: inherit;
-    transition: all 0.2s;
 }
 
 .audio-controls button:hover {
-    background: #3cff3c;
+    background: #fff;
     color: #000;
-    box-shadow: 0 0 10px green;
 }
 
 .audio-controls input[type="range"] {
-    accent-color: red;
+    accent-color: white;
     width: 90px;
 }
 
@@ -92,9 +109,9 @@ header .top-text {
 .snowflake {
     position: fixed;
     top: -10px;
-    color: #fff;
+    color: #ffffff;
     font-size: 14px;
-    opacity: 0.85;
+    opacity: 0.9;
     pointer-events: none;
     animation: fall linear infinite;
 }
@@ -103,7 +120,7 @@ header .top-text {
     to { transform: translateY(110vh); }
 }
 
-/* ===== CRT EFFECT ===== */
+/* ===== SOFT GRAIN ===== */
 body::after {
     content: "";
     position: fixed;
@@ -111,7 +128,7 @@ body::after {
     background: repeating-linear-gradient(
         transparent,
         transparent 2px,
-        rgba(255,255,255,0.03) 3px
+        rgba(255,255,255,0.02) 3px
     );
     pointer-events: none;
 }
@@ -125,17 +142,16 @@ body::after {
     <source src="festiveevenings.mp3" type="audio/mpeg">
 </audio>
 
-<!-- HEADER TEXT -->
 <header>
     <div class="top-text">saygosguitar.com.tr</div>
 </header>
 
-<!-- BIG CENTER LOGO -->
+<a class="say-link" href="say.html">/say/</a>
+
 <div class="center-logo">
-    <img src="logo.png" alt="Saygos Logo">
+    <img src="logo.png" alt="Logo">
 </div>
 
-<!-- AUDIO UI -->
 <div class="audio-controls">
     <button id="muteBtn">UNMUTE</button>
     <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
@@ -168,13 +184,13 @@ function spawnSnow() {
     snow.className = "snowflake";
     snow.textContent = Math.random() > 0.5 ? "❄" : "✶";
     snow.style.left = Math.random() * 100 + "vw";
-    snow.style.fontSize = (Math.random() * 10 + 10) + "px";
-    snow.style.animationDuration = (Math.random() * 5 + 5) + "s";
+    snow.style.fontSize = (Math.random() * 8 + 10) + "px";
+    snow.style.animationDuration = (Math.random() * 5 + 6) + "s";
     document.body.appendChild(snow);
-    setTimeout(() => snow.remove(), 10000);
+    setTimeout(() => snow.remove(), 11000);
 }
 
-setInterval(spawnSnow, 180);
+setInterval(spawnSnow, 160);
 </script>
 
 </body>
