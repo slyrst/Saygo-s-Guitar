@@ -12,8 +12,8 @@
 body {
     margin: 0;
     font-family: "Courier New", monospace;
-    background: radial-gradient(circle at top, #0b0b0b, #000);
-    color: #ffffff;
+    background: radial-gradient(circle at top, #7a0000, #2b0000);
+    color: #3cff3c;
     overflow: hidden;
 }
 
@@ -24,16 +24,16 @@ header {
     width: 100%;
     text-align: center;
     padding: 14px;
-    background: rgba(0,0,0,0.6);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
+    background: rgba(60,0,0,0.8);
+    border-bottom: 2px solid #3cff3c;
     z-index: 10;
 }
 
 header .top-text {
     font-size: 18px;
     letter-spacing: 2px;
-    color: #ffffff;
-    text-shadow: 0 0 6px #fff;
+    color: #3cff3c;
+    text-shadow: 0 0 6px green;
 }
 
 /* ===== /say/ TEXT ===== */
@@ -42,19 +42,19 @@ header .top-text {
     top: 65px;
     left: 50%;
     transform: translateX(-50%);
-    color: #ffffff;
+    color: #3cff3c;
     text-decoration: none;
     font-size: 22px;
-    border: 2px solid #ffffff;
+    border: 2px solid #3cff3c;
     padding: 6px 14px;
     transition: 0.2s;
     z-index: 10;
 }
 
 .say-link:hover {
-    background: #ffffff;
+    background: #3cff3c;
     color: #000;
-    box-shadow: 0 0 12px #fff;
+    box-shadow: 0 0 12px green;
 }
 
 /* ===== CENTER LOGO (SMALL) ===== */
@@ -67,8 +67,7 @@ header .top-text {
 
 .center-logo img {
     width: 140px;
-    opacity: 0.95;
-    filter: drop-shadow(0 0 12px #fff);
+    filter: drop-shadow(0 0 12px green);
 }
 
 /* ===== AUDIO CONTROLS ===== */
@@ -76,8 +75,8 @@ header .top-text {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: rgba(0,0,0,0.7);
-    border: 1px solid rgba(255,255,255,0.4);
+    background: rgba(80,0,0,0.85);
+    border: 2px solid #3cff3c;
     padding: 10px;
     border-radius: 10px;
     display: flex;
@@ -88,24 +87,25 @@ header .top-text {
 
 .audio-controls button {
     background: transparent;
-    color: #fff;
-    border: 1px solid #fff;
+    color: #3cff3c;
+    border: 1px solid #3cff3c;
     padding: 6px 10px;
     cursor: pointer;
     font-family: inherit;
 }
 
 .audio-controls button:hover {
-    background: #fff;
+    background: #3cff3c;
     color: #000;
+    box-shadow: 0 0 10px green;
 }
 
 .audio-controls input[type="range"] {
-    accent-color: white;
+    accent-color: #3cff3c;
     width: 90px;
 }
 
-/* ===== SNOW ===== */
+/* ===== SNOW (WHITE) ===== */
 .snowflake {
     position: fixed;
     top: -10px;
@@ -120,7 +120,7 @@ header .top-text {
     to { transform: translateY(110vh); }
 }
 
-/* ===== SOFT GRAIN ===== */
+/* ===== SOFT CRT ===== */
 body::after {
     content: "";
     position: fixed;
@@ -128,7 +128,7 @@ body::after {
     background: repeating-linear-gradient(
         transparent,
         transparent 2px,
-        rgba(255,255,255,0.02) 3px
+        rgba(255,255,255,0.03) 3px
     );
     pointer-events: none;
 }
