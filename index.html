@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>/soy/ – Saygos Fun</title>
+<title>/soy/ festive board</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -11,13 +11,13 @@
 body {
     margin: 0;
     font-family: "Courier New", monospace;
-    background: radial-gradient(circle at top, #200000, #000);
+    background: radial-gradient(circle at top, #240000, #000);
     color: #9cff9c;
     overflow-x: hidden;
 }
 
-/* ===== SNOW ===== */
-.snowflake {
+/* SNOW */
+.snow {
     position: fixed;
     top: -10px;
     color: white;
@@ -29,39 +29,26 @@ body {
     to { transform: translateY(110vh); }
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 header {
     text-align: center;
     padding: 20px;
     border-bottom: 2px solid #400;
-    background: #100;
+    background: #120000;
 }
 header h1 {
     margin: 0;
-    color: #ff4444;
+    color: #ff3c3c;
 }
 header small {
-    color: #33ff33;
+    color: #3cff3c;
 }
 
-/* ===== BOARD LINK ===== */
-.board-link {
-    text-align: center;
-    margin: 10px;
-}
-.board-link button {
-    background: #200;
-    color: #0f0;
-    border: 2px solid #400;
-    padding: 6px 12px;
-    cursor: pointer;
-}
-
-/* ===== CHAT ===== */
+/* CHAT */
 #chat {
     max-width: 700px;
     margin: 20px auto;
-    background: #050000;
+    background: #080000;
     border: 2px solid #400;
     padding: 10px;
 }
@@ -74,10 +61,10 @@ header small {
 }
 
 .msg {
-    margin-bottom: 10px;
-    padding: 6px;
-    background: #0a0000;
+    background: #100;
     border: 1px solid #300;
+    padding: 6px;
+    margin-bottom: 8px;
 }
 .msg img {
     max-width: 200px;
@@ -85,28 +72,28 @@ header small {
     margin-top: 5px;
 }
 
-/* ===== INPUTS ===== */
-#controls {
+/* INPUTS */
+.controls {
     display: flex;
     gap: 5px;
     margin-top: 10px;
 }
-#controls input[type="text"] {
+.controls input[type="text"] {
     flex: 1;
-    background: #100;
+    background: #120000;
     color: #0f0;
-    border: 1px solid #300;
+    border: 1px solid #400;
     padding: 5px;
 }
-#controls button {
+.controls button {
     background: #200;
     color: #0f0;
     border: 1px solid #400;
     cursor: pointer;
 }
 
-/* ===== AUDIO ===== */
-.audio-controls {
+/* AUDIO */
+.audio {
     position: fixed;
     bottom: 15px;
     right: 15px;
@@ -114,16 +101,16 @@ header small {
     border: 2px solid #400;
     padding: 10px;
 }
-.audio-controls button {
+.audio button {
     background: #200;
     color: #0f0;
     border: 1px solid #400;
 }
-.audio-controls input {
+.audio input {
     width: 80px;
 }
 
-/* ===== CRT ===== */
+/* CRT */
 body::after {
     content: "";
     position: fixed;
@@ -142,104 +129,97 @@ body::after {
 
 <header>
     <h1>/soy/</h1>
-    <small>festive anonymous posting 🎄</small>
+    <small>anon festive board 🎄</small>
 </header>
-
-<div class="board-link">
-    <button onclick="alert('more boards soon')">/soy/</button>
-</div>
 
 <div id="chat">
     <div id="messages"></div>
-
-    <div id="controls">
-        <input id="textInput" placeholder="anon post...">
-        <input type="file" id="imageInput">
-        <button onclick="sendMessage()">POST</button>
+    <div class="controls">
+        <input id="text" placeholder="anon post...">
+        <input type="file" id="image">
+        <button onclick="post()">POST</button>
     </div>
 </div>
 
-<!-- 🎵 MUSIC -->
-<audio id="bgMusic" loop>
+<!-- MUSIC -->
+<audio id="music" loop>
     <source src="festiveevenings.mp3" type="audio/mpeg">
 </audio>
 
-<div class="audio-controls">
-    <button id="muteBtn">UNMUTE</button>
-    <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+<div class="audio">
+    <button id="mute">UNMUTE</button>
+    <input id="vol" type="range" min="0" max="1" step="0.01" value="0.5">
 </div>
 
-<!-- 🔥 FIREBASE -->
+<!-- FIREBASE (INLINE) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <script>
-/* ===== FIREBASE CONFIG (REPLACE THIS) ===== */
+/* 🔑 PASTE YOUR FIREBASE CONFIG HERE */
 firebase.initializeApp({
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE",
+  databaseURL: "PASTE_HERE",
+  projectId: "PASTE_HERE",
+  storageBucket: "PASTE_HERE"
 });
 
-/* ===== CHAT ===== */
+/* CHAT */
 const db = firebase.database().ref("soy");
 const storage = firebase.storage();
 const messages = document.getElementById("messages");
 
-db.limitToLast(100).on("child_added", snap => {
-    const data = snap.val();
+db.limitToLast(100).on("child_added", s => {
+    const d = s.val();
     const div = document.createElement("div");
     div.className = "msg";
-    if (data.text) div.innerText = data.text;
-    if (data.image) {
-        const img = document.createElement("img");
-        img.src = data.image;
-        div.appendChild(img);
+    if (d.text) div.textContent = d.text;
+    if (d.img) {
+        const i = document.createElement("img");
+        i.src = d.img;
+        div.appendChild(i);
     }
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
 });
 
-function sendMessage() {
-    const text = textInput.value;
-    const file = imageInput.files[0];
+function post() {
+    const t = text.value;
+    const f = image.files[0];
 
-    if (file) {
-        const ref = storage.ref("img/" + Date.now());
-        ref.put(file).then(() => {
-            ref.getDownloadURL().then(url => {
-                db.push({ text, image: url });
-            });
-        });
+    if (f) {
+        const r = storage.ref("img/" + Date.now());
+        r.put(f).then(() => r.getDownloadURL().then(url => {
+            db.push({ text: t, img: url });
+        }));
     } else {
-        db.push({ text });
+        db.push({ text: t });
     }
 
-    textInput.value = "";
-    imageInput.value = "";
+    text.value = "";
+    image.value = "";
 }
 
-/* ===== AUDIO ===== */
-const music = document.getElementById("bgMusic");
-const muteBtn = document.getElementById("muteBtn");
-const volume = document.getElementById("volume");
+/* MUSIC */
+const music = document.getElementById("music");
+const mute = document.getElementById("mute");
+const vol = document.getElementById("vol");
 
 music.volume = 0.5;
 document.addEventListener("click", () => music.play(), { once: true });
 
-muteBtn.onclick = () => {
+mute.onclick = () => {
     music.muted = !music.muted;
-    muteBtn.textContent = music.muted ? "MUTED" : "UNMUTE";
+    mute.textContent = music.muted ? "MUTED" : "UNMUTE";
 };
-volume.oninput = () => music.volume = volume.value;
+vol.oninput = () => music.volume = vol.value;
 
-/* ===== SNOW ===== */
+/* SNOW */
 setInterval(() => {
     const s = document.createElement("div");
-    s.className = "snowflake";
+    s.className = "snow";
     s.textContent = "❄";
     s.style.left = Math.random() * 100 + "vw";
     s.style.fontSize = Math.random() * 10 + 10 + "px";
