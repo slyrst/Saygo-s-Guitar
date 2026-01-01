@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>saygosguitar.com.tr</title>
+<title>Saygos Fun</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -12,62 +11,71 @@
 body {
     margin: 0;
     font-family: "Courier New", monospace;
-    background: radial-gradient(circle at top, #7a0000, #2b0000);
+    background: radial-gradient(circle at top, #1b0000, #000);
+    color: #9cff9c;
+    overflow-x: hidden;
+}
+
+/* ===== /say/ LINK ===== */
+.say-link {
+    position: fixed;
+    top: 15px;
+    right: 20px;
     color: #3cff3c;
-    overflow: hidden;
+    text-decoration: none;
+    font-size: 20px;
+    border: 2px solid #3cff3c;
+    padding: 6px 12px;
+    z-index: 9999;
+    transition: all 0.2s;
+}
+.say-link:hover {
+    background: #3cff3c;
+    color: #000;
+    box-shadow: 0 0 10px green;
+}
+
+/* ===== SNOW ===== */
+.snowflake {
+    position: fixed;
+    top: -10px;
+    color: #fff;
+    font-size: 14px;
+    opacity: 0.85;
+    pointer-events: none;
+    animation: fall linear infinite;
+}
+@keyframes fall {
+    to { transform: translateY(110vh); }
 }
 
 /* ===== HEADER ===== */
 header {
-    position: fixed;
-    top: 0;
-    width: 100%;
     text-align: center;
-    padding: 14px;
-    background: rgba(60,0,0,0.8);
-    border-bottom: 2px solid #3cff3c;
-    z-index: 10;
+    padding: 25px;
+    border-bottom: 2px solid #2d0000;
+    background: linear-gradient(to bottom, #120000, #050000);
+}
+header img {
+    height: 70px;
+    filter: drop-shadow(0 0 10px red);
 }
 
-header .top-text {
-    font-size: 18px;
-    letter-spacing: 2px;
-    color: #3cff3c;
-    text-shadow: 0 0 6px green;
+/* ===== FESTIVE TEXT ===== */
+.subtext {
+    margin-top: 10px;
+    color: #ff4d4d;
+    text-shadow: 0 0 5px red;
 }
 
-/* ===== /say/ TEXT ===== */
-.say-link {
-    position: fixed;
-    top: 65px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #3cff3c;
-    text-decoration: none;
-    font-size: 22px;
-    border: 2px solid #3cff3c;
-    padding: 6px 14px;
-    transition: 0.2s;
-    z-index: 10;
-}
-
-.say-link:hover {
-    background: #3cff3c;
-    color: #000;
-    box-shadow: 0 0 12px green;
-}
-
-/* ===== CENTER LOGO (SMALL) ===== */
-.center-logo {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.center-logo img {
-    width: 140px;
-    filter: drop-shadow(0 0 12px green);
+/* ===== GAMES (EMPTY NOW) ===== */
+.games-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+    padding: 40px;
+    max-width: 1000px;
+    margin: auto;
 }
 
 /* ===== AUDIO CONTROLS ===== */
@@ -75,52 +83,43 @@ header .top-text {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: rgba(80,0,0,0.85);
-    border: 2px solid #3cff3c;
-    padding: 10px;
-    border-radius: 10px;
+    background: #070000;
+    border: 2px solid #2b0000;
+    padding: 12px;
+    border-radius: 12px;
     display: flex;
     gap: 10px;
     align-items: center;
-    z-index: 10;
+    box-shadow: 0 0 20px rgba(255,0,0,0.4);
 }
-
 .audio-controls button {
-    background: transparent;
+    background: #100000;
     color: #3cff3c;
-    border: 1px solid #3cff3c;
+    border: 2px solid #1f0000;
     padding: 6px 10px;
     cursor: pointer;
     font-family: inherit;
+    transition: all 0.2s;
 }
-
 .audio-controls button:hover {
     background: #3cff3c;
     color: #000;
     box-shadow: 0 0 10px green;
 }
-
 .audio-controls input[type="range"] {
-    accent-color: #3cff3c;
+    accent-color: red;
     width: 90px;
 }
 
-/* ===== SNOW (WHITE) ===== */
-.snowflake {
-    position: fixed;
-    top: -10px;
-    color: #ffffff;
-    font-size: 14px;
-    opacity: 0.9;
-    pointer-events: none;
-    animation: fall linear infinite;
+/* ===== FOOTER ===== */
+footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 13px;
+    color: #ff5c5c;
 }
 
-@keyframes fall {
-    to { transform: translateY(110vh); }
-}
-
-/* ===== SOFT CRT ===== */
+/* ===== CRT SCANLINES ===== */
 body::after {
     content: "";
     position: fixed;
@@ -137,21 +136,27 @@ body::after {
 
 <body>
 
+<!-- /say/ LINK -->
+<a class="say-link" href="say.html">/say/</a>
+
 <!-- 🎵 MUSIC -->
 <audio id="bgMusic" loop>
     <source src="festiveevenings.mp3" type="audio/mpeg">
 </audio>
 
 <header>
-    <div class="top-text">saygosguitar.com.tr</div>
+    <img src="logo.png" alt="Saygos Logo">
+    <div class="subtext">happy new year 🎄</div>
 </header>
 
-<a class="say-link" href="say.html">/say/</a>
+<!-- GAMES REMOVED -->
+<div class="games-container"></div>
 
-<div class="center-logo">
-    <img src="logo.png" alt="Logo">
-</div>
+<footer>
+    © 2025 SAYGOS FUN
+</footer>
 
+<!-- 🔊 AUDIO UI -->
 <div class="audio-controls">
     <button id="muteBtn">UNMUTE</button>
     <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
@@ -184,13 +189,12 @@ function spawnSnow() {
     snow.className = "snowflake";
     snow.textContent = Math.random() > 0.5 ? "❄" : "✶";
     snow.style.left = Math.random() * 100 + "vw";
-    snow.style.fontSize = (Math.random() * 8 + 10) + "px";
-    snow.style.animationDuration = (Math.random() * 5 + 6) + "s";
+    snow.style.fontSize = (Math.random() * 10 + 10) + "px";
+    snow.style.animationDuration = (Math.random() * 5 + 5) + "s";
     document.body.appendChild(snow);
-    setTimeout(() => snow.remove(), 11000);
+    setTimeout(() => snow.remove(), 10000);
 }
-
-setInterval(spawnSnow, 160);
+setInterval(spawnSnow, 180);
 </script>
 
 </body>
