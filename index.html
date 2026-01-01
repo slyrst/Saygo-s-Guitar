@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Saygos Fun</title>
+
+<title>saygosguitar.com.tr</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -13,102 +14,41 @@ body {
     font-family: "Courier New", monospace;
     background: radial-gradient(circle at top, #1b0000, #000);
     color: #9cff9c;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
-/* ===== /say/ LINK ===== */
-.say-link {
-    position: fixed;
-    top: 15px;
-    right: 20px;
-    color: #3cff3c;
-    text-decoration: none;
-    font-size: 20px;
-    border: 2px solid #3cff3c;
-    padding: 6px 12px;
-    z-index: 9999;
-    transition: all 0.2s;
-}
-.say-link:hover {
-    background: #3cff3c;
-    color: #000;
-    box-shadow: 0 0 10px green;
-}
-
-/* ===== SNOW ===== */
-.snowflake {
-    position: fixed;
-    top: -10px;
-    color: #fff;
-    font-size: 14px;
-    opacity: 0.85;
-    pointer-events: none;
-    animation: fall linear infinite;
-}
-
-@keyframes fall {
-    to { transform: translateY(110vh); }
-}
-
-/* ===== HEADER ===== */
+/* ===== HEADER (TOP TAB TEXT) ===== */
 header {
+    position: fixed;
+    top: 0;
+    width: 100%;
     text-align: center;
-    padding: 25px;
+    padding: 18px;
     border-bottom: 2px solid #2d0000;
     background: linear-gradient(to bottom, #120000, #050000);
+    z-index: 10;
 }
 
-header img {
-    height: 70px;
-    filter: drop-shadow(0 0 10px red);
-}
-
-/* ===== FESTIVE TEXT ===== */
-.subtext {
-    margin-top: 10px;
+header .top-text {
+    font-size: 20px;
     color: #ff4d4d;
-    text-shadow: 0 0 5px red;
+    text-shadow: 0 0 6px red;
+    letter-spacing: 2px;
 }
 
-/* ===== GAMES ===== */
-.games-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 20px;
-    padding: 40px;
-    max-width: 1000px;
-    margin: auto;
-}
-
-.game-card {
-    background: linear-gradient(145deg, #0a0000, #120000);
-    border: 2px solid #1f0000;
-    border-radius: 10px;
-    padding: 15px;
+/* ===== CENTER LOGO ===== */
+.center-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.game-card:hover {
-    transform: translateY(-6px) rotate(-0.6deg);
-    box-shadow:
-        0 0 20px rgba(255,0,0,0.3),
-        0 0 20px rgba(0,255,0,0.2);
-}
-
-.game-card img {
-    width: 100%;
-    height: 120px;
-    object-fit: contain;
-    filter: grayscale(1);
-}
-
-.game-title {
-    margin-top: 10px;
-    font-size: 16px;
-    color: #3cff3c;
-    text-shadow: 0 0 6px green;
+.center-logo img {
+    width: 380px;
+    max-width: 80vw;
+    filter: drop-shadow(0 0 25px red);
 }
 
 /* ===== AUDIO CONTROLS ===== */
@@ -124,6 +64,7 @@ header img {
     gap: 10px;
     align-items: center;
     box-shadow: 0 0 20px rgba(255,0,0,0.4);
+    z-index: 10;
 }
 
 .audio-controls button {
@@ -147,15 +88,22 @@ header img {
     width: 90px;
 }
 
-/* ===== FOOTER ===== */
-footer {
-    text-align: center;
-    padding: 20px;
-    font-size: 13px;
-    color: #ff5c5c;
+/* ===== SNOW ===== */
+.snowflake {
+    position: fixed;
+    top: -10px;
+    color: #fff;
+    font-size: 14px;
+    opacity: 0.85;
+    pointer-events: none;
+    animation: fall linear infinite;
 }
 
-/* ===== CRT SCANLINES ===== */
+@keyframes fall {
+    to { transform: translateY(110vh); }
+}
+
+/* ===== CRT EFFECT ===== */
 body::after {
     content: "";
     position: fixed;
@@ -172,31 +120,22 @@ body::after {
 
 <body>
 
-<!-- /say/ LINK -->
-<a class="say-link" href="say.html">/say/</a>
-
 <!-- 🎵 MUSIC -->
 <audio id="bgMusic" loop>
     <source src="festiveevenings.mp3" type="audio/mpeg">
 </audio>
 
+<!-- HEADER TEXT -->
 <header>
-    <img src="logo.png" alt="Saygos Logo">
-    <div class="subtext">happy new year 🎄</div>
+    <div class="top-text">saygosguitar.com.tr</div>
 </header>
 
-<div class="games-container">
-    <div class="game-card" onclick="location.href='saygosguitar.html'">
-        <img src="saygosguitar.png">
-        <div class="game-title">Saygos Guitar</div>
-    </div>
+<!-- BIG CENTER LOGO -->
+<div class="center-logo">
+    <img src="logo.png" alt="Saygos Logo">
 </div>
 
-<footer>
-    © 2025 SAYGOS FUN
-</footer>
-
-<!-- 🔊 AUDIO UI -->
+<!-- AUDIO UI -->
 <div class="audio-controls">
     <button id="muteBtn">UNMUTE</button>
     <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
