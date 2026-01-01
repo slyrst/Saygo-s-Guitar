@@ -6,17 +6,13 @@
 <title>Saygos Fun</title>
 
 <style>
-/* ===== RESET ===== */
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-/* ===== THEME ===== */
 body {
     margin: 0;
     font-family: "Courier New", monospace;
-    background: radial-gradient(circle at top, #1a1a1a, #000);
-    color: #cfcfcf;
+    background: radial-gradient(circle at top, #1b0000, #000);
+    color: #9cff9c;
     overflow-x: hidden;
 }
 
@@ -24,63 +20,35 @@ body {
 .snowflake {
     position: fixed;
     top: -10px;
-    color: white;
+    color: #fff;
     font-size: 14px;
-    opacity: 0.8;
+    opacity: 0.85;
     pointer-events: none;
     animation: fall linear infinite;
 }
 
 @keyframes fall {
-    to {
-        transform: translateY(110vh);
-    }
+    to { transform: translateY(110vh); }
 }
 
 /* ===== HEADER ===== */
 header {
     text-align: center;
     padding: 25px;
-    border-bottom: 1px solid #333;
+    border-bottom: 2px solid #2d0000;
+    background: linear-gradient(to bottom, #120000, #050000);
 }
 
 header img {
     height: 70px;
-    filter: grayscale(1) contrast(1.2);
+    filter: drop-shadow(0 0 10px red);
 }
 
-/* ===== CONTROLS ===== */
-.audio-controls {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #0a0a0a;
-    border: 1px solid #333;
-    padding: 12px;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.8);
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.audio-controls button {
-    background: #111;
-    color: #0f0;
-    border: 1px solid #333;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.2s;
-}
-
-.audio-controls button:hover {
-    background: #0f0;
-    color: #000;
-}
-
-.audio-controls input[type="range"] {
-    width: 90px;
+/* ===== FESTIVE TEXT ===== */
+.subtext {
+    margin-top: 10px;
+    color: #ff4d4d;
+    text-shadow: 0 0 5px red;
 }
 
 /* ===== GAMES ===== */
@@ -94,9 +62,9 @@ header img {
 }
 
 .game-card {
-    background: #0d0d0d;
-    border: 1px solid #333;
-    border-radius: 8px;
+    background: linear-gradient(145deg, #0a0000, #120000);
+    border: 2px solid #1f0000;
+    border-radius: 10px;
     padding: 15px;
     text-align: center;
     cursor: pointer;
@@ -104,8 +72,10 @@ header img {
 }
 
 .game-card:hover {
-    transform: translateY(-5px) rotate(-0.5deg);
-    box-shadow: 0 0 20px rgba(0,255,0,0.15);
+    transform: translateY(-6px) rotate(-0.6deg);
+    box-shadow:
+        0 0 20px rgba(255,0,0,0.3),
+        0 0 20px rgba(0,255,0,0.2);
 }
 
 .game-card img {
@@ -118,7 +88,44 @@ header img {
 .game-title {
     margin-top: 10px;
     font-size: 16px;
-    color: #0f0;
+    color: #3cff3c;
+    text-shadow: 0 0 6px green;
+}
+
+/* ===== AUDIO CONTROLS ===== */
+.audio-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #070000;
+    border: 2px solid #2b0000;
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 0 20px rgba(255,0,0,0.4);
+}
+
+.audio-controls button {
+    background: #100000;
+    color: #3cff3c;
+    border: 2px solid #1f0000;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.audio-controls button:hover {
+    background: #3cff3c;
+    color: #000;
+    box-shadow: 0 0 10px green;
+}
+
+.audio-controls input[type="range"] {
+    accent-color: red;
+    width: 90px;
 }
 
 /* ===== FOOTER ===== */
@@ -126,10 +133,10 @@ footer {
     text-align: center;
     padding: 20px;
     font-size: 13px;
-    color: #666;
+    color: #ff5c5c;
 }
 
-/* ===== CRT FLICKER ===== */
+/* ===== CRT SCANLINES ===== */
 body::after {
     content: "";
     position: fixed;
@@ -137,7 +144,7 @@ body::after {
     background: repeating-linear-gradient(
         transparent,
         transparent 2px,
-        rgba(255,255,255,0.02) 3px
+        rgba(255,255,255,0.03) 3px
     );
     pointer-events: none;
 }
@@ -146,14 +153,14 @@ body::after {
 
 <body>
 
-<!-- 🎵 AUDIO -->
+<!-- 🎵 MUSIC -->
 <audio id="bgMusic" loop>
     <source src="festiveevenings.mp3" type="audio/mpeg">
 </audio>
 
 <header>
     <img src="logo.png" alt="Saygos Logo">
-    <div style="margin-top:10px;color:#0f0;">welcome to the festive shitpost zone</div>
+    <div class="subtext">anon-approved festive chaos 🎄</div>
 </header>
 
 <div class="games-container">
@@ -164,10 +171,10 @@ body::after {
 </div>
 
 <footer>
-    © 2025 SAYGOS FUN — anonymous approved
+    © 2025 SAYGOS FUN — RED • GREEN • BASED
 </footer>
 
-<!-- 🔊 CONTROLS -->
+<!-- 🔊 AUDIO UI -->
 <div class="audio-controls">
     <button id="muteBtn">UNMUTE</button>
     <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
@@ -194,20 +201,19 @@ volumeSlider.oninput = () => {
     music.volume = volumeSlider.value;
 };
 
-/* ===== SNOW GENERATOR ===== */
+/* ===== SNOW ===== */
 function spawnSnow() {
     const snow = document.createElement("div");
     snow.className = "snowflake";
-    snow.textContent = Math.random() > 0.5 ? "❄" : "*";
+    snow.textContent = Math.random() > 0.5 ? "❄" : "✶";
     snow.style.left = Math.random() * 100 + "vw";
     snow.style.fontSize = (Math.random() * 10 + 10) + "px";
     snow.style.animationDuration = (Math.random() * 5 + 5) + "s";
     document.body.appendChild(snow);
-
     setTimeout(() => snow.remove(), 10000);
 }
 
-setInterval(spawnSnow, 200);
+setInterval(spawnSnow, 180);
 </script>
 
 </body>
