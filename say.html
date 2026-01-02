@@ -42,14 +42,8 @@ header a {
     padding: 8px 0;
 }
 
-.name {
-    color: #ff4d4d;
-}
-
-.time {
-    color: #666;
-    font-size: 12px;
-}
+.name { color: #ff4d4d; }
+.time { color: #666; font-size: 12px; }
 
 .message {
     white-space: pre-wrap;
@@ -65,11 +59,12 @@ header a {
     color: #7dff7d;
 }
 
-.reply-box img {
-    max-width: 80px;
+.reply-box img,
+.post img {
+    max-width: 200px;
     display: block;
-    margin-top: 4px;
-    border: 1px solid #1f0000;
+    margin-top: 5px;
+    border: 2px solid #1f0000;
 }
 
 .reply-btn {
@@ -78,13 +73,6 @@ header a {
     color: #3cff3c;
     margin-top: 4px;
     display: inline-block;
-}
-
-.post img {
-    max-width: 200px;
-    display: block;
-    margin-top: 5px;
-    border: 2px solid #1f0000;
 }
 
 form {
@@ -119,15 +107,7 @@ input, textarea, button {
     padding: 6px;
 }
 
-textarea {
-    width: 100%;
-    height: 60px;
-    resize: none;
-}
-
-button {
-    cursor: pointer;
-}
+textarea { width: 100%; height: 60px; resize: none; }
 
 button:hover {
     background: #3cff3c;
@@ -156,32 +136,27 @@ button:hover {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyCVKtkhsShaE5lOk1w4BsAIGb4Y3bqV_OA",
   authDomain: "saygos-fun.firebaseapp.com",
   databaseURL: "https://saygos-fun-default-rtdb.firebaseio.com",
   projectId: "saygos-fun"
-};
+});
 
-firebase.initializeApp(firebaseConfig);
+const chatRef = firebase.database().ref("say");
+const anon = "Anon" + Math.floor(Math.random() * 9999);
 
-const db = firebase.database();
-const chatRef = db.ref("say");
-
-const anon = "Anon" + Math.floor(Math.random()*9999);
 let replyTo = null;
 let firstLoad = true;
 
-/* CHECK IF USER IS NEAR BOTTOM */
 function isNearBottom() {
     return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
 }
 
-/* LOAD MESSAGES */
 chatRef.limitToLast(100).on("child_added", snap => {
     const data = snap.val();
-    const div = document.createElement("div");
-    div.className = "post";
+    const post = document.createElement("div");
+    post.className = "post";
 
     let replyHTML = "";
     if (data.reply) {
@@ -192,7 +167,7 @@ chatRef.limitToLast(100).on("child_added", snap => {
         </div>`;
     }
 
-    div.innerHTML = `
+    post.innerHTML = `
         <div class="name">${data.name} <span class="time">${data.time}</span></div>
         ${replyHTML}
         <div class="message">${escapeHTML(data.text || "")}</div>
@@ -200,13 +175,34 @@ chatRef.limitToLast(100).on("child_added", snap => {
         <div class="reply-btn">Reply</div>
     `;
 
-    const shouldScroll = isNearBottom() || firstLoad;
-    document.getElementById("chat").appendChild(div);
+    /* ✅ REPLY FIX */
+    post.querySelector(".reply-btn").onclick = () => {
+        replyTo = { text: data.text || "", img: data.img || "" };
+
+        const rp = document.getElementById("replyPreview");
+        rp.style.display = "block";
+        rp.innerHTML = `
+            Replying to:<br>
+            ${replyTo.text ? escapeHTML(replyTo.text) : ""}
+            ${replyTo.img ? `<img src="${replyTo.img}">` : ""}
+            <div style="cursor:pointer;color:#ff4d4d">[cancel]</div>
+        `;
+
+        rp.querySelector("div").onclick = () => {
+            replyTo = null;
+            rp.style.display = "none";
+        };
+
+        document.getElementById("text").focus();
+    };
+
+    const shouldScroll = firstLoad || isNearBottom();
+    document.getElementById("chat").appendChild(post);
 
     if (shouldScroll) {
-        requestAnimationFrame(() => {
-            window.scrollTo(0, document.body.scrollHeight);
-        });
+        requestAnimationFrame(() =>
+            window.scrollTo(0, document.body.scrollHeight)
+        );
     }
 
     firstLoad = false;
@@ -216,25 +212,23 @@ chatRef.limitToLast(100).on("child_added", snap => {
 document.getElementById("postForm").onsubmit = e => {
     e.preventDefault();
 
-    const text = document.getElementById("text").value.trim();
-    const file = document.getElementById("image").files[0];
+    const text = textInput.value.trim();
+    const file = image.files[0];
     if (!text && !file) return;
 
     if (file) {
-        const reader = new FileReader();
-        reader.onload = () => sendMessage(text, reader.result);
-        reader.readAsDataURL(file);
-    } else {
-        sendMessage(text, "");
-    }
+        const r = new FileReader();
+        r.onload = () => send(text, r.result);
+        r.readAsDataURL(file);
+    } else send(text, "");
 
-    document.getElementById("text").value = "";
-    document.getElementById("image").value = "";
-    document.getElementById("replyPreview").style.display = "none";
+    textInput.value = "";
+    image.value = "";
+    replyPreview.style.display = "none";
     replyTo = null;
 };
 
-function sendMessage(text, img) {
+function send(text, img) {
     chatRef.push({
         name: anon,
         text,
@@ -244,15 +238,10 @@ function sendMessage(text, img) {
     });
 }
 
-/* XSS SAFE */
-function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, m => ({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#39;"
-    }[m]));
+function escapeHTML(s) {
+    return s.replace(/[&<>"']/g, m =>
+        ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])
+    );
 }
 </script>
 
