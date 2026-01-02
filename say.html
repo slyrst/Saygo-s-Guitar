@@ -146,6 +146,11 @@ firebase.initializeApp({
 const chatRef = firebase.database().ref("say");
 const anon = "Anon" + Math.floor(Math.random() * 9999);
 
+/* ✅ FIXED REFERENCES */
+const textInput = document.getElementById("text");
+const imageInput = document.getElementById("image");
+const replyPreview = document.getElementById("replyPreview");
+
 let replyTo = null;
 let firstLoad = true;
 
@@ -153,6 +158,7 @@ function isNearBottom() {
     return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
 }
 
+/* LOAD */
 chatRef.limitToLast(100).on("child_added", snap => {
     const data = snap.val();
     const post = document.createElement("div");
@@ -175,55 +181,46 @@ chatRef.limitToLast(100).on("child_added", snap => {
         <div class="reply-btn">Reply</div>
     `;
 
-    /* ✅ REPLY FIX */
     post.querySelector(".reply-btn").onclick = () => {
         replyTo = { text: data.text || "", img: data.img || "" };
-
-        const rp = document.getElementById("replyPreview");
-        rp.style.display = "block";
-        rp.innerHTML = `
+        replyPreview.style.display = "block";
+        replyPreview.innerHTML = `
             Replying to:<br>
             ${replyTo.text ? escapeHTML(replyTo.text) : ""}
             ${replyTo.img ? `<img src="${replyTo.img}">` : ""}
             <div style="cursor:pointer;color:#ff4d4d">[cancel]</div>
         `;
-
-        rp.querySelector("div").onclick = () => {
+        replyPreview.querySelector("div").onclick = () => {
             replyTo = null;
-            rp.style.display = "none";
+            replyPreview.style.display = "none";
         };
-
-        document.getElementById("text").focus();
+        textInput.focus();
     };
 
     const shouldScroll = firstLoad || isNearBottom();
     document.getElementById("chat").appendChild(post);
-
-    if (shouldScroll) {
-        requestAnimationFrame(() =>
-            window.scrollTo(0, document.body.scrollHeight)
-        );
-    }
-
+    if (shouldScroll) window.scrollTo(0, document.body.scrollHeight);
     firstLoad = false;
 });
 
-/* POST */
+/* POST — FIXED */
 document.getElementById("postForm").onsubmit = e => {
     e.preventDefault();
 
     const text = textInput.value.trim();
-    const file = image.files[0];
+    const file = imageInput.files[0];
     if (!text && !file) return;
 
     if (file) {
         const r = new FileReader();
         r.onload = () => send(text, r.result);
         r.readAsDataURL(file);
-    } else send(text, "");
+    } else {
+        send(text, "");
+    }
 
     textInput.value = "";
-    image.value = "";
+    imageInput.value = "";
     replyPreview.style.display = "none";
     replyTo = null;
 };
