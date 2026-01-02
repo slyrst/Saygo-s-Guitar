@@ -59,7 +59,6 @@ header a {
     color: #7dff7d;
 }
 
-/* IMAGES */
 .post img,
 .reply-box img {
     max-width: 200px;
@@ -67,7 +66,6 @@ header a {
     margin-top: 5px;
     border: 2px solid #1f0000;
     cursor: zoom-in;
-    transition: all 0.2s ease;
 }
 
 .post img.zoomed,
@@ -76,7 +74,6 @@ header a {
     cursor: zoom-out;
 }
 
-/* VIDEOS */
 .post video,
 .reply-box video {
     max-width: 300px;
@@ -112,13 +109,6 @@ form {
     color: #7dff7d;
 }
 
-#replyPreview img,
-#replyPreview video {
-    max-width: 80px;
-    display: block;
-    margin-top: 4px;
-}
-
 input, textarea, button {
     font-family: inherit;
     background: #100000;
@@ -128,11 +118,7 @@ input, textarea, button {
 }
 
 textarea { width: 100%; height: 60px; resize: none; }
-
-button:hover {
-    background: #3cff3c;
-    color: #000;
-}
+button:hover { background: #3cff3c; color: #000; }
 </style>
 </head>
 
@@ -165,120 +151,67 @@ firebase.initializeApp({
 
 const chatRef = firebase.database().ref("say");
 const anon = "Anon" + Math.floor(Math.random() * 9999);
+const chat = document.getElementById("chat");
 
-const textInput = document.getElementById("text");
-const mediaInput = document.getElementById("media");
-const replyPreview = document.getElementById("replyPreview");
-
-let replyTo = null;
-let firstLoad = true;
-
-function isNearBottom() {
-    return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
-}
-
-/* IMAGE ZOOM */
-function enableImageZoom(container) {
-    container.querySelectorAll("img").forEach(img => {
-        img.onclick = () => img.classList.toggle("zoomed");
-    });
-}
-
-/* MEDIA RENDER */
-function renderMedia(m) {
-    if (!m) return "";
-    if (m.startsWith("data:video")) {
-        return `<video src="${m}" controls></video>`;
-    }
-    return `<img src="${m}">`;
-}
-
-/* LOAD */
-chatRef.limitToLast(100).on("child_added", snap => {
-    const data = snap.val();
-    const post = document.createElement("div");
-    post.className = "post";
-
-    let replyHTML = "";
-    if (data.reply) {
-        replyHTML = `
-        <div class="reply-box">
-            ${data.reply.text ? escapeHTML(data.reply.text) : ""}
-            ${renderMedia(data.reply.media)}
-        </div>`;
-    }
-
-    post.innerHTML = `
-        <div class="name">${data.name} <span class="time">${data.time}</span></div>
-        ${replyHTML}
-        <div class="message">${escapeHTML(data.text || "")}</div>
-        ${renderMedia(data.media)}
-        <div class="reply-btn">Reply</div>
-    `;
-
-    enableImageZoom(post);
-
-    post.querySelector(".reply-btn").onclick = () => {
-        replyTo = { text: data.text || "", media: data.media || "" };
-
-        replyPreview.style.display = "block";
-        replyPreview.innerHTML = `
-            Replying to:<br>
-            ${replyTo.text ? escapeHTML(replyTo.text) : ""}
-            ${renderMedia(replyTo.media)}
-            <div style="cursor:pointer;color:#ff4d4d">[cancel]</div>
-        `;
-
-        replyPreview.querySelector("div").onclick = () => {
-            replyTo = null;
-            replyPreview.style.display = "none";
-        };
-
-        enableImageZoom(replyPreview);
-        textInput.focus();
-    };
-
-    const shouldScroll = firstLoad || isNearBottom();
-    document.getElementById("chat").appendChild(post);
-    if (shouldScroll) window.scrollTo(0, document.body.scrollHeight);
-    firstLoad = false;
-});
-
-/* POST */
-document.getElementById("postForm").onsubmit = e => {
-    e.preventDefault();
-
-    const text = textInput.value.trim();
-    const file = mediaInput.files[0];
-    if (!text && !file) return;
-
-    if (file) {
-        const r = new FileReader();
-        r.onload = () => send(text, r.result);
-        r.readAsDataURL(file);
-    } else send(text, "");
-
-    textInput.value = "";
-    mediaInput.value = "";
-    replyPreview.style.display = "none";
-    replyTo = null;
-};
-
-function send(text, media) {
-    chatRef.push({
-        name: anon,
-        text,
-        media,
-        reply: replyTo,
-        time: new Date().toLocaleString()
-    });
-}
+let loaded = false;
+let lastKey = null;
 
 function escapeHTML(s) {
     return s.replace(/[&<>"']/g, m =>
         ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])
     );
 }
+
+function renderPost(data) {
+    const post = document.createElement("div");
+    post.className = "post";
+
+    let replyHTML = "";
+    if (data.reply) {
+        replyHTML = `<div class="reply-box">${escapeHTML(data.reply.text || "")}</div>`;
+    }
+
+    post.innerHTML = `
+        <div class="name">${data.name} <span class="time">${data.time}</span></div>
+        ${replyHTML}
+        <div class="message">${escapeHTML(data.text || "")}</div>
+        <div class="reply-btn">Reply</div>
+    `;
+
+    chat.appendChild(post);
+}
+
+/* INITIAL LOAD (FIX) */
+chatRef.limitToLast(100).once("value", snap => {
+    snap.forEach(child => {
+        renderPost(child.val());
+        lastKey = child.key;
+    });
+    loaded = true;
+    window.scrollTo(0, document.body.scrollHeight);
+});
+
+/* NEW MESSAGES ONLY */
+chatRef.limitToLast(1).on("child_added", snap => {
+    if (!loaded || snap.key === lastKey) return;
+    renderPost(snap.val());
+    window.scrollTo(0, document.body.scrollHeight);
+});
+
+/* SEND */
+document.getElementById("postForm").onsubmit = e => {
+    e.preventDefault();
+    const text = document.getElementById("text").value.trim();
+    if (!text) return;
+
+    chatRef.push({
+        name: anon,
+        text,
+        time: new Date().toLocaleString()
+    });
+
+    document.getElementById("text").value = "";
+};
 </script>
 
 </body>
