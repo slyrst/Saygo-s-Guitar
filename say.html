@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>/say/ – Saygos Fun</title>
+<title>/say/ – Saygos Guitar</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -63,7 +63,6 @@ header a {
     margin: 6px 0;
     font-size: 13px;
     color: #7dff7d;
-    opacity: 0.9;
 }
 
 .reply-box img {
@@ -170,8 +169,12 @@ const db = firebase.database();
 const chatRef = db.ref("say");
 
 const anon = "Anon" + Math.floor(Math.random()*9999);
-
 let replyTo = null;
+
+/* CHECK IF USER IS NEAR BOTTOM */
+function isNearBottom() {
+    return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
+}
 
 /* LOAD */
 chatRef.limitToLast(100).on("child_added", snap => {
@@ -197,10 +200,7 @@ chatRef.limitToLast(100).on("child_added", snap => {
     `;
 
     div.querySelector(".reply-btn").onclick = () => {
-        replyTo = {
-            text: data.text || "",
-            img: data.img || ""
-        };
+        replyTo = { text: data.text || "", img: data.img || "" };
 
         const rp = document.getElementById("replyPreview");
         rp.style.display = "block";
@@ -219,8 +219,12 @@ chatRef.limitToLast(100).on("child_added", snap => {
         document.getElementById("text").focus();
     };
 
+    const shouldScroll = isNearBottom();
     document.getElementById("chat").appendChild(div);
-    window.scrollTo(0, document.body.scrollHeight);
+
+    if (shouldScroll) {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    }
 });
 
 /* POST */
@@ -229,7 +233,6 @@ document.getElementById("postForm").onsubmit = e => {
 
     const text = document.getElementById("text").value.trim();
     const file = document.getElementById("image").files[0];
-
     if (!text && !file) return;
 
     if (file) {
