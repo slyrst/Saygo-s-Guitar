@@ -148,7 +148,7 @@ button:hover {
 <form id="postForm">
     <div id="replyPreview"></div>
     <textarea id="text" placeholder="say something..."></textarea>
-    <input type="file" id="image" accept="image/*,video/*">
+    <input type="file" id="media" accept="image/*,video/*">
     <button type="submit">POST</button>
 </form>
 
@@ -167,7 +167,7 @@ const chatRef = firebase.database().ref("say");
 const anon = "Anon" + Math.floor(Math.random() * 9999);
 
 const textInput = document.getElementById("text");
-const fileInput = document.getElementById("image");
+const mediaInput = document.getElementById("media");
 const replyPreview = document.getElementById("replyPreview");
 
 let replyTo = null;
@@ -184,18 +184,20 @@ function enableImageZoom(container) {
     });
 }
 
+/* MEDIA RENDER */
+function renderMedia(m) {
+    if (!m) return "";
+    if (m.startsWith("data:video")) {
+        return `<video src="${m}" controls></video>`;
+    }
+    return `<img src="${m}">`;
+}
+
 /* LOAD */
 chatRef.limitToLast(100).on("child_added", snap => {
     const data = snap.val();
     const post = document.createElement("div");
     post.className = "post";
-
-    const renderMedia = (m) => {
-        if (!m) return "";
-        if (m.startsWith("data:video"))
-            return `<video src="${m}" controls></video>`;
-        return `<img src="${m}">`;
-    };
 
     let replyHTML = "";
     if (data.reply) {
@@ -217,10 +219,7 @@ chatRef.limitToLast(100).on("child_added", snap => {
     enableImageZoom(post);
 
     post.querySelector(".reply-btn").onclick = () => {
-        replyTo = {
-            text: data.text || "",
-            media: data.media || ""
-        };
+        replyTo = { text: data.text || "", media: data.media || "" };
 
         replyPreview.style.display = "block";
         replyPreview.innerHTML = `
@@ -250,7 +249,7 @@ document.getElementById("postForm").onsubmit = e => {
     e.preventDefault();
 
     const text = textInput.value.trim();
-    const file = fileInput.files[0];
+    const file = mediaInput.files[0];
     if (!text && !file) return;
 
     if (file) {
@@ -260,7 +259,7 @@ document.getElementById("postForm").onsubmit = e => {
     } else send(text, "");
 
     textInput.value = "";
-    fileInput.value = "";
+    mediaInput.value = "";
     replyPreview.style.display = "none";
     replyTo = null;
 };
