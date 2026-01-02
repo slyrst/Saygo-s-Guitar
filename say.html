@@ -1,1 +1,285 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <title>/say/ – Saygos Fun</title> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <style> * { box-sizing: border-box; } body { margin: 0; font-family: "Courier New", monospace; background: radial-gradient(circle at top, #120000, #000); color: #9cff9c; } header { padding: 12px; text-align: center; border-bottom: 2px solid #2b0000; background: linear-gradient(#100000, #050000); } header a { color: #3cff3c; text-decoration: none; border: 1px solid #3cff3c; padding: 4px 8px; margin-right: 10px; } #chat { max-width: 900px; margin: auto; padding: 15px; padding-bottom: 140px; } .post { border-bottom: 1px solid #1f0000; padding: 8px 0; } .name { color: #ff4d4d; } .time { color: #666; font-size: 12px; } .message { white-space: pre-wrap; margin-top: 4px; text-align: left; } .reply-box { border-left: 3px solid #3cff3c; padding-left: 6px; margin: 6px 0; font-size: 13px; color: #7dff7d; } /* IMAGES */ .post img, .reply-box img { max-width: 200px; display: block; margin-top: 5px; border: 2px solid #1f0000; cursor: zoom-in; transition: all 0.2s ease; } .post img.zoomed, .reply-box img.zoomed { max-width: 100%; cursor: zoom-out; } /* VIDEOS */ .post video, .reply-box video { max-width: 300px; display: block; margin-top: 6px; border: 2px solid #1f0000; background: #000; } .reply-btn { font-size: 12px; cursor: pointer; color: #3cff3c; margin-top: 4px; display: inline-block; } form { position: fixed; bottom: 0; width: 100%; background: #070000; border-top: 2px solid #2b0000; padding: 10px; } #replyPreview { display: none; border-left: 4px solid #3cff3c; padding: 6px; margin-bottom: 6px; font-size: 13px; color: #7dff7d; } #replyPreview img, #replyPreview video { max-width: 80px; display: block; margin-top: 4px; } input, textarea, button { font-family: inherit; background: #100000; color: #3cff3c; border: 1px solid #1f0000; padding: 6px; } textarea { width: 100%; height: 60px; resize: none; } button:hover { background: #3cff3c; color: #000; } </style> </head> <body> <header> <a href="index.html">← back</a> <strong>/say/</strong> — anon chat </header> <div id="chat"></div> <form id="postForm"> <div id="replyPreview"></div> <textarea id="text" placeholder="say something..."></textarea> <input type="file" id="media" accept="image/*,video/*"> <button type="submit">POST</button> </form> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script> <script> firebase.initializeApp({ apiKey: "AIzaSyCVKtkhsShaE5lOk1w4BsAIGb4Y3bqV_OA", authDomain: "saygos-fun.firebaseapp.com", databaseURL: "https://saygos-fun-default-rtdb.firebaseio.com", projectId: "saygos-fun" }); const chatRef = firebase.database().ref("say"); const anon = "Anon" + Math.floor(Math.random() * 9999); const textInput = document.getElementById("text"); const mediaInput = document.getElementById("media"); const replyPreview = document.getElementById("replyPreview"); let replyTo = null; let firstLoad = true; function isNearBottom() { return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150; } /* IMAGE ZOOM */ function enableImageZoom(container) { container.querySelectorAll("img").forEach(img => { img.onclick = () => img.classList.toggle("zoomed"); }); } /* MEDIA RENDER */ function renderMedia(m) { if (!m) return ""; if (m.startsWith("data:video")) { return <video src="${m}" controls></video>; } return <img src="${m}">; } /* LOAD */ chatRef.limitToLast(100).on("child_added", snap => { const data = snap.val(); const post = document.createElement("div"); post.className = "post"; let replyHTML = ""; if (data.reply) { replyHTML = <div class="reply-box"> ${data.reply.text ? escapeHTML(data.reply.text) : ""} ${renderMedia(data.reply.media)} </div>; } post.innerHTML = <div class="name">${data.name} <span class="time">${data.time}</span></div> ${replyHTML} <div class="message">${escapeHTML(data.text || "")}</div> ${renderMedia(data.media)} <div class="reply-btn">Reply</div> ; enableImageZoom(post); post.querySelector(".reply-btn").onclick = () => { replyTo = { text: data.text || "", media: data.media || "" }; replyPreview.style.display = "block"; replyPreview.innerHTML = Replying to:<br> ${replyTo.text ? escapeHTML(replyTo.text) : ""} ${renderMedia(replyTo.media)} <div style="cursor:pointer;color:#ff4d4d">[cancel]</div> ; replyPreview.querySelector("div").onclick = () => { replyTo = null; replyPreview.style.display = "none"; }; enableImageZoom(replyPreview); textInput.focus(); }; const shouldScroll = firstLoad || isNearBottom(); document.getElementById("chat").appendChild(post); if (shouldScroll) window.scrollTo(0, document.body.scrollHeight); firstLoad = false; }); /* POST */ document.getElementById("postForm").onsubmit = e => { e.preventDefault(); const text = textInput.value.trim(); const file = mediaInput.files[0]; if (!text && !file) return; if (file) { const r = new FileReader(); r.onload = () => send(text, r.result); r.readAsDataURL(file); } else send(text, ""); textInput.value = ""; mediaInput.value = ""; replyPreview.style.display = "none"; replyTo = null; }; function send(text, media) { chatRef.push({ name: anon, text, media, reply: replyTo, time: new Date().toLocaleString() }); } function escapeHTML(s) { return s.replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]) ); } </script> </body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>/say/ – Saygos Fun</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Courier New", monospace;
+    background: radial-gradient(circle at top, #120000, #000);
+    color: #9cff9c;
+}
+
+header {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 2px solid #2b0000;
+    background: linear-gradient(#100000, #050000);
+}
+
+header a {
+    color: #3cff3c;
+    text-decoration: none;
+    border: 1px solid #3cff3c;
+    padding: 4px 8px;
+    margin-right: 10px;
+}
+
+#chat {
+    max-width: 900px;
+    margin: auto;
+    padding: 15px;
+    padding-bottom: 140px;
+}
+
+.post {
+    border-bottom: 1px solid #1f0000;
+    padding: 8px 0;
+}
+
+.name { color: #ff4d4d; }
+.time { color: #666; font-size: 12px; }
+
+.message {
+    white-space: pre-wrap;
+    margin-top: 4px;
+    text-align: left;
+}
+
+.reply-box {
+    border-left: 3px solid #3cff3c;
+    padding-left: 6px;
+    margin: 6px 0;
+    font-size: 13px;
+    color: #7dff7d;
+}
+
+/* IMAGES */
+.post img,
+.reply-box img {
+    max-width: 200px;
+    display: block;
+    margin-top: 5px;
+    border: 2px solid #1f0000;
+    cursor: zoom-in;
+    transition: all 0.2s ease;
+}
+
+.post img.zoomed,
+.reply-box img.zoomed {
+    max-width: 100%;
+    cursor: zoom-out;
+}
+
+/* VIDEOS */
+.post video,
+.reply-box video {
+    max-width: 300px;
+    display: block;
+    margin-top: 6px;
+    border: 2px solid #1f0000;
+    background: #000;
+}
+
+.reply-btn {
+    font-size: 12px;
+    cursor: pointer;
+    color: #3cff3c;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+form {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #070000;
+    border-top: 2px solid #2b0000;
+    padding: 10px;
+}
+
+#replyPreview {
+    display: none;
+    border-left: 4px solid #3cff3c;
+    padding: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #7dff7d;
+}
+
+#replyPreview img,
+#replyPreview video {
+    max-width: 80px;
+    display: block;
+    margin-top: 4px;
+}
+
+input, textarea, button {
+    font-family: inherit;
+    background: #100000;
+    color: #3cff3c;
+    border: 1px solid #1f0000;
+    padding: 6px;
+}
+
+textarea { width: 100%; height: 60px; resize: none; }
+
+button:hover {
+    background: #3cff3c;
+    color: #000;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <a href="index.html">← back</a>
+    <strong>/say/</strong> — anon chat
+</header>
+
+<div id="chat"></div>
+
+<form id="postForm">
+    <div id="replyPreview"></div>
+    <textarea id="text" placeholder="say something..."></textarea>
+    <input type="file" id="media" accept="image/*,video/*">
+    <button type="submit">POST</button>
+</form>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyCVKtkhsShaE5lOk1w4BsAIGb4Y3bqV_OA",
+  authDomain: "saygos-fun.firebaseapp.com",
+  databaseURL: "https://saygos-fun-default-rtdb.firebaseio.com",
+  projectId: "saygos-fun"
+});
+
+const chatRef = firebase.database().ref("say");
+const anon = "Anon" + Math.floor(Math.random() * 9999);
+
+const textInput = document.getElementById("text");
+const mediaInput = document.getElementById("media");
+const replyPreview = document.getElementById("replyPreview");
+
+let replyTo = null;
+let firstLoad = true;
+
+function isNearBottom() {
+    return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
+}
+
+/* IMAGE ZOOM */
+function enableImageZoom(container) {
+    container.querySelectorAll("img").forEach(img => {
+        img.onclick = () => img.classList.toggle("zoomed");
+    });
+}
+
+/* MEDIA RENDER */
+function renderMedia(m) {
+    if (!m) return "";
+    if (m.startsWith("data:video")) {
+        return `<video src="${m}" controls></video>`;
+    }
+    return `<img src="${m}">`;
+}
+
+/* LOAD */
+chatRef.limitToLast(100).on("child_added", snap => {
+    const data = snap.val();
+    const post = document.createElement("div");
+    post.className = "post";
+
+    let replyHTML = "";
+    if (data.reply) {
+        replyHTML = `
+        <div class="reply-box">
+            ${data.reply.text ? escapeHTML(data.reply.text) : ""}
+            ${renderMedia(data.reply.media)}
+        </div>`;
+    }
+
+    post.innerHTML = `
+        <div class="name">${data.name} <span class="time">${data.time}</span></div>
+        ${replyHTML}
+        <div class="message">${escapeHTML(data.text || "")}</div>
+        ${renderMedia(data.media)}
+        <div class="reply-btn">Reply</div>
+    `;
+
+    enableImageZoom(post);
+
+    post.querySelector(".reply-btn").onclick = () => {
+        replyTo = { text: data.text || "", media: data.media || "" };
+
+        replyPreview.style.display = "block";
+        replyPreview.innerHTML = `
+            Replying to:<br>
+            ${replyTo.text ? escapeHTML(replyTo.text) : ""}
+            ${renderMedia(replyTo.media)}
+            <div style="cursor:pointer;color:#ff4d4d">[cancel]</div>
+        `;
+
+        replyPreview.querySelector("div").onclick = () => {
+            replyTo = null;
+            replyPreview.style.display = "none";
+        };
+
+        enableImageZoom(replyPreview);
+        textInput.focus();
+    };
+
+    const shouldScroll = firstLoad || isNearBottom();
+    document.getElementById("chat").appendChild(post);
+    if (shouldScroll) window.scrollTo(0, document.body.scrollHeight);
+    firstLoad = false;
+});
+
+/* POST */
+document.getElementById("postForm").onsubmit = e => {
+    e.preventDefault();
+
+    const text = textInput.value.trim();
+    const file = mediaInput.files[0];
+    if (!text && !file) return;
+
+    if (file) {
+        const r = new FileReader();
+        r.onload = () => send(text, r.result);
+        r.readAsDataURL(file);
+    } else send(text, "");
+
+    textInput.value = "";
+    mediaInput.value = "";
+    replyPreview.style.display = "none";
+    replyTo = null;
+};
+
+function send(text, media) {
+    chatRef.push({
+        name: anon,
+        text,
+        media,
+        reply: replyTo,
+        time: new Date().toLocaleString()
+    });
+}
+
+function escapeHTML(s) {
+    return s.replace(/[&<>"']/g, m =>
+        ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])
+    );
+}
+</script>
+
+</body>
+</html>
