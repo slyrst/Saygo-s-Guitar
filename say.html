@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>/say/ – Saygos Guitar</title>
+<title>/say/ – Saygos Fun</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -15,11 +15,13 @@ body {
     color: #9cff9c;
 }
 
+/* HEADER */
 header {
     padding: 12px;
     text-align: center;
     border-bottom: 2px solid #2b0000;
     background: linear-gradient(#100000, #050000);
+    position: relative;
 }
 
 header a {
@@ -30,11 +32,24 @@ header a {
     margin-right: 10px;
 }
 
+/* ADMIN BUTTON */
+#adminBtn {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d;
+    padding: 2px 6px;
+}
+
+/* CHAT */
 #chat {
     max-width: 900px;
     margin: auto;
     padding: 15px;
-    padding-bottom: 140px;
+    padding-bottom: 150px;
 }
 
 .post {
@@ -44,6 +59,11 @@ header a {
 
 .name {
     color: #ff4d4d;
+}
+
+.admin {
+    color: #ff0000;
+    font-weight: bold;
 }
 
 .time {
@@ -65,13 +85,6 @@ header a {
     color: #7dff7d;
 }
 
-.reply-box img {
-    max-width: 80px;
-    display: block;
-    margin-top: 4px;
-    border: 1px solid #1f0000;
-}
-
 .reply-btn {
     font-size: 12px;
     cursor: pointer;
@@ -87,6 +100,7 @@ header a {
     border: 2px solid #1f0000;
 }
 
+/* FORM */
 form {
     position: fixed;
     bottom: 0;
@@ -96,37 +110,31 @@ form {
     padding: 10px;
 }
 
-#replyPreview {
-    display: none;
-    border-left: 4px solid #3cff3c;
-    padding: 6px;
-    margin-bottom: 6px;
-    font-size: 13px;
-    color: #7dff7d;
+/* DISCO MESSAGE BOX */
+textarea {
+    width: 100%;
+    height: 60px;
+    resize: none;
+    font-family: inherit;
+    background: #000;
+    color: #fff;
+    border: 2px solid red;
+    animation: disco 3s linear infinite;
 }
 
-#replyPreview img {
-    max-width: 80px;
-    display: block;
-    margin-top: 4px;
+@keyframes disco {
+    0% { border-color: red; box-shadow: 0 0 10px red; }
+    33% { border-color: cyan; box-shadow: 0 0 10px cyan; }
+    66% { border-color: lime; box-shadow: 0 0 10px lime; }
+    100% { border-color: red; box-shadow: 0 0 10px red; }
 }
 
-input, textarea, button {
+input, button {
     font-family: inherit;
     background: #100000;
     color: #3cff3c;
     border: 1px solid #1f0000;
     padding: 6px;
-}
-
-textarea {
-    width: 100%;
-    height: 60px;
-    resize: none;
-}
-
-button {
-    cursor: pointer;
 }
 
 button:hover {
@@ -139,6 +147,7 @@ button:hover {
 <body>
 
 <header>
+    <div id="adminBtn">admin sign up</div>
     <a href="index.html">← back</a>
     <strong>/say/</strong> — anon chat
 </header>
@@ -146,7 +155,6 @@ button:hover {
 <div id="chat"></div>
 
 <form id="postForm">
-    <div id="replyPreview"></div>
     <textarea id="text" placeholder="say something..."></textarea>
     <input type="file" id="image" accept="image/*">
     <button type="submit">POST</button>
@@ -164,68 +172,64 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const db = firebase.database();
 const chatRef = db.ref("say");
 
-const anon = "Anon" + Math.floor(Math.random()*9999);
-let replyTo = null;
+/* ADMIN SYSTEM */
+const ADMIN_PASSWORD = "saygos123"; // CHANGE THIS
+let isAdmin = localStorage.getItem("isAdmin") === "true";
 
-/* CHECK IF USER IS NEAR BOTTOM */
+let anon = isAdmin ? "ADMIN" : "Anon" + Math.floor(Math.random()*9999);
+
+document.getElementById("adminBtn").onclick = () => {
+    const pass = prompt("Admin password:");
+    if (pass === ADMIN_PASSWORD) {
+        localStorage.setItem("isAdmin", "true");
+        alert("You are now ADMIN. Reloading...");
+        location.reload();
+    } else {
+        alert("Wrong password.");
+    }
+};
+
+/* SCROLL HELPERS */
+function scrollBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
 function isNearBottom() {
     return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
 }
 
-/* LOAD */
+/* LOAD MESSAGES */
+let firstLoad = true;
+
 chatRef.limitToLast(100).on("child_added", snap => {
     const data = snap.val();
     const div = document.createElement("div");
     div.className = "post";
 
-    let replyHTML = "";
-    if (data.reply) {
-        replyHTML = `
-        <div class="reply-box">
-            ${data.reply.text ? escapeHTML(data.reply.text) : ""}
-            ${data.reply.img ? `<img src="${data.reply.img}">` : ""}
-        </div>`;
-    }
-
     div.innerHTML = `
-        <div class="name">${data.name} <span class="time">${data.time}</span></div>
-        ${replyHTML}
+        <div class="name ${data.admin ? "admin" : ""}">
+            ${data.admin ? "[ADMIN] " : ""}${data.name}
+            <span class="time">${data.time}</span>
+        </div>
         <div class="message">${escapeHTML(data.text || "")}</div>
         ${data.img ? `<img src="${data.img}">` : ""}
         <div class="reply-btn">Reply</div>
     `;
 
-    div.querySelector(".reply-btn").onclick = () => {
-        replyTo = { text: data.text || "", img: data.img || "" };
-
-        const rp = document.getElementById("replyPreview");
-        rp.style.display = "block";
-        rp.innerHTML = `
-            Replying to:
-            ${replyTo.text ? escapeHTML(replyTo.text) : ""}
-            ${replyTo.img ? `<img src="${replyTo.img}">` : ""}
-            <span style="cursor:pointer">[cancel]</span>
-        `;
-
-        rp.querySelector("span").onclick = () => {
-            replyTo = null;
-            rp.style.display = "none";
-        };
-
-        document.getElementById("text").focus();
-    };
-
-    const shouldScroll = isNearBottom();
+    const shouldScroll = firstLoad || isNearBottom();
     document.getElementById("chat").appendChild(div);
 
-    if (shouldScroll) {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    }
+    if (shouldScroll) scrollBottom();
 });
+
+/* FIRST LOAD → FORCE BOTTOM */
+setTimeout(() => {
+    scrollBottom();
+    firstLoad = false;
+}, 800);
 
 /* POST */
 document.getElementById("postForm").onsubmit = e => {
@@ -236,25 +240,23 @@ document.getElementById("postForm").onsubmit = e => {
     if (!text && !file) return;
 
     if (file) {
-        const reader = new FileReader();
-        reader.onload = () => sendMessage(text, reader.result);
-        reader.readAsDataURL(file);
+        const r = new FileReader();
+        r.onload = () => send(text, r.result);
+        r.readAsDataURL(file);
     } else {
-        sendMessage(text, "");
+        send(text, "");
     }
 
     document.getElementById("text").value = "";
     document.getElementById("image").value = "";
-    document.getElementById("replyPreview").style.display = "none";
-    replyTo = null;
 };
 
-function sendMessage(text, img) {
+function send(text, img) {
     chatRef.push({
         name: anon,
         text,
         img,
-        reply: replyTo,
+        admin: isAdmin,
         time: new Date().toLocaleString()
     });
 }
