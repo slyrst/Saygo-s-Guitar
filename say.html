@@ -15,13 +15,11 @@ body {
     color: #9cff9c;
 }
 
-/* HEADER */
 header {
     padding: 12px;
     text-align: center;
     border-bottom: 2px solid #2b0000;
     background: linear-gradient(#100000, #050000);
-    position: relative;
 }
 
 header a {
@@ -32,24 +30,11 @@ header a {
     margin-right: 10px;
 }
 
-/* ADMIN BUTTON */
-#adminBtn {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    font-size: 12px;
-    cursor: pointer;
-    color: #ff4d4d;
-    border: 1px solid #ff4d4d;
-    padding: 3px 7px;
-}
-
-/* CHAT */
 #chat {
     max-width: 900px;
     margin: auto;
     padding: 15px;
-    padding-bottom: 150px;
+    padding-bottom: 140px;
 }
 
 .post {
@@ -70,23 +55,21 @@ header a {
     white-space: pre-wrap;
     margin-top: 4px;
     text-align: left;
-    color: #9cff9c;
 }
 
-/* ADMIN TEXT DISCO */
-.admin-message {
-    font-weight: bold;
-    animation: rainbow 2.5s linear infinite;
+.reply-box {
+    border-left: 3px solid #3cff3c;
+    padding-left: 6px;
+    margin: 6px 0;
+    font-size: 13px;
+    color: #7dff7d;
 }
 
-@keyframes rainbow {
-    0% { color: red; }
-    16% { color: orange; }
-    32% { color: yellow; }
-    48% { color: lime; }
-    64% { color: cyan; }
-    80% { color: magenta; }
-    100% { color: red; }
+.reply-box img {
+    max-width: 80px;
+    display: block;
+    margin-top: 4px;
+    border: 1px solid #1f0000;
 }
 
 .reply-btn {
@@ -104,7 +87,6 @@ header a {
     border: 2px solid #1f0000;
 }
 
-/* FORM */
 form {
     position: fixed;
     bottom: 0;
@@ -114,22 +96,37 @@ form {
     padding: 10px;
 }
 
-textarea {
-    width: 100%;
-    height: 60px;
-    resize: none;
-    font-family: inherit;
-    background: #100000;
-    color: #3cff3c;
-    border: 1px solid #1f0000;
+#replyPreview {
+    display: none;
+    border-left: 4px solid #3cff3c;
+    padding: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #7dff7d;
 }
 
-input, button {
+#replyPreview img {
+    max-width: 80px;
+    display: block;
+    margin-top: 4px;
+}
+
+input, textarea, button {
     font-family: inherit;
     background: #100000;
     color: #3cff3c;
     border: 1px solid #1f0000;
     padding: 6px;
+}
+
+textarea {
+    width: 100%;
+    height: 60px;
+    resize: none;
+}
+
+button {
+    cursor: pointer;
 }
 
 button:hover {
@@ -142,7 +139,6 @@ button:hover {
 <body>
 
 <header>
-    <div id="adminBtn">admin sign up</div>
     <a href="index.html">← back</a>
     <strong>/say/</strong> — anon chat
 </header>
@@ -150,6 +146,7 @@ button:hover {
 <div id="chat"></div>
 
 <form id="postForm">
+    <div id="replyPreview"></div>
     <textarea id="text" placeholder="say something..."></textarea>
     <input type="file" id="image" accept="image/*">
     <button type="submit">POST</button>
@@ -167,65 +164,53 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
 const chatRef = db.ref("say");
 
-/* ADMIN SYSTEM */
-const ADMIN_PASSWORD = "saygos123"; // CHANGE
-let isAdmin = localStorage.getItem("isAdmin") === "true";
-let name = isAdmin ? "ADMIN" : "Anon" + Math.floor(Math.random()*9999);
+const anon = "Anon" + Math.floor(Math.random()*9999);
+let replyTo = null;
+let firstLoad = true;
 
-document.getElementById("adminBtn").onclick = () => {
-    const pass = prompt("Admin password:");
-    if (pass === ADMIN_PASSWORD) {
-        localStorage.setItem("isAdmin", "true");
-        alert("You are now ADMIN");
-        location.reload();
-    } else {
-        alert("Wrong password");
-    }
-};
-
-/* SCROLL HELPERS */
-function scrollBottom() {
-    window.scrollTo(0, document.body.scrollHeight);
-}
-
+/* CHECK IF USER IS NEAR BOTTOM */
 function isNearBottom() {
     return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
 }
 
-/* LOAD */
-let firstLoad = true;
-
+/* LOAD MESSAGES */
 chatRef.limitToLast(100).on("child_added", snap => {
-    const d = snap.val();
+    const data = snap.val();
     const div = document.createElement("div");
     div.className = "post";
 
+    let replyHTML = "";
+    if (data.reply) {
+        replyHTML = `
+        <div class="reply-box">
+            ${data.reply.text ? escapeHTML(data.reply.text) : ""}
+            ${data.reply.img ? `<img src="${data.reply.img}">` : ""}
+        </div>`;
+    }
+
     div.innerHTML = `
-        <div class="name">
-            ${d.admin ? "[ADMIN] " : ""}${d.name}
-            <span class="time">${d.time}</span>
-        </div>
-        <div class="message ${d.admin ? "admin-message" : ""}">
-            ${escapeHTML(d.text || "")}
-        </div>
-        ${d.img ? `<img src="${d.img}">` : ""}
+        <div class="name">${data.name} <span class="time">${data.time}</span></div>
+        ${replyHTML}
+        <div class="message">${escapeHTML(data.text || "")}</div>
+        ${data.img ? `<img src="${data.img}">` : ""}
         <div class="reply-btn">Reply</div>
     `;
 
-    const shouldScroll = firstLoad || isNearBottom();
+    const shouldScroll = isNearBottom() || firstLoad;
     document.getElementById("chat").appendChild(div);
 
-    if (shouldScroll) scrollBottom();
-});
+    if (shouldScroll) {
+        requestAnimationFrame(() => {
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+    }
 
-/* FORCE BOTTOM ON FIRST LOAD */
-setTimeout(() => {
-    scrollBottom();
     firstLoad = false;
-}, 800);
+});
 
 /* POST */
 document.getElementById("postForm").onsubmit = e => {
@@ -236,23 +221,25 @@ document.getElementById("postForm").onsubmit = e => {
     if (!text && !file) return;
 
     if (file) {
-        const r = new FileReader();
-        r.onload = () => send(text, r.result);
-        r.readAsDataURL(file);
+        const reader = new FileReader();
+        reader.onload = () => sendMessage(text, reader.result);
+        reader.readAsDataURL(file);
     } else {
-        send(text, "");
+        sendMessage(text, "");
     }
 
     document.getElementById("text").value = "";
     document.getElementById("image").value = "";
+    document.getElementById("replyPreview").style.display = "none";
+    replyTo = null;
 };
 
-function send(text, img) {
+function sendMessage(text, img) {
     chatRef.push({
-        name,
+        name: anon,
         text,
         img,
-        admin: isAdmin,
+        reply: replyTo,
         time: new Date().toLocaleString()
     });
 }
