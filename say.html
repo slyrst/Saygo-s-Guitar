@@ -59,7 +59,7 @@ header a {
     color: #7dff7d;
 }
 
-/* NORMAL IMAGE */
+/* IMAGES */
 .post img,
 .reply-box img {
     max-width: 200px;
@@ -70,11 +70,20 @@ header a {
     transition: all 0.2s ease;
 }
 
-/* ZOOMED IMAGE */
 .post img.zoomed,
 .reply-box img.zoomed {
     max-width: 100%;
     cursor: zoom-out;
+}
+
+/* VIDEOS */
+.post video,
+.reply-box video {
+    max-width: 300px;
+    display: block;
+    margin-top: 6px;
+    border: 2px solid #1f0000;
+    background: #000;
 }
 
 .reply-btn {
@@ -103,7 +112,8 @@ form {
     color: #7dff7d;
 }
 
-#replyPreview img {
+#replyPreview img,
+#replyPreview video {
     max-width: 80px;
     display: block;
     margin-top: 4px;
@@ -138,7 +148,7 @@ button:hover {
 <form id="postForm">
     <div id="replyPreview"></div>
     <textarea id="text" placeholder="say something..."></textarea>
-    <input type="file" id="image" accept="image/*">
+    <input type="file" id="image" accept="image/*,video/*">
     <button type="submit">POST</button>
 </form>
 
@@ -157,7 +167,7 @@ const chatRef = firebase.database().ref("say");
 const anon = "Anon" + Math.floor(Math.random() * 9999);
 
 const textInput = document.getElementById("text");
-const imageInput = document.getElementById("image");
+const fileInput = document.getElementById("image");
 const replyPreview = document.getElementById("replyPreview");
 
 let replyTo = null;
@@ -167,12 +177,10 @@ function isNearBottom() {
     return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
 }
 
-/* IMAGE CLICK TOGGLE */
+/* IMAGE ZOOM */
 function enableImageZoom(container) {
     container.querySelectorAll("img").forEach(img => {
-        img.onclick = () => {
-            img.classList.toggle("zoomed");
-        };
+        img.onclick = () => img.classList.toggle("zoomed");
     });
 }
 
@@ -182,12 +190,19 @@ chatRef.limitToLast(100).on("child_added", snap => {
     const post = document.createElement("div");
     post.className = "post";
 
+    const renderMedia = (m) => {
+        if (!m) return "";
+        if (m.startsWith("data:video"))
+            return `<video src="${m}" controls></video>`;
+        return `<img src="${m}">`;
+    };
+
     let replyHTML = "";
     if (data.reply) {
         replyHTML = `
         <div class="reply-box">
             ${data.reply.text ? escapeHTML(data.reply.text) : ""}
-            ${data.reply.img ? `<img src="${data.reply.img}">` : ""}
+            ${renderMedia(data.reply.media)}
         </div>`;
     }
 
@@ -195,25 +210,31 @@ chatRef.limitToLast(100).on("child_added", snap => {
         <div class="name">${data.name} <span class="time">${data.time}</span></div>
         ${replyHTML}
         <div class="message">${escapeHTML(data.text || "")}</div>
-        ${data.img ? `<img src="${data.img}">` : ""}
+        ${renderMedia(data.media)}
         <div class="reply-btn">Reply</div>
     `;
 
     enableImageZoom(post);
 
     post.querySelector(".reply-btn").onclick = () => {
-        replyTo = { text: data.text || "", img: data.img || "" };
+        replyTo = {
+            text: data.text || "",
+            media: data.media || ""
+        };
+
         replyPreview.style.display = "block";
         replyPreview.innerHTML = `
             Replying to:<br>
             ${replyTo.text ? escapeHTML(replyTo.text) : ""}
-            ${replyTo.img ? `<img src="${replyTo.img}">` : ""}
+            ${renderMedia(replyTo.media)}
             <div style="cursor:pointer;color:#ff4d4d">[cancel]</div>
         `;
+
         replyPreview.querySelector("div").onclick = () => {
             replyTo = null;
             replyPreview.style.display = "none";
         };
+
         enableImageZoom(replyPreview);
         textInput.focus();
     };
@@ -229,28 +250,26 @@ document.getElementById("postForm").onsubmit = e => {
     e.preventDefault();
 
     const text = textInput.value.trim();
-    const file = imageInput.files[0];
+    const file = fileInput.files[0];
     if (!text && !file) return;
 
     if (file) {
         const r = new FileReader();
         r.onload = () => send(text, r.result);
         r.readAsDataURL(file);
-    } else {
-        send(text, "");
-    }
+    } else send(text, "");
 
     textInput.value = "";
-    imageInput.value = "";
+    fileInput.value = "";
     replyPreview.style.display = "none";
     replyTo = null;
 };
 
-function send(text, img) {
+function send(text, media) {
     chatRef.push({
         name: anon,
         text,
-        img,
+        media,
         reply: replyTo,
         time: new Date().toLocaleString()
     });
