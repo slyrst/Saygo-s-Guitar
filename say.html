@@ -59,12 +59,22 @@ header a {
     color: #7dff7d;
 }
 
-.reply-box img,
-.post img {
+/* NORMAL IMAGE */
+.post img,
+.reply-box img {
     max-width: 200px;
     display: block;
     margin-top: 5px;
     border: 2px solid #1f0000;
+    cursor: zoom-in;
+    transition: all 0.2s ease;
+}
+
+/* ZOOMED IMAGE */
+.post img.zoomed,
+.reply-box img.zoomed {
+    max-width: 100%;
+    cursor: zoom-out;
 }
 
 .reply-btn {
@@ -146,7 +156,6 @@ firebase.initializeApp({
 const chatRef = firebase.database().ref("say");
 const anon = "Anon" + Math.floor(Math.random() * 9999);
 
-/* ✅ FIXED REFERENCES */
 const textInput = document.getElementById("text");
 const imageInput = document.getElementById("image");
 const replyPreview = document.getElementById("replyPreview");
@@ -156,6 +165,15 @@ let firstLoad = true;
 
 function isNearBottom() {
     return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
+}
+
+/* IMAGE CLICK TOGGLE */
+function enableImageZoom(container) {
+    container.querySelectorAll("img").forEach(img => {
+        img.onclick = () => {
+            img.classList.toggle("zoomed");
+        };
+    });
 }
 
 /* LOAD */
@@ -181,6 +199,8 @@ chatRef.limitToLast(100).on("child_added", snap => {
         <div class="reply-btn">Reply</div>
     `;
 
+    enableImageZoom(post);
+
     post.querySelector(".reply-btn").onclick = () => {
         replyTo = { text: data.text || "", img: data.img || "" };
         replyPreview.style.display = "block";
@@ -194,6 +214,7 @@ chatRef.limitToLast(100).on("child_added", snap => {
             replyTo = null;
             replyPreview.style.display = "none";
         };
+        enableImageZoom(replyPreview);
         textInput.focus();
     };
 
@@ -203,7 +224,7 @@ chatRef.limitToLast(100).on("child_added", snap => {
     firstLoad = false;
 });
 
-/* POST — FIXED */
+/* POST */
 document.getElementById("postForm").onsubmit = e => {
     e.preventDefault();
 
