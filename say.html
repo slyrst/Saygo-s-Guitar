@@ -6,155 +6,149 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-* { box-sizing: border-box; }
+*{box-sizing:border-box}
 
-body {
-    margin: 0;
-    font-family: "Courier New", monospace;
-    background: radial-gradient(circle at top, #120000, #000);
-    color: #9cff9c;
+body{
+margin:0;
+font-family:"Courier New",monospace;
+background:radial-gradient(circle at top,#120000,#000);
+color:#9cff9c;
 }
 
-header {
-    padding: 10px;
-    text-align: center;
-    border-bottom: 2px solid #2b0000;
-    background: linear-gradient(#100000, #050000);
-    position: relative;
+header{
+padding:10px;
+border-bottom:2px solid #2b0000;
+background:linear-gradient(#100000,#050000);
+position:relative;
+text-align:center;
 }
 
-header a {
-    color: #3cff3c;
-    text-decoration: none;
-    border: 1px solid #3cff3c;
-    padding: 3px 6px;
-    font-size: 12px;
+header a{
+color:#3cff3c;
+text-decoration:none;
+border:1px solid #3cff3c;
+padding:3px 6px;
+font-size:12px;
 }
 
-#pager {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    font-size: 11px;
-    opacity: 0.6;
+#pager{
+position:absolute;
+left:10px;
+top:10px;
+font-size:11px;
+opacity:.6;
 }
 
-#pager button {
-    background: none;
-    border: none;
-    color: #3cff3c;
-    cursor: pointer;
-    padding: 0 4px;
+#pager button{
+background:none;
+border:none;
+color:#3cff3c;
+cursor:pointer;
+padding:0 4px;
 }
 
-#chat {
-    max-width: 900px;
-    margin: auto;
-    padding: 15px;
-    padding-bottom: 140px;
+#chat{
+max-width:900px;
+margin:auto;
+padding:15px;
+padding-bottom:150px;
 }
 
-.post {
-    border-bottom: 1px solid #1f0000;
-    padding: 8px 0;
+.post{
+border-bottom:1px solid #1f0000;
+padding:8px 0;
 }
 
-.name { color: #ff4d4d; }
-.time { color: #666; font-size: 12px; }
+.name{color:#ff4d4d}
+.time{color:#666;font-size:12px}
 
-.message {
-    white-space: pre-wrap;
-    margin-top: 4px;
-    text-align: left;
+.message{white-space:pre-wrap;margin-top:4px}
+
+.reply-box{
+border-left:3px solid #3cff3c;
+padding-left:6px;
+margin:6px 0;
+font-size:13px;
+color:#7dff7d;
 }
 
-.reply-box {
-    border-left: 3px solid #3cff3c;
-    padding-left: 6px;
-    margin: 6px 0;
-    font-size: 13px;
-    color: #7dff7d;
+.post img,.reply-box img{
+max-width:200px;
+display:block;
+margin-top:5px;
+border:2px solid #1f0000;
+cursor:zoom-in;
 }
 
-.post img,
-.reply-box img {
-    max-width: 200px;
-    display: block;
-    margin-top: 5px;
-    border: 2px solid #1f0000;
-    cursor: zoom-in;
+.post img.zoomed,.reply-box img.zoomed{
+max-width:100%;
+cursor:zoom-out;
 }
 
-.post img.zoomed,
-.reply-box img.zoomed {
-    max-width: 100%;
-    cursor: zoom-out;
+.post video,.reply-box video{
+max-width:300px;
+display:block;
+margin-top:6px;
+border:2px solid #1f0000;
+background:#000;
 }
 
-.post video,
-.reply-box video {
-    max-width: 300px;
-    display: block;
-    margin-top: 6px;
-    border: 2px solid #1f0000;
+.reply-btn{
+font-size:12px;
+cursor:pointer;
+color:#3cff3c;
+margin-top:4px;
 }
 
-.reply-btn {
-    font-size: 12px;
-    cursor: pointer;
-    color: #3cff3c;
-    margin-top: 4px;
+form{
+position:fixed;
+bottom:0;
+width:100%;
+background:#070000;
+border-top:2px solid #2b0000;
+padding:10px;
 }
 
-form {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background: #070000;
-    border-top: 2px solid #2b0000;
-    padding: 10px;
+#replyPreview{
+display:none;
+border-left:4px solid #3cff3c;
+padding:6px;
+margin-bottom:6px;
+font-size:13px;
+color:#7dff7d;
 }
 
-#replyPreview {
-    display: none;
-    border-left: 4px solid #3cff3c;
-    padding: 6px;
-    margin-bottom: 6px;
-    font-size: 13px;
-    color: #7dff7d;
+input,textarea,button{
+font-family:inherit;
+background:#100000;
+color:#3cff3c;
+border:1px solid #1f0000;
+padding:6px;
 }
 
-input, textarea, button {
-    font-family: inherit;
-    background: #100000;
-    color: #3cff3c;
-    border: 1px solid #1f0000;
-    padding: 6px;
-}
-
-textarea { width: 100%; height: 60px; resize: none; }
+textarea{width:100%;height:60px;resize:none}
 </style>
 </head>
 
 <body>
 
 <header>
-    <div id="pager">
-        <button id="prevPage">←</button>
-        <span id="pageNum">1</span>
-        <button id="nextPage">→</button>
-    </div>
-    <a href="index.html">back</a>
-    <strong>/say/</strong>
+<div id="pager">
+<button id="prevPage">←</button>
+<span id="pageNum">1</span>
+<button id="nextPage">→</button>
+</div>
+<a href="index.html">back</a>
+<strong>/say/</strong>
 </header>
 
 <div id="chat"></div>
 
 <form id="postForm">
-    <div id="replyPreview"></div>
-    <textarea id="text" placeholder="say something..."></textarea>
-    <input type="file" id="media" accept="image/*,video/*">
-    <button type="submit">POST</button>
+<div id="replyPreview"></div>
+<textarea id="text" placeholder="say something..."></textarea>
+<input type="file" id="media" accept="image/*,video/*">
+<button type="submit">POST</button>
 </form>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -162,108 +156,128 @@ textarea { width: 100%; height: 60px; resize: none; }
 
 <script>
 firebase.initializeApp({
-  apiKey: "AIzaSyCVKtkhsShaE5lOk1w4BsAIGb4Y3bqV_OA",
-  authDomain: "saygos-fun.firebaseapp.com",
-  databaseURL: "https://saygos-fun-default-rtdb.firebaseio.com",
-  projectId: "saygos-fun"
+apiKey:"AIzaSyCVKtkhsShaE5lOk1w4BsAIGb4Y3bqV_OA",
+authDomain:"saygos-fun.firebaseapp.com",
+databaseURL:"https://saygos-fun-default-rtdb.firebaseio.com",
+projectId:"saygos-fun"
 });
 
-const PAGE_SIZE = 50;
-const anon = "Anon" + Math.floor(Math.random() * 9999);
-const pagesRef = firebase.database().ref("say_pages");
+const PAGE_SIZE=50;
+const anon="Anon"+Math.floor(Math.random()*9999);
+const pagesRef=firebase.database().ref("say_pages");
 
-let currentPage = 1;
-let maxPage = 1;
-let replyTo = null;
+let currentPage=1;
+let maxPage=1;
+let replyTo=null;
 
-/* IMAGE ZOOM */
-function enableZoom(el) {
-    el.querySelectorAll("img").forEach(i=>{
-        i.onclick=()=>i.classList.toggle("zoomed");
-    });
+/* helpers */
+function escapeHTML(s){
+return s.replace(/[&<>"']/g,m=>(
+{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]
+));
 }
 
-/* MEDIA */
 function mediaHTML(m){
-    if(!m) return "";
-    if(m.startsWith("data:video")) return `<video src="${m}" controls></video>`;
-    return `<img src="${m}">`;
+if(!m)return"";
+if(m.startsWith("data:video"))return`<video src="${m}" controls></video>`;
+return`<img src="${m}">`;
 }
 
-/* LOAD LAST PAGE */
-pagesRef.once("value", snap=>{
-    maxPage = snap.numChildren() || 1;
-    currentPage = maxPage;
-    loadPage(currentPage);
+function enableZoom(el){
+el.querySelectorAll("img").forEach(i=>{
+i.onclick=()=>i.classList.toggle("zoomed");
+});
+}
+
+/* load last page */
+pagesRef.once("value",snap=>{
+maxPage=snap.numChildren()||1;
+currentPage=maxPage;
+loadPage(currentPage);
 });
 
-/* LOAD PAGE */
+/* load page */
 function loadPage(n){
-    document.getElementById("chat").innerHTML = "";
-    document.getElementById("pageNum").textContent = n;
+document.getElementById("chat").innerHTML="";
+document.getElementById("pageNum").textContent=n;
 
-    pagesRef.child("page_"+n).once("value", snap=>{
-        snap.forEach(s=>{
-            const d = s.val();
-            const post = document.createElement("div");
-            post.className="post";
+pagesRef.child("page_"+n).once("value",snap=>{
+snap.forEach(s=>{
+const d=s.val();
+const post=document.createElement("div");
+post.className="post";
 
-            post.innerHTML=`
-                <div class="name">${d.name} <span class="time">${d.time}</span></div>
-                ${d.reply?`<div class="reply-box">${d.reply.text||""}${mediaHTML(d.reply.media)}</div>`:""}
-                <div class="message">${escapeHTML(d.text||"")}</div>
-                ${mediaHTML(d.media)}
-                <div class="reply-btn">Reply</div>
-            `;
+post.innerHTML=`
+<div class="name">${d.name} <span class="time">${d.time}</span></div>
+${d.reply?`<div class="reply-box">${escapeHTML(d.reply.text||"")}${mediaHTML(d.reply.media)}</div>`:""}
+<div class="message">${escapeHTML(d.text||"")}</div>
+${mediaHTML(d.media)}
+<div class="reply-btn">Reply</div>
+`;
 
-            enableZoom(post);
-            document.getElementById("chat").appendChild(post);
-        });
-        window.scrollTo(0,document.body.scrollHeight);
-    });
-}
-
-/* PAGE BUTTONS */
-prevPage.onclick=()=>{ if(currentPage>1) loadPage(--currentPage); };
-nextPage.onclick=()=>{ if(currentPage<maxPage) loadPage(++currentPage); };
-
-/* SEND */
-postForm.onsubmit=e=>{
-    e.preventDefault();
-    const t=text.value.trim();
-    const f=media.files[0];
-    if(!t&&!f)return;
-
-    if(f){
-        const r=new FileReader();
-        r.onload=()=>send(t,r.result);
-        r.readAsDataURL(f);
-    } else send(t,"");
-
-    text.value="";
-    media.value="";
+post.querySelector(".reply-btn").onclick=()=>{
+replyTo={text:d.text||"",media:d.media||""};
+replyPreview.style.display="block";
+replyPreview.innerHTML=`
+Replying to:<br>
+${escapeHTML(replyTo.text)}
+${mediaHTML(replyTo.media)}
+<div style="cursor:pointer;color:#ff4d4d">[cancel]</div>
+`;
+replyPreview.querySelector("div").onclick=()=>{
+replyTo=null;
+replyPreview.style.display="none";
+};
+enableZoom(replyPreview);
+text.focus();
 };
 
-function send(text,media){
-    pagesRef.child("page_"+maxPage).once("value", snap=>{
-        if(snap.numChildren()>=PAGE_SIZE){
-            maxPage++;
-        }
-        pagesRef.child("page_"+maxPage).push({
-            name: anon,
-            text,
-            media,
-            reply: replyTo,
-            time: new Date().toLocaleString()
-        });
-        loadPage(maxPage);
-    });
+enableZoom(post);
+chat.appendChild(post);
+});
+window.scrollTo(0,document.body.scrollHeight);
+});
 }
 
-function escapeHTML(s){
-    return s.replace(/[&<>"']/g,m=>(
-        {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]
-    ));
+/* pager */
+prevPage.onclick=()=>{if(currentPage>1)loadPage(--currentPage)};
+nextPage.onclick=()=>{if(currentPage<maxPage)loadPage(++currentPage)};
+
+/* post */
+postForm.onsubmit=e=>{
+e.preventDefault();
+const t=text.value.trim();
+const f=media.files[0];
+if(!t&&!f)return;
+
+postForm.querySelector("button").disabled=true;
+
+if(f){
+const r=new FileReader();
+r.onload=()=>send(t,r.result);
+r.readAsDataURL(f);
+}else send(t,"");
+};
+
+function send(textVal,mediaVal){
+pagesRef.child("page_"+maxPage).once("value",snap=>{
+if(snap.numChildren()>=PAGE_SIZE)maxPage++;
+
+pagesRef.child("page_"+maxPage).push({
+name:anon,
+text:textVal,
+media:mediaVal,
+reply:replyTo,
+time:new Date().toLocaleString()
+},()=>{
+text.value="";
+media.value="";
+replyPreview.style.display="none";
+replyTo=null;
+postForm.querySelector("button").disabled=false;
+loadPage(maxPage);
+});
+});
 }
 </script>
 
