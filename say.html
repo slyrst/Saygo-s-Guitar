@@ -17,29 +17,7 @@ header{
 padding:12px;
 border-bottom:2px solid #2b0000;
 background:linear-gradient(#100000,#050000);
-position:relative;
 text-align:center;
-}
-header a{
-color:#3cff3c;
-text-decoration:none;
-border:1px solid #3cff3c;
-padding:4px 8px;
-margin-right:10px;
-}
-#pager{
-position:absolute;
-left:10px;
-top:12px;
-font-size:11px;
-opacity:.5;
-}
-#pager button{
-background:none;
-border:none;
-color:#3cff3c;
-cursor:pointer;
-padding:0 4px;
 }
 #chat{
 max-width:900px;
@@ -62,7 +40,7 @@ font-size:13px;
 color:#7dff7d;
 }
 .post img,.reply-box img{
-max-width:200px;
+max-width:220px;
 display:block;
 margin-top:5px;
 border:2px solid #1f0000;
@@ -72,10 +50,10 @@ cursor:zoom-in;
 max-width:100%;
 cursor:zoom-out;
 }
-.post video,.reply-box video{
-max-width:300px;
-display:block;
+.post video{
+max-width:320px;
 margin-top:6px;
+display:block;
 border:2px solid #1f0000;
 background:#000;
 }
@@ -101,26 +79,24 @@ margin-bottom:6px;
 font-size:13px;
 color:#7dff7d;
 }
-input,textarea,button{
+textarea,input,button{
 font-family:inherit;
 background:#100000;
 color:#3cff3c;
 border:1px solid #1f0000;
 padding:6px;
 }
-textarea{width:100%;height:60px;resize:none}
+textarea{
+width:100%;
+height:60px;
+resize:none;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<div id="pager">
-<button id="prevPage">←</button>
-<span id="pageNum">1</span>
-<button id="nextPage">→</button>
-</div>
-<a href="index.html">← back</a>
 <strong>/say/</strong>
 </header>
 
@@ -145,40 +121,36 @@ projectId:"saygos-fun"
 });
 
 const chatRef = firebase.database().ref("say");
-const anon = "Anon" + Math.floor(Math.random() * 9999);
-const PAGE_SIZE = 50;
+const anon = "Anon" + Math.floor(Math.random()*9999);
 
-let allMessages = [];
-let currentPage = 1;
 let replyTo = null;
+let userAtBottom = true;
 
-/* helpers */
+/* utils */
 function escapeHTML(s){
 return s.replace(/[&<>"']/g,m=>(
 {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]
 ));
 }
 function mediaHTML(m){
-if(!m)return"";
-if(m.startsWith("data:video"))return`<video src="${m}" controls></video>`;
-return`<img src="${m}">`;
+if(!m) return "";
+if(m.startsWith("data:video")) return `<video src="${m}" controls></video>`;
+return `<img src="${m}">`;
 }
 function enableZoom(el){
-el.querySelectorAll("img").forEach(i=>{
-i.onclick=()=>i.classList.toggle("zoomed");
+el.querySelectorAll("img").forEach(img=>{
+img.onclick=()=>img.classList.toggle("zoomed");
 });
 }
-function isNearBottom(){
-return window.innerHeight + window.scrollY >= document.body.scrollHeight - 150;
-}
 
-/* render */
-function renderPage(scroll){
-chat.innerHTML="";
-const start=(currentPage-1)*PAGE_SIZE;
-const end=start+PAGE_SIZE;
+/* scroll detection */
+window.addEventListener("scroll",()=>{
+userAtBottom =
+window.innerHeight + window.scrollY >= document.body.scrollHeight - 120;
+});
 
-allMessages.slice(start,end).forEach(d=>{
+/* add message (NO rerender) */
+function addMessage(d){
 const post=document.createElement("div");
 post.className="post";
 post.innerHTML=`
@@ -188,6 +160,7 @@ ${d.reply?`<div class="reply-box">${escapeHTML(d.reply.text||"")}${mediaHTML(d.r
 ${mediaHTML(d.media)}
 <div class="reply-btn">Reply</div>
 `;
+
 post.querySelector(".reply-btn").onclick=()=>{
 replyTo={text:d.text||"",media:d.media||""};
 replyPreview.style.display="block";
@@ -204,42 +177,21 @@ replyPreview.style.display="none";
 enableZoom(replyPreview);
 text.focus();
 };
+
 enableZoom(post);
 chat.appendChild(post);
-});
 
-pageNum.textContent=currentPage;
-if(scroll) window.scrollTo(0,document.body.scrollHeight);
+if(userAtBottom){
+requestAnimationFrame(()=>{
+window.scrollTo(0,document.body.scrollHeight);
+});
+}
 }
 
 /* realtime */
-chatRef.on("child_added",snap=>{
-allMessages.push(snap.val());
-
-const lastPage = Math.ceil(allMessages.length / PAGE_SIZE);
-const userOnLastPage = currentPage === lastPage - 1 || currentPage === lastPage;
-
-if(userOnLastPage){
-currentPage = lastPage;
-renderPage(isNearBottom());
-}
-/* else: do NOTHING (no jump, no pulse) */
+chatRef.limitToLast(200).on("child_added",snap=>{
+addMessage(snap.val());
 });
-
-/* pager */
-prevPage.onclick=()=>{
-if(currentPage>1){
-currentPage--;
-renderPage(false);
-}
-};
-nextPage.onclick=()=>{
-const lastPage=Math.ceil(allMessages.length/PAGE_SIZE);
-if(currentPage<lastPage){
-currentPage++;
-renderPage(false);
-}
-};
 
 /* send */
 postForm.onsubmit=e=>{
