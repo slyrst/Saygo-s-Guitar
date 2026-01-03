@@ -144,14 +144,13 @@ databaseURL:"https://saygos-fun-default-rtdb.firebaseio.com",
 projectId:"saygos-fun"
 });
 
-const anon="Anon"+Math.floor(Math.random()*9999);
-const PAGE_SIZE=50;
-const rootRef=firebase.database().ref("say_pages");
+const chatRef = firebase.database().ref("say");
+const anon = "Anon" + Math.floor(Math.random() * 9999);
+const PAGE_SIZE = 50;
 
-let currentPage=1;
-let maxPage=1;
-let replyTo=null;
-let firstLoad=true;
+let allMessages = [];
+let currentPage = 1;
+let replyTo = null;
 
 /* helpers */
 function escapeHTML(s){
@@ -170,8 +169,12 @@ i.onclick=()=>i.classList.toggle("zoomed");
 });
 }
 
-/* build post */
-function buildPost(d){
+/* render page */
+function renderPage(){
+chat.innerHTML="";
+const start=(currentPage-1)*PAGE_SIZE;
+const end=start+PAGE_SIZE;
+allMessages.slice(start,end).forEach(d=>{
 const post=document.createElement("div");
 post.className="post";
 post.innerHTML=`
@@ -181,7 +184,6 @@ ${d.reply?`<div class="reply-box">${escapeHTML(d.reply.text||"")}${mediaHTML(d.r
 ${mediaHTML(d.media)}
 <div class="reply-btn">Reply</div>
 `;
-
 post.querySelector(".reply-btn").onclick=()=>{
 replyTo={text:d.text||"",media:d.media||""};
 replyPreview.style.display="block";
@@ -198,49 +200,25 @@ replyPreview.style.display="none";
 enableZoom(replyPreview);
 text.focus();
 };
-
 enableZoom(post);
-return post;
-}
-
-/* detect last page */
-rootRef.once("value",snap=>{
-maxPage=snap.numChildren()||1;
-currentPage=maxPage;
-pageNum.textContent=currentPage;
-listenPage(currentPage);
+chat.appendChild(post);
 });
-
-/* realtime listener (OLD GOOD WAY) */
-function listenPage(p){
-chat.innerHTML="";
-rootRef.child("page_"+p).limitToLast(PAGE_SIZE)
-.on("child_added",snap=>{
-chat.appendChild(buildPost(snap.val()));
-if(firstLoad){
+pageNum.textContent=currentPage;
 window.scrollTo(0,document.body.scrollHeight);
 }
+
+/* realtime — INSTANT */
+chatRef.on("child_added",snap=>{
+allMessages.push(snap.val());
+currentPage=Math.ceil(allMessages.length/PAGE_SIZE);
+renderPage();
 });
-firstLoad=false;
-}
 
 /* pager */
-prevPage.onclick=()=>{
-if(currentPage>1){
-currentPage--;
-pageNum.textContent=currentPage;
-listenPage(currentPage);
-}
-};
-nextPage.onclick=()=>{
-if(currentPage<maxPage){
-currentPage++;
-pageNum.textContent=currentPage;
-listenPage(currentPage);
-}
-};
+prevPage.onclick=()=>{if(currentPage>1){currentPage--;renderPage()}};
+nextPage.onclick=()=>{if(currentPage<Math.ceil(allMessages.length/PAGE_SIZE)){currentPage++;renderPage()}};
 
-/* send */
+/* send — INSTANT */
 postForm.onsubmit=e=>{
 e.preventDefault();
 const t=text.value.trim();
@@ -248,17 +226,12 @@ const f=media.files[0];
 if(!t&&!f)return;
 
 const send=(mediaVal)=>{
-rootRef.child("page_"+maxPage).once("value",snap=>{
-if(snap.numChildren()>=PAGE_SIZE){
-maxPage++;
-}
-rootRef.child("page_"+maxPage).push({
+chatRef.push({
 name:anon,
 text:t,
 media:mediaVal,
 reply:replyTo,
 time:new Date().toLocaleString()
-});
 });
 text.value="";
 media.value="";
