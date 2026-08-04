@@ -202,7 +202,7 @@ input[type=text]:focus{border-color:var(--accent);}
 <button class="btn small" id="btnTestLevel">▶ Test</button>
 <button class="btn small primary" id="btnSaveLevel">💾 Save</button>
 </div>
-<div id="editorCanvasWrap"><canvas id="editorCanvas"></canvas><div id="editorHint">click/drag to place · select tool: click to pick, shift-click to add, drag empty space to box-select, drag or WASD to move group, Del to delete · A/D or ◀▶ to pan · deco tool: pick a variant below · trigger tools prompt for their settings · 🔗 Group assigns a group ID to the selection so move triggers can target it</div></div>
+<div id="editorCanvasWrap"><canvas id="editorCanvas"></canvas><div id="editorHint">click/drag to place · select tool: click to pick, shift-click to add, drag empty space to box-select, drag or WASD to move group, Q/E to rotate, Del to delete · A/D or ◀▶ to pan · deco tool: pick a variant + color below · trigger tools prompt for their settings · 🔗 Group assigns a group ID to the selection so move triggers can target it</div></div>
 </div>
 
 <!-- GAME -->
@@ -241,6 +241,23 @@ TRIGONOMETRI DASH — a Geometry-Dash-inspired browser game
 const GRID = 60; // bigger world scale = bigger, accurate gameplay
 const COLORS = ['#00f0ff','#ff2e9a','#ffd23f','#7bff5c','#ff6b3d','#b06bff','#ffffff','#ff4d6d'];
 const MODES = ['cube','ship','ball','ufo','wave','robot'];
+
+/* ---------- deterministic PRNG ----------
+Levels are generated from a fixed numeric seed (derived from the level index) instead of
+Math.random(), so the exact same level layout comes out every single time - nothing is
+actually random between plays, reloads, or sessions. */
+function mulberry32(seed){
+let s = seed >>> 0;
+return function(){
+s = (s + 0x6D2B79F5) | 0;
+let t = Math.imul(s ^ (s >>> 15), 1 | s);
+t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+}
+const DECO_VARIANTS = ['crack','shard','ring','pillar'];
+// how much background deco scatters through a level, scaled by difficulty tier
+const DECO_DENSITY = {easy:0, normal:0.35, hard:0.9, insane:1.6, 'extreme demon':3.2};
 
 /* ---------- storage helpers ---------- */
 async function storeGet(key){
@@ -393,6 +410,9 @@ function generateLevel(idx){
 const difficulty = idx; // 1..30, drives chunk variety/length
 const diffTier = difficultyForIdx(idx); // easy/normal/hard/insane -> drives fairness of hitboxes
 const theme = themeFor(idx-1);
+// every level gets its own fixed seed, derived only from its index - same layout every time,
+// nothing here is ever actually random.
+const rng = mulberry32(idx*7919 + 104729);
 let unlockedModes = ['cube'];
 if(idx>=3) unlockedModes.push('ball');
 if(idx>=6) unlockedModes.push('ship');
@@ -409,7 +429,7 @@ let sinceModeChange = 0;
 
 function pickGroundChunk(){
 const pool = GROUND_CHUNKS.slice(0, 2+Math.min(5,Math.floor(difficulty/3)));
-let c = pool[Math.floor(Math.random()*pool.length)];
+let c = pool[Math.floor(rng()*pool.length)];
 // clamp spike-run chunks by maxSpikeRun
 if(c===chunkTripleSpike && maxSpikeRun<3) c = chunkDoubleSpike;
 if(c===chunkDoubleSpike && maxSpikeRun<2) c = chunkSingleSpike;
@@ -420,7 +440,7 @@ while(x < targetLen){
 sinceModeChange++;
 const flying = (mode==='ship'||mode==='wave'||mode==='ufo');
 if(flying){
-const centerRow = 2+Math.floor(Math.random()*4);
+const centerRow = 2+Math.floor(rng()*4);
 const windowH = 3;
 const c = chunkCorridor(x, centerRow, windowH);
 objects.push(...c.objs);
@@ -431,8 +451,8 @@ objects.push(...c.objs);
 x += c.w;
 }
 // occasionally switch mode (only after min spacing, and only to unlocked modes)
-if(sinceModeChange>6 && unlockedModes.length>1 && Math.random()<0.22 && x < targetLen-14){
-let next = unlockedModes[Math.floor(Math.random()*unlockedModes.length)];
+if(sinceModeChange>6 && unlockedModes.length>1 && rng()<0.22 && x < targetLen-14){
+let next = unlockedModes[Math.floor(rng()*unlockedModes.length)];
 if(next!==mode){
 objects.push({t:'portal'+next.charAt(0).toUpperCase()+next.slice(1), x:x+1, y: (mode==='ship'||mode==='wave'||mode==='ufo')?2:0});
 mode = next;
@@ -452,17 +472,38 @@ const name = names[idx-1] || ('Level '+idx);
 // LIMBO (level 30) is branded as an Extreme Demon: the toughest tier, stricter hitboxes than insane
 const finalDifficulty = (name === 'LIMBO') ? 'extreme demon' : diffTier;
 
+// Background deco scattered through every non-trivial level, density scaling with difficulty -
+// easy levels stay clean, normal/hard/insane get progressively more atmosphere. Each piece has
+// its own color (picked from the level's theme or the general palette) and a random rotation,
+// and is fully editable/recolorable later in the level editor. LIMBO (idx 30) gets its own
+// dedicated, much denser pass below instead of this one.
+if(name !== 'LIMBO'){
+const density = DECO_DENSITY[diffTier] || 0;
+const decoCount = Math.floor(length*density);
+for(let i=0;i<decoCount;i++){
+objects.push({
+t:'deco',
+x: Math.floor(rng()*length),
+y: -2 + Math.floor(rng()*10),
+variant: DECO_VARIANTS[Math.floor(rng()*DECO_VARIANTS.length)],
+color: rng()<0.6 ? theme.line : COLORS[Math.floor(rng()*COLORS.length)],
+rot: rng()*Math.PI*2
+});
+}
+}
+
 // LIMBO gets 1000 deco objects, built from the same 'deco' object type the editor can place
 // (crack / shard / ring / pillar) - purely visual, no hitbox, just extreme-demon atmosphere.
 // They live in the same objects array as everything else, so they're editable in the editor too.
 if(idx===30){
-const variants = ['crack','shard','ring','pillar'];
 for(let i=0;i<1000;i++){
 objects.push({
 t:'deco',
-x: Math.floor(Math.random()*length),
-y: -2 + Math.floor(Math.random()*14),
-variant: variants[Math.floor(Math.random()*variants.length)]
+x: Math.floor(rng()*length),
+y: -2 + Math.floor(rng()*14),
+variant: DECO_VARIANTS[Math.floor(rng()*DECO_VARIANTS.length)],
+color: rng()<0.6 ? theme.line : COLORS[Math.floor(rng()*COLORS.length)],
+rot: rng()*Math.PI*2
 });
 }
 }
@@ -475,9 +516,71 @@ objects
 };
 }
 
+// GRIEF — a dedicated, extremely long, extremely dense Extreme Demon level (~5000 objects total):
+// a real hand-timed gameplay layer (spikes/blocks/orbs/mode portals) generated the same safe-chunk
+// way as every other level, topped with a huge, richly-colored deco layer so it reads like a real
+// "grief" style GD level. Fully deterministic - same fixed seed every time, never random.
+function generateGriefLevel(){
+const rng = mulberry32(2166136261);
+const theme = themeFor(7);
+const objects = [];
+let x = 8;
+let mode = 'cube';
+let sinceModeChange = 0;
+const unlockedModes = ['cube','ship','ball','ufo','wave','robot'];
+const pool = [chunkSingleSpike,chunkDoubleSpike,chunkTripleSpike,chunkBlockSpike,chunkOrbGap,chunkStairUp,chunkBlockHop];
+const targetGameplayObjs = 1400;
+
+while(objects.length < targetGameplayObjs){
+sinceModeChange++;
+const flying = (mode==='ship'||mode==='wave'||mode==='ufo');
+if(flying){
+const centerRow = 2+Math.floor(rng()*4);
+const c = chunkCorridor(x, centerRow, 3);
+objects.push(...c.objs);
+x += c.w;
+} else {
+const c = pool[Math.floor(rng()*pool.length)](x);
+objects.push(...c.objs);
+x += c.w;
+}
+if(sinceModeChange>4 && rng()<0.3){
+let next = unlockedModes[Math.floor(rng()*unlockedModes.length)];
+if(next!==mode){
+objects.push({t:'portal'+next.charAt(0).toUpperCase()+next.slice(1), x:x+1, y:(mode==='ship'||mode==='wave'||mode==='ufo')?2:0});
+mode = next;
+sinceModeChange = 0;
+x += 4;
+}
+}
+}
+const length = x + 10;
+
+// dense atmospheric deco layer, fills the rest of the 5000-object budget
+const decoTarget = Math.max(0, 5000 - objects.length);
+for(let i=0;i<decoTarget;i++){
+objects.push({
+t:'deco',
+x: Math.floor(rng()*length),
+y: -3 + Math.floor(rng()*16),
+variant: DECO_VARIANTS[Math.floor(rng()*DECO_VARIANTS.length)],
+color: COLORS[Math.floor(rng()*COLORS.length)],
+rot: rng()*Math.PI*2
+});
+}
+
+return {
+id:'builtin_grief', name:'GRIEF', builtin:true, length,
+colors: theme,
+difficulty:'extreme demon',
+objects
+};
+}
+
 function builtInLevels(){
 const out = [];
 for(let i=1;i<=30;i++) out.push(generateLevel(i));
+out.push(generateGriefLevel());
 return out;
 }
 let CACHED_BUILTIN = null;
@@ -744,7 +847,9 @@ row.appendChild(b);
 });
 }
 // Deco variant picker (crack / shard / ring / pillar) - shown so deco placement isn't limited
-// to whatever the last-used variant happened to be.
+// to whatever the last-used variant happened to be. Deco also takes its color from the palette
+// row above (editorColor), so every deco piece placed - or recolored later via selection - can
+// use any of the 8 palette colors, not just a fixed red.
 function buildEditorDecoRow(){
 const row = document.getElementById('editorDecoRow');
 row.innerHTML='';
@@ -753,10 +858,10 @@ variants.forEach(([v,icon])=>{
 const b = document.createElement('div');
 b.className = 'ec'+(currentDecoVariant===v?' sel':'');
 b.style.background = '#1a1140';
-b.style.color = '#ff2e9a';
+b.style.color = editorColor;
 b.style.display='flex'; b.style.alignItems='center'; b.style.justifyContent='center'; b.style.fontSize='13px';
 b.textContent = icon;
-b.title = v;
+b.title = v+' (renk: soldaki paletten seçilir)';
 b.onclick = ()=>{ currentDecoVariant=v; buildEditorDecoRow();
 if(editorSelection.length){ editorSelection.forEach(o=>{ if(o.t==='deco') o.variant=v; }); drawEditor(); } };
 row.appendChild(b);
@@ -906,9 +1011,9 @@ drawEditor();
 cv.onmouseleave = ()=>{ /* keep drag/paint state; stops on window mouseup */ };
 }
 
-// Places (or configures) whatever tool is active at grid cell (gx,gy). Block/spike get the
-// current palette color; deco gets the current variant; the two trigger tools prompt for their
-// settings since they don't have a dedicated properties panel.
+// Places (or configures) whatever tool is active at grid cell (gx,gy). Block/spike/deco get the
+// current palette color; deco also gets the current variant; the two trigger tools prompt for
+// their settings (with input validation, so a bad value can never sneak in and blow up mid-run).
 function paintCell(gx,gy){
 editorLastCell = {gx,gy};
 if(editorTool==='erase'){
@@ -916,26 +1021,37 @@ editorLevel.objects = editorLevel.objects.filter(o=>!(o.x===gx && o.y===gy));
 } else if(editorTool!=='select'){
 editorLevel.objects = editorLevel.objects.filter(o=>!(o.x===gx && o.y===gy));
 let obj = {t:editorTool, x:gx, y:gy};
-if(editorTool==='block'||editorTool==='spike') obj.color = editorColor;
+if(editorTool==='block'||editorTool==='spike'||editorTool==='deco') obj.color = editorColor;
 if(editorTool==='deco') obj.variant = currentDecoVariant;
 if(editorTool==='triggerColor'){
 const hex = prompt('New background color (hex, e.g. #221144):', '#221144');
 if(!hex){ return; }
+const trimmedHex = hex.trim();
+const validHex = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(trimmedHex);
+if(!validHex){ alert('Geçersiz hex renk kodu - örn: #221144. Trigger oluşturulmadı.'); return; }
 const dur = parseFloat(prompt('Fade duration in seconds:','1.5'));
-obj.color = hex.trim();
-obj.duration = isNaN(dur) ? 1.5 : dur;
+obj.color = trimmedHex;
+obj.duration = (isFinite(dur) && dur>0) ? dur : 1.5;
 }
 if(editorTool==='triggerMove'){
-const groupRaw = prompt('Group ID to move (must match a group set with 🔗 Group):','1');
+// "smart" move trigger: shows which group IDs already exist and warns (rather than silently
+// creating a dead trigger) if you point it at a group that hasn't been created yet with 🔗 Group.
+const existingGroups = Array.from(new Set(editorLevel.objects.filter(o=>o.group!=null).map(o=>o.group)));
+const hint = existingGroups.length ? (' (mevcut gruplar: '+existingGroups.join(', ')+')') : ' (henüz hiç grup yok - önce 🔗 Group ile bir grup oluştur!)';
+const groupRaw = prompt('Taşınacak Group ID'+hint+':','1');
 if(groupRaw===null){ return; }
 const group = parseInt(groupRaw,10);
+if(isNaN(group)){ alert('Geçersiz group ID - sayı gir. Trigger oluşturulmadı.'); return; }
+if(!existingGroups.includes(group)){
+if(!confirm('Bu group ID henüz hiçbir objeye atanmamış - bu trigger şimdilik hiçbir şeyi hareket ettirmez. Yine de oluşturulsun mu?')) return;
+}
 const dx = parseFloat(prompt('Move distance X, in grid cells (+right / -left):','0'));
 const dy = parseFloat(prompt('Move distance Y, in grid cells (+up / -down):','3'));
 const dur = parseFloat(prompt('Move duration in seconds:','1.0'));
-obj.group = isNaN(group) ? 1 : group;
-obj.dx = isNaN(dx) ? 0 : dx;
-obj.dy = isNaN(dy) ? 0 : dy;
-obj.duration = isNaN(dur) ? 1.0 : dur;
+obj.group = group;
+obj.dx = isFinite(dx) ? dx : 0;
+obj.dy = isFinite(dy) ? dy : 0;
+obj.duration = (isFinite(dur) && dur>0) ? dur : 1.0;
 }
 editorLevel.objects.push(obj);
 }
@@ -944,17 +1060,20 @@ drawEditor();
 
 window.addEventListener('resize', ()=>{ if(document.getElementById('screen-editor').classList.contains('active')) setupEditorCanvas(); });
 
-// WASD nudges the selected object; A/D also pan when nothing selected
+// WASD nudges the selected object, Q/E rotates it (Q = counter-clockwise/left, E = clockwise/right);
+// A/D also pan when nothing selected
 window.addEventListener('keydown', (e)=>{
 if(!document.getElementById('screen-editor').classList.contains('active')) return;
 if(document.activeElement && document.activeElement.tagName==='INPUT') return;
 const k = e.key.toLowerCase();
-if(editorSelection.length>0 && ['w','a','s','d','delete','backspace'].includes(k)){
+if(editorSelection.length>0 && ['w','a','s','d','q','e','delete','backspace'].includes(k)){
 e.preventDefault();
 if(k==='w') editorSelection.forEach(o=>{ o.y = Math.min(EDITOR_ROWS-1, o.y+1); });
 if(k==='s') editorSelection.forEach(o=>{ o.y = Math.max(0, o.y-1); });
 if(k==='a') editorSelection.forEach(o=>{ o.x = Math.max(0, o.x-1); });
 if(k==='d') editorSelection.forEach(o=>{ o.x = o.x+1; });
+if(k==='e') editorSelection.forEach(o=>{ o.rot = ((o.rot||0) + Math.PI/12); }); // rotate right/clockwise 15°
+if(k==='q') editorSelection.forEach(o=>{ o.rot = ((o.rot||0) - Math.PI/12); }); // rotate left/counter-clockwise 15°
 if(k==='delete'||k==='backspace'){
 editorLevel.objects = editorLevel.objects.filter(o=>!editorSelection.includes(o));
 editorSelection = [];
@@ -1038,6 +1157,14 @@ return (n % 10000) / 10000;
 }
 
 function drawObject(ctx, type, x, y, size, color, portalLine, now, obj){
+// Editor-set rotation (Q/E), applied around the object's own cell center. Purely visual -
+// collision boxes stay grid-aligned, same as it works in real Geometry Dash for decoration.
+const rot = obj && obj.rot;
+if(rot){
+ctx.save();
+const cx = x+size/2, cy = y+size/2;
+ctx.translate(cx,cy); ctx.rotate(rot); ctx.translate(-cx,-cy);
+}
 switch(type){
 case 'block':
 ctx.fillStyle = color ? shade(color,-55) : '#3a2a66';
@@ -1054,7 +1181,7 @@ ctx.beginPath(); ctx.arc(x+size/2,y+size/2,size/2-5,0,Math.PI*2); ctx.fill();
 ctx.shadowBlur=0;
 break;
 case 'deco':
-drawLimboDeco(ctx, (obj&&obj.variant)||'crack', x+size/2, y+size/2, decoSeed(obj||{x:0,y:0}), now||0);
+drawDeco(ctx, (obj&&obj.variant)||'crack', x+size/2, y+size/2, decoSeed(obj||{x:0,y:0}), now||0, (obj&&obj.color)||'#ff0033');
 break;
 case 'triggerColor':
 ctx.save();
@@ -1103,6 +1230,7 @@ ctx.fillText(style.icon, cx, y+size/2+1);
 ctx.restore();
 }
 }
+if(rot){ ctx.restore(); }
 }
 function shade(hex, amt){
 const n = parseInt(hex.replace('#',''),16);
@@ -1111,7 +1239,7 @@ r=Math.max(0,Math.min(255,r)); g=Math.max(0,Math.min(255,g)); b=Math.max(0,Math.
 return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
 }
 
-/* ---------- hex color interpolation, used by the background color trigger ---------- */
+/* ---------- hex color interpolation, used by the background color trigger + colorable deco ---------- */
 function hexToRgb(hex){
 hex = (hex||'#000000').replace('#','');
 if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
@@ -1120,6 +1248,10 @@ return [(n>>16)&255,(n>>8)&255,n&255];
 }
 function rgbToHex(r,g,b){
 return '#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+}
+function hexToRgba(hex, a){
+const [r,g,b] = hexToRgb(hex);
+return 'rgba('+r+','+g+','+b+','+a+')';
 }
 function lerpColor(a,b,t){
 const [ar,ag,ab]=hexToRgb(a), [br,bg,bb]=hexToRgb(b);
@@ -1135,14 +1267,16 @@ line: lerpColor(a.line,b.line,t)
 };
 }
 
-/* Purely decorative, non-colliding elements used to give LIMBO its extreme-demon atmosphere:
-jagged cracks, floating shards, pulsing rings and glowing pillars. These carry no hitbox - GD's
-"deco" is exactly this: visuals layered around a level that never affect gameplay. */
-function drawLimboDeco(ctx, variant, x, y, seed, nowMs){
+/* Purely decorative, non-colliding elements: jagged cracks, floating shards, pulsing rings and
+glowing pillars. These carry no hitbox - this is exactly what GD's "deco" objects are: visuals
+layered around a level that never affect gameplay. Every piece takes its own color, settable per
+object in the editor (palette row) or generated per-level for atmosphere. */
+function drawDeco(ctx, variant, x, y, seed, nowMs, color){
+color = color || '#ff0033';
 const t = (nowMs||0)*0.001 + seed*10;
 ctx.save();
 if(variant==='crack'){
-ctx.strokeStyle = 'rgba(255,0,51,0.35)';
+ctx.strokeStyle = hexToRgba(color,0.35);
 ctx.lineWidth = 2.5;
 ctx.beginPath();
 let cx=x, cy=y;
@@ -1153,18 +1287,18 @@ ctx.stroke();
 ctx.translate(x,y);
 ctx.rotate(t*0.6);
 ctx.globalAlpha = 0.35;
-ctx.fillStyle = '#ff0033';
-ctx.shadowColor = '#ff0033'; ctx.shadowBlur = 14;
+ctx.fillStyle = color;
+ctx.shadowColor = color; ctx.shadowBlur = 14;
 ctx.beginPath(); ctx.moveTo(0,-14); ctx.lineTo(10,10); ctx.lineTo(-10,10); ctx.closePath(); ctx.fill();
 } else if(variant==='ring'){
 const r = 16 + Math.sin(t*2)*5;
-ctx.strokeStyle = 'rgba(255,0,51,0.4)'; ctx.lineWidth = 2;
+ctx.strokeStyle = hexToRgba(color,0.4); ctx.lineWidth = 2;
 ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.stroke();
 } else if(variant==='pillar'){
 const grad = ctx.createLinearGradient(x,y-70,x,y+70);
-grad.addColorStop(0,'rgba(255,0,51,0)');
-grad.addColorStop(0.5,'rgba(255,0,51,0.18)');
-grad.addColorStop(1,'rgba(255,0,51,0)');
+grad.addColorStop(0,hexToRgba(color,0));
+grad.addColorStop(0.5,hexToRgba(color,0.18));
+grad.addColorStop(1,hexToRgba(color,0));
 ctx.fillStyle = grad;
 ctx.fillRect(x-4,y-70,8,140);
 }
@@ -1328,25 +1462,33 @@ const t = Math.min(1, (now-a.start)/a.duration);
 const eased = t<1 ? (1-Math.pow(1-t,3)) : 1; // ease-out cubic, matches GD's snappy move feel
 return { x: a.fromX + (a.toX-a.fromX)*eased, y: a.fromY + (a.toY-a.fromY)*eased };
 }
+// "Smart" move trigger: every input is validated/clamped to a finite, sane number before it's
+// used to animate anything - a malformed or missing dx/dy/duration can never produce NaN offsets
+// that would corrupt an object's position or crash the render loop.
 function activateMoveTrigger(o, now){
 const g = o.group!=null ? o.group : 1;
 const prev = game.groupAnims[g];
 const baseX = prev ? prev.toX : 0;
 const baseY = prev ? prev.toY : 0;
+const dx = isFinite(o.dx) ? o.dx : 0;
+const dy = isFinite(o.dy) ? o.dy : 0;
+const dur = (isFinite(o.duration) && o.duration>0) ? o.duration : 1;
 game.groupAnims[g] = {
 fromX: baseX, fromY: baseY,
-toX: baseX + (o.dx||0)*GRID,
-toY: baseY + (o.dy||0)*GRID,
+toX: baseX + dx*GRID,
+toY: baseY + dy*GRID,
 start: now,
-duration: Math.max(50,(o.duration||1)*1000)
+duration: Math.max(50,dur*1000)
 };
 }
 function activateColorTrigger(o, now){
 const from = game.currentTheme || (game.level.colors||THEMES[0]);
+const targetHex = (o.color && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(o.color)) ? o.color : from.bgTop;
 const to = Object.assign({}, from, {
-bgTop: o.color, bgBottom: shade(o.color,-40), ground1: shade(o.color,10), ground2: shade(o.color,-60)
+bgTop: targetHex, bgBottom: shade(targetHex,-40), ground1: shade(targetHex,10), ground2: shade(targetHex,-60)
 });
-game.bgAnim = { from: Object.assign({},from), to, start: now, duration: Math.max(50,(o.duration||1.5)*1000) };
+const dur = (isFinite(o.duration) && o.duration>0) ? o.duration : 1.5;
+game.bgAnim = { from: Object.assign({},from), to, start: now, duration: Math.max(50,dur*1000) };
 }
 
 function loop(now){
@@ -1469,8 +1611,17 @@ const hb = HITBOX_CONFIG[game.level.difficulty] || HITBOX_CONFIG.normal;
 const pad = hb.pad; // forgiveness margin - generous on easy/normal, ~0 (frame-perfect) on hard/insane
 
 for(const o of game.level.objects){
+// deco is purely visual and never collides - skip it immediately (matters a lot on
+// deco-heavy levels like GRIEF/LIMBO which carry thousands of these).
+if(o.t==='deco') continue;
+// cheap spatial cull: at this camera speed nothing more than ~600px from the player can
+// possibly matter this frame, so skip the expensive per-type checks for anything farther -
+// keeps dense/GRIEF-style levels (thousands of objects) running smoothly instead of lagging.
+const rawOx = o.x*GRID;
+if(Math.abs(rawOx - playerWX) > 600) continue;
+
 const off = o.group!=null ? groupOffset(o.group, now) : null;
-const ox = o.x*GRID + (off?off.x:0), oy = o.y*GRID + (off?off.y:0);
+const ox = rawOx + (off?off.x:0), oy = o.y*GRID + (off?off.y:0);
 let oBottom = oy, oTop = oy+GRID;
 
 if(o.t==='spike'){
@@ -1546,13 +1697,14 @@ game.portalUsed[key]=true;
 const key = 'c_'+o.x+'_'+o.y;
 if(!game.triggered[key] && playerWX >= ox){
 game.triggered[key] = true;
-activateColorTrigger(o, now);
+// smart guard: a malformed trigger must never crash the run mid-level
+try{ activateColorTrigger(o, now); }catch(e){ /* PAT önlendi - trigger yoksayıldı */ }
 }
 } else if(o.t==='triggerMove'){
 const key = 'm_'+o.x+'_'+o.y;
 if(!game.triggered[key] && playerWX >= ox){
 game.triggered[key] = true;
-activateMoveTrigger(o, now);
+try{ activateMoveTrigger(o, now); }catch(e){ /* PAT önlendi - trigger yoksayıldı */ }
 }
 }
 }
@@ -1676,8 +1828,8 @@ const rot = game.mode==='cube' ? game.rotation : (game.mode==='wave' ? (game.hol
 drawPlayerShape(ctx, psx, psy, game.playerSize, settings, rot, game.mode);
 }
 
-// LIMBO extreme-demon atmosphere: a subtle pulsing red vignette around the edges
-if(game.level.name==='LIMBO'){
+// LIMBO / GRIEF extreme-demon atmosphere: a subtle pulsing red vignette around the edges
+if(game.level.name==='LIMBO' || game.level.name==='GRIEF'){
 const pulse = 0.28 + Math.sin((now||0)*0.0015)*0.06;
 const vg = ctx.createRadialGradient(cv.width/2,cv.height/2,cv.height*0.25,cv.width/2,cv.height/2,cv.height*0.8);
 vg.addColorStop(0,'rgba(0,0,0,0)');
