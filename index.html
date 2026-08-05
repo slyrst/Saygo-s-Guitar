@@ -181,6 +181,7 @@ input[type=text]:focus{border-color:var(--accent);}
 <div class="tool active" data-tool="select" title="Select / Move">✥</div>
 <div class="tool" data-tool="block" title="Block">▮</div>
 <div class="tool" data-tool="spike" title="Spike">▲</div>
+<div class="tool" data-tool="miniSpike" title="Mini Spike (half height)">︿</div>
 <div class="tool" data-tool="orb" title="Jump Orb">●</div>
 <div class="tool" data-tool="portalCube" title="Cube portal">C</div>
 <div class="tool" data-tool="portalShip" title="Ship portal">S</div>
@@ -188,6 +189,9 @@ input[type=text]:focus{border-color:var(--accent);}
 <div class="tool" data-tool="portalUfo" title="UFO portal">U</div>
 <div class="tool" data-tool="portalWave" title="Wave portal">W</div>
 <div class="tool" data-tool="portalRobot" title="Robot portal">R</div>
+<div class="tool" data-tool="speedPortal" title="Speed portal (change level speed)">»</div>
+<div class="tool" data-tool="slopeUp" title="Slope (ramp up →)">◢</div>
+<div class="tool" data-tool="slopeDown" title="Slope (ramp down →)">◣</div>
 <div class="tool" data-tool="deco" title="Decoration">✧</div>
 <div class="tool" data-tool="triggerColor" title="Color Trigger (change background)">🎨</div>
 <div class="tool" data-tool="triggerMove" title="Move Trigger (move a group)">➜</div>
@@ -202,7 +206,7 @@ input[type=text]:focus{border-color:var(--accent);}
 <button class="btn small" id="btnTestLevel">▶ Test</button>
 <button class="btn small primary" id="btnSaveLevel">💾 Save</button>
 </div>
-<div id="editorCanvasWrap"><canvas id="editorCanvas"></canvas><div id="editorHint">click/drag to place · select tool: click to pick, shift-click to add, drag empty space to box-select, drag or WASD to move group, Q/E to rotate, Del to delete · A/D or ◀▶ to pan · deco tool: pick a variant + color below · trigger tools prompt for their settings · 🔗 Group assigns a group ID to the selection so move triggers can target it</div></div>
+<div id="editorCanvasWrap"><canvas id="editorCanvas"></canvas><div id="editorHint">click/drag to place · select tool: click to pick, shift-click to add, drag empty space to box-select, drag or WASD to move group, Q/E to rotate, Del to delete · A/D or ◀▶ to pan · deco tool: pick a variant + color below · speed portal: sets level speed (1 Slow – 5 Fastest) · slope tools: walkable ramps, also act as a floor for Wave · trigger tools prompt for their settings · 🔗 Group assigns a group ID to the selection so move triggers can target it</div></div>
 </div>
 
 <!-- GAME -->
@@ -384,11 +388,22 @@ function chunkFlatGap(x){ return {objs:[], w:5}; }
 function chunkSingleSpike(x){ return {objs:[{t:'spike',x:x+2,y:0}], w:6}; }
 function chunkDoubleSpike(x){ return {objs:[{t:'spike',x:x+2,y:0},{t:'spike',x:x+3,y:0}], w:7}; }
 function chunkTripleSpike(x){ return {objs:[{t:'spike',x:x+2,y:0},{t:'spike',x:x+3,y:0},{t:'spike',x:x+4,y:0}], w:8}; }
+function chunkQuadSpike(x){ return {objs:[{t:'spike',x:x+2,y:0},{t:'spike',x:x+3,y:0},{t:'spike',x:x+4,y:0},{t:'spike',x:x+5,y:0}], w:9}; }
+// Mini spikes: same danger, half the height/hitbox - GD uses these to tighten a run without
+// needing a full-height jump to clear, which makes the timing stingier instead of the gap bigger.
+function chunkMiniPair(x){ return {objs:[{t:'miniSpike',x:x+2,y:0},{t:'miniSpike',x:x+3,y:0}], w:7}; }
+function chunkMiniGauntlet(x){ return {objs:[{t:'miniSpike',x:x+2,y:0},{t:'spike',x:x+3,y:0},{t:'miniSpike',x:x+4,y:0},{t:'spike',x:x+5,y:0},{t:'miniSpike',x:x+6,y:0}], w:9}; }
 function chunkBlockHop(x){ return {objs:[{t:'block',x:x+3,y:0}], w:7}; }
 function chunkBlockSpike(x){ return {objs:[{t:'block',x:x+2,y:0},{t:'spike',x:x+4,y:0}], w:8}; }
 function chunkOrbGap(x){ return {objs:[{t:'orb',x:x+2,y:1},{t:'spike',x:x+5,y:0},{t:'spike',x:x+6,y:0}], w:9}; }
 function chunkStairUp(x){ return {objs:[{t:'block',x:x+2,y:0},{t:'block',x:x+3,y:0},{t:'block',x:x+3,y:1},{t:'block',x:x+4,y:0},{t:'block',x:x+4,y:1},{t:'block',x:x+4,y:2},{t:'spike',x:x+6,y:0}], w:9}; }
-const GROUND_CHUNKS = [chunkFlatGap,chunkSingleSpike,chunkDoubleSpike,chunkTripleSpike,chunkBlockHop,chunkBlockSpike,chunkOrbGap];
+// A gentle walkable hill (up-slope then down-slope) for grounded modes - pure terrain variety,
+// no real danger, so it breaks up the flat-ground-plus-spikes monotony without adding difficulty.
+function chunkSlopeHill(x){ return {objs:[{t:'slope',x:x+2,y:0,dir:'up'},{t:'slope',x:x+3,y:1,dir:'down'}], w:8}; }
+// A short chain of jump orbs for a bouncy, rhythmic feel instead of another spike row - low
+// danger, just a different kind of movement to break up the pattern.
+function chunkOrbChain(x){ return {objs:[{t:'orb',x:x+2,y:0},{t:'orb',x:x+4,y:1},{t:'spike',x:x+6,y:0}], w:9}; }
+const GROUND_CHUNKS = [chunkFlatGap,chunkSingleSpike,chunkDoubleSpike,chunkTripleSpike,chunkBlockHop,chunkBlockSpike,chunkOrbGap,chunkSlopeHill,chunkOrbChain];
 
 // corridor chunk for flying modes (ship/wave/ufo): a gap window between a floor obstacle and ceiling obstacle
 function chunkCorridor(x, centerRow, windowH){
@@ -398,17 +413,51 @@ for(let y=centerRow+Math.ceil(windowH/2); y<8; y++){ objs.push({t:'block',x:x+2,
 return {objs, w:8};
 }
 
-function difficultyForIdx(idx){
-if(idx<=7) return 'easy';
-if(idx<=16) return 'normal';
-if(idx<=24) return 'hard';
-return 'insane';
+// EDITOR_ROWS is defined later (editor section) but generation only needs the row count, so keep
+// a matching constant here for level-gen helpers.
+const EDITOR_ROWS_LEVELGEN = 9;
+
+// Adds a mode portal PLUS flanking wall blocks in the same column, leaving a single-row gap
+// exactly at the portal's row. This closes the old "fly/jump over the top of the portal" cheese,
+// since every other row in that column is now solid - the player is forced through the portal at
+// the intended height instead of skipping past it and dodging whatever comes right after.
+function addModePortal(objects, x, y, modeName){
+objects.push({t:'portal'+modeName.charAt(0).toUpperCase()+modeName.slice(1), x, y});
+// Leave a 3-row gap centered on the portal (not just 1) so passing through it isn't a
+// frame-perfect single-pixel-row click - still fully wall-framed so there's no flying/jumping
+// over the top to skip it, just a fair amount of room to actually line up the pass.
+for(let row=0; row<EDITOR_ROWS_LEVELGEN; row++){
+if(Math.abs(row-y)<=1) continue;
+objects.push({t:'block', x, y:row, color:'#241653'});
 }
-const SPIKE_RUN_BY_DIFF = {easy:1, normal:2, hard:3, insane:3};
+}
+
+// A second corridor shape: the gap's center drifts between the two flanking columns instead of
+// staying flat, so flying sections don't all read as the same static rectangle window - closer to
+// how a real GD ship/wave section weaves up and down through a passage.
+function chunkCorridorDrift(x, rowA, rowB, windowH){
+const objs=[];
+function wallCol(colX, center){
+for(let y=0;y<center-Math.floor(windowH/2);y++) objs.push({t:'block',x:colX,y});
+for(let y=center+Math.ceil(windowH/2); y<8; y++) objs.push({t:'block',x:colX,y});
+}
+wallCol(x+2, rowA);
+wallCol(x+3, rowB);
+return {objs, w:8};
+}
+
+function difficultyForIdx(idx){
+if(idx<=5) return 'easy';
+if(idx<=12) return 'normal';
+if(idx<=19) return 'hard';
+if(idx<=26) return 'insane';
+return 'extreme demon';
+}
+const SPIKE_RUN_BY_DIFF = {easy:1, normal:2, hard:3, insane:4, 'extreme demon':4};
 
 function generateLevel(idx){
 const difficulty = idx; // 1..30, drives chunk variety/length
-const diffTier = difficultyForIdx(idx); // easy/normal/hard/insane -> drives fairness of hitboxes
+const diffTier = difficultyForIdx(idx); // easy/normal/hard/insane/extreme demon -> drives fairness of hitboxes
 const theme = themeFor(idx-1);
 // every level gets its own fixed seed, derived only from its index - same layout every time,
 // nothing here is ever actually random.
@@ -420,7 +469,7 @@ if(idx>=11) unlockedModes.push('ufo');
 if(idx>=16) unlockedModes.push('wave');
 if(idx>=21) unlockedModes.push('robot');
 
-const maxSpikeRun = SPIKE_RUN_BY_DIFF[diffTier]; // triple spikes only ever appear on hard/insane
+const maxSpikeRun = SPIKE_RUN_BY_DIFF[diffTier]; // triple/quad spikes only appear on hard and up
 const targetLen = 80 + idx*9; // longer runs - stretches from ~15s (lvl1) toward ~60s (lvl30) at current speed
 const objects = [];
 let x = 8;
@@ -454,7 +503,7 @@ x += c.w;
 if(sinceModeChange>6 && unlockedModes.length>1 && rng()<0.22 && x < targetLen-14){
 let next = unlockedModes[Math.floor(rng()*unlockedModes.length)];
 if(next!==mode){
-objects.push({t:'portal'+next.charAt(0).toUpperCase()+next.slice(1), x:x+1, y: (mode==='ship'||mode==='wave'||mode==='ufo')?2:0});
+addModePortal(objects, x+1, (mode==='ship'||mode==='wave'||mode==='ufo')?2:0, next);
 mode = next;
 sinceModeChange = 0;
 x += 4;
@@ -469,15 +518,12 @@ const names = ['Ignition','Neon Drift','Static Pulse','Freefall','Circuit Break'
 'Zenith','Terminal','Static','Aftershock','Vortex','Redline','Glasswing','Momentum','Eclipse','LIMBO'];
 const name = names[idx-1] || ('Level '+idx);
 
-// LIMBO (level 30) is branded as an Extreme Demon: the toughest tier, stricter hitboxes than insane
-const finalDifficulty = (name === 'LIMBO') ? 'extreme demon' : diffTier;
+const finalDifficulty = diffTier;
 
 // Background deco scattered through every non-trivial level, density scaling with difficulty -
-// easy levels stay clean, normal/hard/insane get progressively more atmosphere. Each piece has
-// its own color (picked from the level's theme or the general palette) and a random rotation,
-// and is fully editable/recolorable later in the level editor. LIMBO (idx 30) gets its own
-// dedicated, much denser pass below instead of this one.
-if(name !== 'LIMBO'){
+// easy levels stay clean, normal/hard/insane/extreme demon get progressively more atmosphere.
+// Each piece has its own color (picked from the level's theme or the general palette) and a
+// random rotation, and is fully editable/recolorable later in the level editor.
 const density = DECO_DENSITY[diffTier] || 0;
 const decoCount = Math.floor(length*density);
 for(let i=0;i<decoCount;i++){
@@ -490,13 +536,55 @@ color: rng()<0.6 ? theme.line : COLORS[Math.floor(rng()*COLORS.length)],
 rot: rng()*Math.PI*2
 });
 }
+
+return {
+id:'builtin_'+idx, name, builtin:true, length,
+colors: theme,
+difficulty: finalDifficulty,
+objects
+};
 }
 
-// LIMBO gets 1000 deco objects, built from the same 'deco' object type the editor can place
-// (crack / shard / ring / pillar) - purely visual, no hitbox, just extreme-demon atmosphere.
-// They live in the same objects array as everything else, so they're editable in the editor too.
-if(idx===30){
-for(let i=0;i<1000;i++){
+// LIMBO (level 30) — a dedicated, real Extreme Demon generator instead of the generic difficulty
+// scaler: only double/triple/quad spike chunks (no easy filler ever appears), tighter flying
+// corridors, frequent forced mode switches, and every portal is cheese-proofed via addModePortal
+// so there's no way to fly/jump over the top of a portal and skip the obstacle that follows it.
+function generateLimboLevel(){
+const rng = mulberry32(90000001);
+const theme = themeFor(6);
+const objects = [];
+let x = 8;
+let mode = 'cube';
+let sinceModeChange = 0;
+const unlockedModes = ['cube','ship','ball','ufo','wave','robot'];
+const pool = [chunkTripleSpike,chunkQuadSpike,chunkBlockSpike,chunkOrbGap,chunkStairUp];
+const targetLen = 340;
+
+while(x < targetLen){
+sinceModeChange++;
+const flying = (mode==='ship'||mode==='wave'||mode==='ufo');
+if(flying){
+const centerRow = 2+Math.floor(rng()*4);
+const c = chunkCorridor(x, centerRow, 2); // tighter window than normal levels
+objects.push(...c.objs);
+x += c.w;
+} else {
+const c = pool[Math.floor(rng()*pool.length)](x);
+objects.push(...c.objs);
+x += c.w;
+}
+if(sinceModeChange>3 && rng()<0.3 && x<targetLen-14){
+let next = unlockedModes[Math.floor(rng()*unlockedModes.length)];
+if(next!==mode){
+addModePortal(objects, x+1, flying?2:0, next);
+mode = next;
+sinceModeChange = 0;
+x += 4;
+}
+}
+}
+const length = Math.max(x+8, targetLen);
+for(let i=0;i<1200;i++){
 objects.push({
 t:'deco',
 x: Math.floor(rng()*length),
@@ -506,12 +594,10 @@ color: rng()<0.6 ? theme.line : COLORS[Math.floor(rng()*COLORS.length)],
 rot: rng()*Math.PI*2
 });
 }
-}
-
 return {
-id:'builtin_'+idx, name, builtin:true, length,
+id:'builtin_30', name:'LIMBO', builtin:true, length,
 colors: theme,
-difficulty: finalDifficulty,
+difficulty:'extreme demon',
 objects
 };
 }
@@ -528,7 +614,7 @@ let x = 8;
 let mode = 'cube';
 let sinceModeChange = 0;
 const unlockedModes = ['cube','ship','ball','ufo','wave','robot'];
-const pool = [chunkSingleSpike,chunkDoubleSpike,chunkTripleSpike,chunkBlockSpike,chunkOrbGap,chunkStairUp,chunkBlockHop];
+const pool = [chunkSingleSpike,chunkDoubleSpike,chunkTripleSpike,chunkBlockSpike,chunkOrbGap,chunkStairUp];
 const targetGameplayObjs = 1400;
 
 while(objects.length < targetGameplayObjs){
@@ -547,7 +633,7 @@ x += c.w;
 if(sinceModeChange>4 && rng()<0.3){
 let next = unlockedModes[Math.floor(rng()*unlockedModes.length)];
 if(next!==mode){
-objects.push({t:'portal'+next.charAt(0).toUpperCase()+next.slice(1), x:x+1, y:(mode==='ship'||mode==='wave'||mode==='ufo')?2:0});
+addModePortal(objects, x+1, flying?2:0, next);
 mode = next;
 sinceModeChange = 0;
 x += 4;
@@ -577,10 +663,109 @@ objects
 };
 }
 
+// AETERNUS — an original, extremely dense Extreme Demon level built in the spirit of that long,
+// escalating, multi-mode-switching style of Extreme Demon (rapid cube/ship/ball/ufo/wave/robot
+// transitions, dense spike walls, thick atmospheric deco, no safe "cheese" routes since every
+// portal is wall-framed). IMPORTANT: this is an original layout inspired by that general style -
+// it is NOT a frame-by-frame reproduction of any specific existing level or video, since that
+// content can't be watched/extracted. Built with the same guaranteed-clearable safe-chunk system
+// as every other level, just pushed to an extreme object count (7,000–20,000 total objects).
+function generateAeternusLevel(){
+const rng = mulberry32(1779033703);
+const theme = {bgTop:'#050208',bgBottom:'#000000',ground1:'#140018',ground2:'#000000',line:'#c400ff'};
+const objects = [];
+let x = 8;
+let mode = 'cube';
+let sinceModeChange = 0;
+const unlockedModes = ['cube','ship','ball','ufo','wave','robot'];
+// Quad-spike walls removed entirely, and hard chunks are no longer allowed to chain back-to-back:
+// every gauntlet-style chunk (double/triple spike, mini gauntlet, block+spike) is now forced to be
+// followed by a recovery chunk (flat ground, a single spike, an orb gap, or a staircase) before
+// another hard one can appear. That's the actual rhythm real GD Extreme Demons use — relentless
+// hard-hard-hard with no breathing room is what made the old version effectively unclearable.
+// chunkMiniGauntlet (alternating mini/full spikes needing a different jump arc for each one,
+// back to back) is removed for good - with a single fixed jump strength that pattern genuinely
+// can't be timed consistently. chunkMiniPair (two same-height mini spikes, one jump clears both)
+// keeps the "mini spike" hazard in the game without the impossible alternating rhythm.
+const hardChunks = [chunkDoubleSpike,chunkTripleSpike,chunkMiniPair,chunkBlockSpike];
+const easyChunks = [chunkFlatGap,chunkFlatGap,chunkSingleSpike,chunkOrbGap,chunkStairUp,chunkSlopeHill,chunkOrbChain];
+let lastWasHard = false;
+const targetGameplayObjs = 9000; // + portal-frame walls + deco pushes the total into 12k-18k range
+
+while(objects.length < targetGameplayObjs){
+sinceModeChange++;
+const flying = (mode==='ship'||mode==='wave'||mode==='ufo');
+if(flying){
+// Vary the passage instead of always the same flat rectangle window: most of the time a
+// straight corridor, sometimes a drifting one that eases the gap up or down across the chunk,
+// occasionally a wider one with an orb sitting in it — reads much closer to a real GD flying
+// section instead of one repeated shape for the whole level.
+const centerRow = 2+Math.floor(rng()*4);
+const windowH = 4 + Math.floor(rng()*2); // 4-5 rows tall, more room than a bare-minimum squeeze
+const roll = rng();
+let c;
+if(roll < 0.45){
+c = chunkCorridor(x, centerRow, windowH);
+} else if(roll < 0.8){
+const rowB = Math.max(2, Math.min(5, centerRow + (rng()<0.5?-1:1)));
+c = chunkCorridorDrift(x, centerRow, rowB, windowH);
+} else {
+c = chunkCorridor(x, centerRow, windowH);
+c.objs.push({t:'orb', x:x+2, y:centerRow});
+}
+objects.push(...c.objs);
+x += c.w;
+} else {
+const srcPool = lastWasHard ? easyChunks : hardChunks.concat(easyChunks);
+const chosen = srcPool[Math.floor(rng()*srcPool.length)];
+const c = chosen(x);
+objects.push(...c.objs);
+x += c.w;
+lastWasHard = hardChunks.includes(chosen);
+}
+// mode switches now use the same spacing/frequency as the normal official levels instead of
+// firing 2-3x as often — frequent forced mode changes stacked on top of dense spikes was a big
+// part of what made this feel impossible rather than just hard.
+if(sinceModeChange>6 && rng()<0.16){
+let next = unlockedModes[Math.floor(rng()*unlockedModes.length)];
+if(next!==mode){
+addModePortal(objects, x+1, flying?2:0, next);
+mode = next;
+sinceModeChange = 0;
+x += 4;
+lastWasHard = false; // always land soft right after a mode transition
+}
+}
+}
+const length = x + 10;
+
+// dense atmospheric deco layer, aimed near the top of the requested 7k-20k total object range
+const decoTarget = 20000 - objects.length;
+for(let i=0;i<Math.max(0,decoTarget);i++){
+objects.push({
+t:'deco',
+x: Math.floor(rng()*length),
+y: -3 + Math.floor(rng()*16),
+variant: DECO_VARIANTS[Math.floor(rng()*DECO_VARIANTS.length)],
+color: rng()<0.5 ? theme.line : COLORS[Math.floor(rng()*COLORS.length)],
+rot: rng()*Math.PI*2
+});
+}
+
+return {
+id:'builtin_aeternus', name:'Aeternus', builtin:true, length,
+colors: theme,
+difficulty:'extreme demon',
+objects
+};
+}
+
 function builtInLevels(){
 const out = [];
-for(let i=1;i<=30;i++) out.push(generateLevel(i));
+for(let i=1;i<=29;i++) out.push(generateLevel(i));
+out.push(generateLimboLevel());
 out.push(generateGriefLevel());
+out.push(generateAeternusLevel());
 return out;
 }
 let CACHED_BUILTIN = null;
@@ -1012,8 +1197,9 @@ cv.onmouseleave = ()=>{ /* keep drag/paint state; stops on window mouseup */ };
 }
 
 // Places (or configures) whatever tool is active at grid cell (gx,gy). Block/spike/deco get the
-// current palette color; deco also gets the current variant; the two trigger tools prompt for
-// their settings (with input validation, so a bad value can never sneak in and blow up mid-run).
+// current palette color; deco also gets the current variant; slope tools get a fixed direction;
+// speed portals and the two trigger tools prompt for their settings (with input validation, so a
+// bad value can never sneak in and blow up mid-run).
 function paintCell(gx,gy){
 editorLastCell = {gx,gy};
 if(editorTool==='erase'){
@@ -1021,8 +1207,21 @@ editorLevel.objects = editorLevel.objects.filter(o=>!(o.x===gx && o.y===gy));
 } else if(editorTool!=='select'){
 editorLevel.objects = editorLevel.objects.filter(o=>!(o.x===gx && o.y===gy));
 let obj = {t:editorTool, x:gx, y:gy};
-if(editorTool==='block'||editorTool==='spike'||editorTool==='deco') obj.color = editorColor;
+if(editorTool==='block'||editorTool==='spike'||editorTool==='miniSpike'||editorTool==='deco') obj.color = editorColor;
 if(editorTool==='deco') obj.variant = currentDecoVariant;
+if(editorTool==='slopeUp'||editorTool==='slopeDown'){
+obj.t = 'slope';
+obj.dir = editorTool==='slopeUp' ? 'up' : 'down';
+obj.color = editorColor;
+}
+if(editorTool==='speedPortal'){
+const tierRaw = prompt('Speed tier? 1=Slow 2=Normal 3=Fast 4=Faster 5=Fastest','2');
+if(tierRaw===null){ return; }
+const tier = parseInt(tierRaw,10);
+if(isNaN(tier)||tier<1||tier>5){ alert('Geçersiz hız seviyesi - 1 ile 5 arası bir sayı gir. Trigger oluşturulmadı.'); return; }
+obj.t = 'speed'+tier;
+obj.tier = tier;
+}
 if(editorTool==='triggerColor'){
 const hex = prompt('New background color (hex, e.g. #221144):', '#221144');
 if(!hex){ return; }
@@ -1149,6 +1348,16 @@ wave:  {color:'#3ddcff', icon:'◢'},
 robot: {color:'#ff2e9a', icon:'▮'},
 };
 
+// One style per speed tier (Slow → Fastest), rendered the same capsule way as mode portals so
+// they read immediately as "a portal" but visually distinct via color + label.
+const SPEED_STYLES = {
+1:{color:'#8fd3ff', label:'0.5x'},
+2:{color:'#ffffff', label:'1x'},
+3:{color:'#ffd23f', label:'1.3x'},
+4:{color:'#ff6b3d', label:'1.6x'},
+5:{color:'#ff2e9a', label:'2x'},
+};
+
 // Deterministic per-object "randomness" for deco animation, so decorations don't need a stored
 // seed field - the same object always animates the same way, in the editor and in-game alike.
 function decoSeed(o){
@@ -1175,10 +1384,34 @@ case 'spike':
 ctx.fillStyle = color || '#ff2e9a';
 ctx.beginPath(); ctx.moveTo(x+size/2,y+3); ctx.lineTo(x+size-3,y+size-3); ctx.lineTo(x+3,y+size-3); ctx.closePath(); ctx.fill();
 break;
+case 'miniSpike':
+// Half-height spike, sitting flush on the floor of its own cell - same silhouette as a
+// normal spike, just squashed, matching real Geometry Dash's mini spikes.
+ctx.fillStyle = color || '#ff2e9a';
+ctx.beginPath();
+ctx.moveTo(x+size/2, y+size/2+2);
+ctx.lineTo(x+size-6, y+size-3);
+ctx.lineTo(x+6, y+size-3);
+ctx.closePath();
+ctx.fill();
+break;
 case 'orb':
 ctx.fillStyle = '#ffd23f'; ctx.shadowColor='#ffd23f'; ctx.shadowBlur=14;
 ctx.beginPath(); ctx.arc(x+size/2,y+size/2,size/2-5,0,Math.PI*2); ctx.fill();
 ctx.shadowBlur=0;
+break;
+case 'slope':
+ctx.save();
+ctx.fillStyle = color ? shade(color,-40) : '#3a2a66';
+ctx.beginPath();
+if(obj && obj.dir==='down'){
+ctx.moveTo(x,y); ctx.lineTo(x+size,y+size); ctx.lineTo(x,y+size);
+} else {
+ctx.moveTo(x+size,y); ctx.lineTo(x+size,y+size); ctx.lineTo(x,y+size);
+}
+ctx.closePath(); ctx.fill();
+ctx.strokeStyle = color || '#00f0ff'; ctx.lineWidth=2; ctx.stroke();
+ctx.restore();
 break;
 case 'deco':
 drawDeco(ctx, (obj&&obj.variant)||'crack', x+size/2, y+size/2, decoSeed(obj||{x:0,y:0}), now||0, (obj&&obj.color)||'#ff0033');
@@ -1227,6 +1460,20 @@ ctx.beginPath(); ctx.arc(cx, y+size/2, size*0.28, 0, Math.PI*2); ctx.stroke();
 ctx.fillStyle = style.color;
 ctx.font = 'bold 20px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
 ctx.fillText(style.icon, cx, y+size/2+1);
+ctx.restore();
+} else if(type && type.indexOf('speed')===0){
+const tier = (obj&&obj.tier) || parseInt(type.replace('speed',''),10) || 2;
+const style = SPEED_STYLES[tier] || SPEED_STYLES[2];
+const cx = x+size/2, cyTop = y-size, ch = size*2, cw = size;
+ctx.save();
+ctx.shadowColor = style.color; ctx.shadowBlur = 16;
+ctx.fillStyle = style.color+'33';
+roundRect(ctx, x, cyTop, cw, ch, size*0.3); ctx.fill();
+ctx.shadowBlur = 0;
+ctx.strokeStyle = style.color; ctx.lineWidth = 3;
+roundRect(ctx, x, cyTop, cw, ch, size*0.3); ctx.stroke();
+ctx.fillStyle = style.color; ctx.font='bold 12px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+ctx.fillText(style.label, cx, y+size/2+1);
 ctx.restore();
 }
 }
@@ -1424,7 +1671,7 @@ game.camX = 0; game.y=0; game.vy=0; game.mode='cube'; game.gravityDir=1; game.gr
 game.dead=false; game.won=false; game.orbUsed={}; game.portalUsed={}; game.attempts++;
 game.triggered={}; game.groupAnims={}; game.currentTheme = Object.assign({}, game.level.colors || THEMES[0]); game.bgAnim=null;
 game.jumpsLeft=2; game.prevHolding=false; game.trailPts=[]; game.rotation=0; game.prevY=0;
-game.shatterPieces=[]; game.paused=false;
+game.shatterPieces=[]; game.paused=false; game.speed = 340; // reset any speed-portal change from the previous run
 document.getElementById('attempts').textContent = 'Attempt ' + game.attempts;
 document.getElementById('modeTag').textContent = 'Cube';
 document.getElementById('overlayMsg').classList.remove('show');
@@ -1438,11 +1685,16 @@ const GRAV = 2200;
 const JUMP_V = 780;
 const SHIP_THRUST = 2000;
 const FLYING_MODES = ['ship','wave','ufo'];
+// Geometry Dash-style speed portals: Slow / Normal / Fast / Faster / Fastest (px/s at this scale).
+const SPEED_LEVELS = [180, 340, 460, 580, 720];
 // Real Geometry Dash spikes don't use the visual triangle as their hitbox - it's a small
 // rectangle: narrower than the base, raised off the ground by about a quarter of the spike's
 // height, and stopping well short of the sharp tip. That's what actually kills you in GD, not
 // the point of the triangle. Fractions are of one GRID cell.
 const SPIKE_HITBOX = { left:0.28, right:0.72, bottom:0.22, top:0.85 };
+// Mini spike: same idea as a normal spike but squashed into the bottom half of the cell -
+// smaller, lower hitbox to match its smaller silhouette.
+const MINI_SPIKE_HITBOX = { left:0.30, right:0.70, bottom:0.06, top:0.48 };
 // difficulty now only controls player forgiveness padding - the spike shape itself matches GD
 // on every difficulty, same as the real game.
 const HITBOX_CONFIG = {
@@ -1450,7 +1702,7 @@ easy:   {pad:12},
 normal: {pad:7},
 hard:   {pad:3},
 insane: {pad:0},
-'extreme demon': {pad:0},
+'extreme demon': {pad:2}, // a hair of forgiveness — true 0px was punishing normal frame-rate jitter, not just skill
 };
 
 // Current animated offset for a group of objects driven by a Move Trigger (Geometry Dash style
@@ -1609,10 +1861,13 @@ const pxLeft = playerWX - halfP, pxRight = playerWX + halfP;
 const pyBottom = game.y, pyTop = game.y + game.playerSize;
 const hb = HITBOX_CONFIG[game.level.difficulty] || HITBOX_CONFIG.normal;
 const pad = hb.pad; // forgiveness margin - generous on easy/normal, ~0 (frame-perfect) on hard/insane
+// Wave gets zero forgiveness padding against any hazard, matching real GD where the wave's
+// needle hitbox is unforgiving - keeps mode-specific behavior consistent even on easy/normal.
+const wavePad = game.mode==='wave' ? 0 : pad;
 
 for(const o of game.level.objects){
 // deco is purely visual and never collides - skip it immediately (matters a lot on
-// deco-heavy levels like GRIEF/LIMBO which carry thousands of these).
+// deco-heavy levels like GRIEF/Aeternus/LIMBO which carry thousands of these).
 if(o.t==='deco') continue;
 // cheap spatial cull: at this camera speed nothing more than ~600px from the player can
 // possibly matter this frame, so skip the expensive per-type checks for anything farther -
@@ -1629,8 +1884,16 @@ if(o.t==='spike'){
 // ground, stopping well short of the tip - not the visual triangle outline.
 const sLeft = ox+GRID*SPIKE_HITBOX.left, sRight = ox+GRID*SPIKE_HITBOX.right;
 const sBottom = oy+GRID*SPIKE_HITBOX.bottom, sTop = oy+GRID*SPIKE_HITBOX.top;
-const overlapX = pxRight-pad > sLeft && pxLeft+pad < sRight;
-const overlapY = pyTop-pad > sBottom && pyBottom+pad < sTop;
+const overlapX = pxRight-wavePad > sLeft && pxLeft+wavePad < sRight;
+const overlapY = pyTop-wavePad > sBottom && pyBottom+wavePad < sTop;
+if(overlapX && overlapY){ killPlayer(); return; }
+} else if(o.t==='miniSpike'){
+// Squashed hitbox living in the lower half of the cell - same lethality as a full spike,
+// just smaller, so it was previously being silently skipped (never drawn or deadly).
+const sLeft = ox+GRID*MINI_SPIKE_HITBOX.left, sRight = ox+GRID*MINI_SPIKE_HITBOX.right;
+const sBottom = oy+GRID*MINI_SPIKE_HITBOX.bottom, sTop = oy+GRID*MINI_SPIKE_HITBOX.top;
+const overlapX = pxRight-wavePad > sLeft && pxLeft+wavePad < sRight;
+const overlapY = pyTop-wavePad > sBottom && pyBottom+wavePad < sTop;
 if(overlapX && overlapY){ killPlayer(); return; }
 } else if(o.t==='block'){
 // blocks are solid platforms, not hazards - use their true edges (no forgiveness padding)
@@ -1665,6 +1928,46 @@ game.y = oTop; game.vy=0;
 killPlayer(); return;
 }
 }
+} else if(o.t==='slope'){
+// GD-style ground slope: a walkable ramp for grounded modes (cube/ball/robot). For Wave,
+// the ramp is treated as a full solid surface across the whole cell (top OR bottom, matching
+// its rise/fall direction) - Wave dies the instant any part of its body crosses the ramp
+// line, from above or below, exactly like touching a normal block. This replaces the old
+// "only dies if fully below the center point" check, which let Wave clip through slopes.
+const oLeft = ox, oRight = ox+GRID;
+const overlapXSlope = pxRight > oLeft && pxLeft < oRight;
+if(overlapXSlope){
+if(!flying){
+// sample the ramp height at the player's horizontal center for grounded modes
+const centerX = Math.min(oRight, Math.max(oLeft, playerWX));
+const frac = (centerX-oLeft)/GRID;
+const slopeFrac = o.dir==='down' ? (1-frac) : frac;
+const surfaceY = oy + GRID*slopeFrac;
+if(game.gravityDir===1){
+if(game.vy<=0 && pyBottom <= surfaceY+22 && game.prevY >= surfaceY-30){
+game.y = surfaceY; game.vy=0; game.grounded=true;
+}
+} else {
+const ceilSurfaceY = oy + GRID - GRID*slopeFrac;
+if(game.vy>=0 && pyTop >= ceilSurfaceY-22 && (game.prevY+game.playerSize) <= ceilSurfaceY+30){
+game.y = ceilSurfaceY-game.playerSize; game.vy=0; game.grounded=true;
+}
+}
+} else if(game.mode==='wave'){
+// Check the ramp surface across the player's full width, not just its center point,
+// so Wave can't clip a corner of the ramp through a fast diagonal pass.
+const sampleXs = [Math.max(oLeft,pxLeft), Math.min(oRight,pxRight)];
+for(const sx of sampleXs){
+const frac = Math.min(1, Math.max(0, (sx-oLeft)/GRID));
+const slopeFrac = o.dir==='down' ? (1-frac) : frac;
+const surfaceY = oy + GRID*slopeFrac;
+if(pyBottom-wavePad < surfaceY && pyTop+wavePad > surfaceY){ killPlayer(); return; }
+if(pyBottom+wavePad < surfaceY){ killPlayer(); return; }
+}
+}
+// ship/ufo/robot-in-air simply ignore slopes (pass through), matching how those modes
+// treat ground angles loosely in GD - only Wave and grounded modes truly interact with them.
+}
 } else if(o.t==='orb'){
 const oLeft = ox+3, oRight = ox+GRID-3;
 const overlapX = pxRight-pad > oLeft && pxLeft+pad < oRight;
@@ -1691,6 +1994,18 @@ game.mode = newMode;
 game.jumpsLeft = 2;
 document.getElementById('modeTag').textContent = newMode.charAt(0).toUpperCase()+newMode.slice(1);
 }
+game.portalUsed[key]=true;
+}
+} else if(o.t && o.t.indexOf('speed')===0){
+// Speed portal: same trigger footprint as a mode portal, but changes camera/world speed
+// instead of the player's mode. Only fires once per pass, just like mode portals.
+const oLeft = ox+3, oRight = ox+GRID-3;
+const overlapX = pxRight-pad > oLeft && pxLeft+pad < oRight;
+const overlapY = pyTop > oBottom-GRID && pyBottom < oTop+GRID;
+const key = o.x+'_'+o.y;
+if(overlapX && overlapY && !game.portalUsed[key]){
+const tier = o.tier || parseInt(o.t.replace('speed',''),10) || 2;
+game.speed = SPEED_LEVELS[tier-1] || game.speed;
 game.portalUsed[key]=true;
 }
 } else if(o.t==='triggerColor'){
@@ -1777,6 +2092,23 @@ const grad = ctx.createLinearGradient(0,0,0,cv.height);
 grad.addColorStop(0,theme.bgTop); grad.addColorStop(1,theme.bgBottom);
 ctx.fillStyle=grad; ctx.fillRect(0,0,cv.width,cv.height);
 
+// While flying (ship/ufo/wave), scatter a drifting starfield behind everything — makes those
+// stretches read as an open-sky/space passage instead of the same flat corridor look as the
+// ground modes. Purely visual, deterministic per-star so it doesn't jitter frame to frame.
+if(FLYING_MODES.includes(game.mode)){
+ctx.save();
+for(let i=0;i<70;i++){
+const depth = 0.15 + (i%7)*0.06;
+const sx = ((i*137 - game.camX*depth) % (cv.width+200)) - 100;
+const sy = (i*89) % cv.height;
+const tw = 0.35 + 0.35*Math.sin((now||0)*0.002 + i);
+ctx.globalAlpha = Math.max(0.08, tw*0.5);
+ctx.fillStyle = '#ffffff';
+ctx.fillRect(((sx%cv.width)+cv.width)%cv.width, sy, 2, 2);
+}
+ctx.restore();
+}
+
 const groundY = game.groundY;
 ctx.strokeStyle='rgba(255,255,255,.04)';
 for(let i=0;i<40;i++){
@@ -1828,8 +2160,9 @@ const rot = game.mode==='cube' ? game.rotation : (game.mode==='wave' ? (game.hol
 drawPlayerShape(ctx, psx, psy, game.playerSize, settings, rot, game.mode);
 }
 
-// LIMBO / GRIEF extreme-demon atmosphere: a subtle pulsing red vignette around the edges
-if(game.level.name==='LIMBO' || game.level.name==='GRIEF'){
+// Extreme-demon atmosphere (LIMBO / GRIEF / Aeternus): a subtle pulsing red vignette around
+// the edges of the screen.
+if(game.level.difficulty==='extreme demon'){
 const pulse = 0.28 + Math.sin((now||0)*0.0015)*0.06;
 const vg = ctx.createRadialGradient(cv.width/2,cv.height/2,cv.height*0.25,cv.width/2,cv.height/2,cv.height*0.8);
 vg.addColorStop(0,'rgba(0,0,0,0)');
